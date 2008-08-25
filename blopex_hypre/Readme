@@ -1,0 +1,15 @@
+These codes are provided: 
+1) to update develop.20050606.tar.gz with the most recent LOBPCG version, or 
+2) as a reference only, since after July 2005 Hypre already has 
+all these files incorporated. 
+
+To update develop.20050606.tar.gz, run 
+
+./before_make.sh Hypre_Home
+
+where Hypre_Home is the develop.20050606.tar.gz install directory. 
+Then, configure and make Hypre in the usual way. 
+If you run later 
+make distclean
+you need to re-run 
+./before_make.sh Hypre_Home

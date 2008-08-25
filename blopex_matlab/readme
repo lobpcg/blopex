@@ -1,0 +1,16 @@
+Sample installation procedure:
+
+Untar it  to "~/blopex/blopex_matlab" ("~/blopex/blopex_abstract" must be present and built). Add directories "~/blopex/blopex_matlab/driver" and "blopex/blopex_matlab/matlab_interface/m_files" to matlab path. Cd to  "~/blopex/blopex_matlab"  and run "make".
+
+To run it, run the script "/blopex/blopex_matlab/driver/test_blopex_matlab.m" in matlab.
+
+"HOW IT WORKS"
+"test_blopex_matlab" is just a test driver; it calls "blopex_matlab.m". 
+
+The latter does parameter parsing and checking, and eventually calls "blopex_matlab_gateway.mexa64" (extension varies from system to system) to do actual computations. 
+
+"blopex_matlab_gateway.mexa64" is a "mex" file, built from "blopex_matlab_gateway.c" (+files in "blopex_matlab/matlab_interface/c_files" and "blopex_abstract/lib/libBLOPEX.a"). 
+
+This "mex" file does actual computations by calling "abstract" blopex library. 
+
+In order to do matrix-vector products, vector algebra, etc., "mex"-file calls back matlab functions, which are stored in m-files in a directory "blopex_matlab/matlab_interface/m_files".
