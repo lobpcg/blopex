@@ -17,7 +17,7 @@ typedef struct
   
 } mv_TempMultiVector;
 
-typedef struct mv_TempMultiVector* mv_TempMultiVectorPtr;
+typedef mv_TempMultiVector* mv_TempMultiVectorPtr; /*Error fixed by by Hong Zhang, PETSc*/
 
 /*******************************************************************/
 /*
