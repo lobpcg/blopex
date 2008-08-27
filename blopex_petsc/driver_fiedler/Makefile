@@ -1,18 +1,15 @@
-include ../Makefile.inc
+CFLAGS           = ${BLOPEX_INCLUDE} 
+FFLAGS           =
+CPPFLAGS         =
+FPPFLAGS         =
+LOCDIR           = src/contrib/blopex/driver_fiedler/
+EXAMPLESC        = driver_fiedler.c
+EXAMPLESF        = 
+MANSEC           = KSP
+ 
+ 
+include ${PETSC_DIR}/conf/base
 
-CPPFLAGS         = -I../petsc-interface -I$(LOBPCG_ROOT_DIR)/include
-LOCDIR           = driver/
-
-include ${PETSC_DIR}/bmake/common/variables
-
-driver_fiedler: driver_fiedler.o
-	${CLINKER} -o driver_fiedler driver_fiedler.o ../petsc-interface/petsc-interface.o \
--L$(LOBPCG_ROOT_DIR)/lib -lBLOPEX ${PETSC_KSP_LIB}
-
-driver_fiedler.o: driver_fiedler.c ../petsc-interface/petsc-interface.h
-	$(PETSC_COMPILE_SINGLE) driver_fiedler.c
-
-clean: FORCE
-	rm -f driver_fiedler.o driver_fiedler
-
-FORCE:
+driver_fiedler: driver_fiedler.o  chkopts
+ -${CLINKER} -o driver_fiedler driver_fiedler.o  ${PETSC_KSP_LIB}
+ ${RM} driver_fiedler.o
