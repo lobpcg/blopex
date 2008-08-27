@@ -24,15 +24,15 @@ mv_MultiVectorPtr
 mv_MultiVectorWrap( mv_InterfaceInterpreter* ii, void * data, int ownsData );
 
   /* creates a multivector of width n using sample vector */
-mv_MultiVectorPtr 
+mv_MultiVectorPtr
 mv_MultiVectorCreateFromSampleVector( void*, int n, void* sample );
 
   /* creates a multivector of the same shape as x; copies values
      if copyValues is non-zero */
-mv_MultiVectorPtr 
+mv_MultiVectorPtr
 mv_MultiVectorCreateCopy( mv_MultiVectorPtr x, int copyValues );
 
-void 
+void
 mv_MultiVectorDestroy( mv_MultiVectorPtr );
 
 int
@@ -46,54 +46,56 @@ mv_MultiVectorHeight( mv_MultiVectorPtr v );
 void
 mv_MultiVectorSetMask( mv_MultiVectorPtr v, int* mask );
 
-void 
+void
 mv_MultiVectorClear( mv_MultiVectorPtr );
 
-void 
+void
 mv_MultiVectorSetRandom( mv_MultiVectorPtr v, int seed );
 
-void 
+void
 mv_MultiVectorCopy( mv_MultiVectorPtr src, mv_MultiVectorPtr dest );
 
   /* computes y = a*x + y */
-void 
-mv_MultiVectorAxpy( double a, mv_MultiVectorPtr x, mv_MultiVectorPtr y ); 
+void
+mv_MultiVectorAxpy( double a, mv_MultiVectorPtr x, mv_MultiVectorPtr y );
 
   /* computes the matrix v = x'*y stored in fortran style: gh is the leading dimension,
      h the number of rows and w the number of columns (cf. blas or lapack) */
-void 
+void
 mv_MultiVectorByMultiVector( mv_MultiVectorPtr x, mv_MultiVectorPtr y,
-				int gh, int h, int w, double* v );
+                int gh, int h, int w, void* v );
 
   /*computes the diagonal of x'*y stored in diag(mask) */
-void 
+void
 mv_MultiVectorByMultiVectorDiag( mv_MultiVectorPtr, mv_MultiVectorPtr,
-				   int* mask, int n, double* diag );
+                   int* mask, int n, void* diag );
 
   /* computes y = x*v, where v is stored in fortran style */
-void 
-mv_MultiVectorByMatrix( mv_MultiVectorPtr x, 
-			   int gh, int h, int w, double* v,
-			   mv_MultiVectorPtr y );
+void
+mv_MultiVectorByMatrix( mv_MultiVectorPtr x,
+               int gh, int h, int w, void* v,
+               mv_MultiVectorPtr y );
 
   /* computes y = x*v + y, where v is stored in fortran style */
-void 
-mv_MultiVectorXapy( mv_MultiVectorPtr x, 
-		       int gh, int h, int w, double* v,
-		       mv_MultiVectorPtr y );
+void
+mv_MultiVectorXapy( mv_MultiVectorPtr x,
+               int gh, int h, int w, void* v,
+               mv_MultiVectorPtr y );
 
   /* computes y = x*diag(mask) */
-void mv_MultiVectorByDiagonal( mv_MultiVectorPtr x, 
-				  int* mask, int n, double* diag,
-				  mv_MultiVectorPtr y );
+void mv_MultiVectorByDiagonal( mv_MultiVectorPtr x,
+                  int* mask, int n, void* diag,
+                  mv_MultiVectorPtr y );
 
   /* computes y = f(x) vector-by-vector */
-void 
-mv_MultiVectorEval( void (*f)( void*, void*, void* ), 
-		       void* par,
-		       mv_MultiVectorPtr x, 
-		       mv_MultiVectorPtr y );
+void
+mv_MultiVectorEval( void (*f)( void*, void*, void* ),
+               void* par,
+               mv_MultiVectorPtr x,
+               mv_MultiVectorPtr y );
 
+void
+mv_MultiVectorPrint( mv_MultiVectorPtr x, char * tag, int limit );
 #ifdef __cplusplus
 }
 #endif

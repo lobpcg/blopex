@@ -7,6 +7,9 @@
 #include "temp_multivector.h"
 #include "interpreter.h"
 
+/* ----------- complex definition ----------- */
+typedef struct {double real, imag;} komplex;
+
 static void
 mv_collectVectorPtr( int* mask, mv_TempMultiVector* x, void** px ) {
 
@@ -15,7 +18,7 @@ mv_collectVectorPtr( int* mask, mv_TempMultiVector* x, void** px ) {
   if ( mask != NULL ) {
     for ( ix = 0, jx = 0; ix < x->numVectors; ix++ )
       if ( mask[ix] )
-	px[jx++] = x->vector[ix];
+    px[jx++] = x->vector[ix];
   }
   else
     for ( ix = 0; ix < x->numVectors; ix++ )
@@ -42,11 +45,11 @@ static void
 aux_indexFromMask( int n, int* mask, int* index ) {
 
   long i, j;
-  
+
   if ( mask != NULL ) {
     for ( i = 0, j = 0; i < n; i++ )
       if ( mask[i] )
-	index[j++] = i + 1;
+    index[j++] = i + 1;
   }
   else
     for ( i = 0; i < n; i++ )
@@ -70,7 +73,7 @@ static void mysrand(unsigned seed) {
 
 
 void*
-mv_TempMultiVectorCreateFromSampleVector( void* ii_, int n, void* sample ) { 
+mv_TempMultiVectorCreateFromSampleVector( void* ii_, int n, void* sample ) {
 
   int i;
   mv_TempMultiVector* x;
@@ -78,10 +81,10 @@ mv_TempMultiVectorCreateFromSampleVector( void* ii_, int n, void* sample ) {
 
   x = (mv_TempMultiVector*) malloc(sizeof(mv_TempMultiVector));
   assert( x != NULL );
-  
+
   x->interpreter = ii;
   x->numVectors = n;
-  
+
   x->vector = (void**) calloc( n, sizeof(void*) );
   assert( x->vector != NULL );
 
@@ -109,8 +112,8 @@ mv_TempMultiVectorCreateCopy( void* src_, int copyValues ) {
 
   n = src->numVectors;
 
-  dest = mv_TempMultiVectorCreateFromSampleVector( src->interpreter, 
-						      n, src->vector[0] );
+  dest = mv_TempMultiVectorCreateFromSampleVector( src->interpreter,
+                              n, src->vector[0] );
   if ( copyValues )
     for ( i = 0; i < n; i++ ) {
       (dest->interpreter->CopyVector)(src->vector[i],dest->vector[i]);
@@ -119,7 +122,7 @@ mv_TempMultiVectorCreateCopy( void* src_, int copyValues ) {
   return dest;
 }
 
-void 
+void
 mv_TempMultiVectorDestroy( void* x_ ) {
 
   int i;
@@ -151,13 +154,13 @@ mv_TempMultiVectorWidth( void* x_ ) {
 
 int
 mv_TempMultiVectorHeight( void* x_ ) {
- 
+
   mv_TempMultiVector* x = (mv_TempMultiVector*)x_;
-  
+
   if ( x == NULL )
-   return 0; 
- 
-  return (x->interpreter->VectorSize)(x->vector[0]); 
+   return 0;
+
+  return (x->interpreter->VectorSize)(x->vector[0]);
 }
 
 /* this shallow copy of the mask is convenient but not safe;
@@ -205,7 +208,7 @@ mv_TempMultiVectorSetRandom( void* x_, int seed ) {
 
 
 
-void 
+void
 mv_TempMultiVectorCopy( void* src_, void* dest_ ) {
 
   int i, ms, md;
@@ -219,7 +222,7 @@ mv_TempMultiVectorCopy( void* src_, void* dest_ ) {
   ms = aux_maskCount( src->numVectors, src->mask );
   md = aux_maskCount( dest->numVectors, dest->mask );
   assert( ms == md );
-	
+
   ps = (void**) calloc( ms, sizeof(void*) );
   assert( ps != NULL );
   pd = (void**) calloc( md, sizeof(void*) );
@@ -235,9 +238,9 @@ mv_TempMultiVectorCopy( void* src_, void* dest_ ) {
   free(pd);
 }
 
-void 
-mv_TempMultiVectorAxpy( double a, void* x_, void* y_ ) { 
-	
+void
+mv_TempMultiVectorAxpy( double a, void* x_, void* y_ ) {
+
   int i, mx, my;
   void** px;
   void** py;
@@ -261,17 +264,53 @@ mv_TempMultiVectorAxpy( double a, void* x_, void* y_ ) {
   mv_collectVectorPtr( y->mask, y, py );
 
   for ( i = 0; i < mx; i++ )
-    (x->interpreter->Axpy)(a,px[i],py[i]);
+    (x->interpreter->Axpy)(&a,px[i],py[i]);
 
   free(px);
   free(py);
 }
 
-void 
+void
+mv_TempMultiVectorAxpy_complex( double a, void* x_, void* y_ ) {
+
+  int i, mx, my;
+  void** px;
+  void** py;
+  mv_TempMultiVector* x;
+  mv_TempMultiVector* y;
+
+  x = (mv_TempMultiVector*)x_;
+  y = (mv_TempMultiVector*)y_;
+  assert( x != NULL && y != NULL );
+
+  mx = aux_maskCount( x->numVectors, x->mask );
+  my = aux_maskCount( y->numVectors, y->mask );
+  assert( mx == my );
+
+  px = (void**) calloc( mx, sizeof(void*) );
+  assert( px != NULL );
+  py = (void**) calloc( my, sizeof(void*) );
+  assert( py != NULL );
+
+  mv_collectVectorPtr( x->mask, x, px );
+  mv_collectVectorPtr( y->mask, y, py );
+
+  komplex alpha;
+  alpha.real = a;
+  alpha.imag = 0;
+
+  for ( i = 0; i < mx; i++ )
+    (x->interpreter->Axpy)(&alpha,px[i],py[i]);
+
+  free(px);
+  free(py);
+}
+
+void
 mv_TempMultiVectorByMultiVector( void* x_, void* y_,
-				     int xyGHeight, int xyHeight, 
-				     int xyWidth, double* xyVal ) { 
-/* xy = x'*y */	
+                     int xyGHeight, int xyHeight,
+                     int xyWidth, void* xyVal ) {
+/* xy = x'*y */
 
   int ix, iy, mx, my, jxy;
   double* p;
@@ -299,9 +338,9 @@ mv_TempMultiVectorByMultiVector( void* x_, void* y_,
   mv_collectVectorPtr( y->mask, y, py );
 
   jxy = xyGHeight - xyHeight;
-  for ( iy = 0, p = xyVal; iy < my; iy++ ) {
+  for ( iy = 0, p = (double *)xyVal; iy < my; iy++ ) {
     for ( ix = 0; ix < mx; ix++, p++ )
-      *p = (x->interpreter->InnerProd)(px[ix],py[iy]);
+      (x->interpreter->InnerProd)(px[ix],py[iy],p);
     p += jxy;
   }
 
@@ -310,10 +349,54 @@ mv_TempMultiVectorByMultiVector( void* x_, void* y_,
 
 }
 
-void 
+void
+mv_TempMultiVectorByMultiVector_complex( void* x_, void* y_,
+                     int xyGHeight, int xyHeight,
+                     int xyWidth, void* xyVal ) {
+/* xy = x'*y */
+
+  int ix, iy, mx, my, jxy;
+  komplex* p;
+  void** px;
+  void** py;
+  mv_TempMultiVector* x;
+  mv_TempMultiVector* y;
+
+  x = (mv_TempMultiVector*)x_;
+  y = (mv_TempMultiVector*)y_;
+  assert( x != NULL && y != NULL );
+
+  mx = aux_maskCount( x->numVectors, x->mask );
+  assert( mx == xyHeight );
+
+  my = aux_maskCount( y->numVectors, y->mask );
+  assert( my == xyWidth );
+
+  px = (void**) calloc( mx, sizeof(void*) );
+  assert( px != NULL );
+  py = (void**) calloc( my, sizeof(void*) );
+  assert( py != NULL );
+
+  mv_collectVectorPtr( x->mask, x, px );
+  mv_collectVectorPtr( y->mask, y, py );
+
+  jxy = xyGHeight - xyHeight;
+  for ( iy = 0, p = (komplex *) xyVal; iy < my; iy++ ) {
+    for ( ix = 0; ix < mx; ix++, p++ )
+/* reverse py and px here to insure transpose is on px */
+      (x->interpreter->InnerProd)(py[iy],px[ix],p);
+    p += jxy;
+  }
+
+  free(px);
+  free(py);
+
+}
+
+void
 mv_TempMultiVectorByMultiVectorDiag( void* x_, void* y_,
-					int* mask, int n, double* diag ) {
-/* diag = diag(x'*y) */	
+                    int* mask, int n, void* diag ) {
+/* diag = diag(x'*y) */
 
   int i, mx, my, m;
   void** px;
@@ -342,20 +425,68 @@ mv_TempMultiVectorByMultiVectorDiag( void* x_, void* y_,
   index = (int*)calloc( m, sizeof(int) );
   aux_indexFromMask( n, mask, index );
 
+  double * dp;
+  dp = (double *)diag;
+
   for ( i = 0; i < m; i++ )
-    *(diag+index[i]-1) = (x->interpreter->InnerProd)(px[i],py[i]);
-  
+     (x->interpreter->InnerProd)(px[i],py[i],dp+index[i]-1);
+
   free(index);
   free(px);
   free(py);
 
 }
 
-void 
-mv_TempMultiVectorByMatrix( void* x_, 
-			       int rGHeight, int rHeight, 
-			       int rWidth, double* rVal,
-			       void* y_ ) {
+void
+mv_TempMultiVectorByMultiVectorDiag_complex( void* x_, void* y_,
+                    int* mask, int n, void* diag ) {
+/* diag = diag(x'*y) */
+
+  int i, mx, my, m;
+  void** px;
+  void** py;
+  int* index;
+  mv_TempMultiVector* x;
+  mv_TempMultiVector* y;
+
+  x = (mv_TempMultiVector*)x_;
+  y = (mv_TempMultiVector*)y_;
+  assert( x != NULL && y != NULL );
+
+  mx = aux_maskCount( x->numVectors, x->mask );
+  my = aux_maskCount( y->numVectors, y->mask );
+  m = aux_maskCount( n, mask );
+  assert( mx == my && mx == m );
+
+  px = (void**) calloc( mx, sizeof(void*) );
+  assert( px != NULL );
+  py = (void**) calloc( my, sizeof(void*) );
+  assert( py != NULL );
+
+  mv_collectVectorPtr( x->mask, x, px );
+  mv_collectVectorPtr( y->mask, y, py );
+
+  index = (int*)calloc( m, sizeof(int) );
+  aux_indexFromMask( n, mask, index );
+
+  komplex * dp;
+  dp = (komplex *)diag;
+
+  for ( i = 0; i < m; i++ )
+  /* reverse py and px here to insure transpose is on px */
+     (x->interpreter->InnerProd)(py[i],px[i],dp+index[i]-1);
+
+  free(index);
+  free(px);
+  free(py);
+
+}
+
+void
+mv_TempMultiVectorByMatrix( void* x_,
+                   int rGHeight, int rHeight,
+                   int rWidth, void* rVal,
+                   void* y_ ) {
 
   int i, j, jump;
   int mx, my;
@@ -373,20 +504,20 @@ mv_TempMultiVectorByMatrix( void* x_,
   my = aux_maskCount( y->numVectors, y->mask );
 
   assert( mx == rHeight && my == rWidth );
-  
+
   px = (void**) calloc( mx, sizeof(void*) );
   assert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
   assert( py != NULL );
-  
+
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
 
   jump = rGHeight - rHeight;
-  for ( j = 0, p = rVal; j < my; j++ ) {
+  for ( j = 0, p = (double *) rVal; j < my; j++ ) {
     (x->interpreter->ClearVector)( py[j] );
     for ( i = 0; i < mx; i++, p++ )
-      (x->interpreter->Axpy)(*p,px[i],py[j]);
+      (x->interpreter->Axpy)(p,px[i],py[j]);
     p += jump;
   }
 
@@ -394,11 +525,54 @@ mv_TempMultiVectorByMatrix( void* x_,
   free(py);
 }
 
-void 
-mv_TempMultiVectorXapy( void* x_, 
-			   int rGHeight, int rHeight, 
-			   int rWidth, double* rVal,
-			   void* y_ ) {
+void
+mv_TempMultiVectorByMatrix_complex( void* x_,
+                   int rGHeight, int rHeight,
+                   int rWidth, void* rVal,
+                   void* y_ ) {
+
+  int i, j, jump;
+  int mx, my;
+  komplex* p;
+  void** px;
+  void** py;
+  mv_TempMultiVector* x;
+  mv_TempMultiVector* y;
+
+  x = (mv_TempMultiVector*)x_;
+  y = (mv_TempMultiVector*)y_;
+  assert( x != NULL && y != NULL );
+
+  mx = aux_maskCount( x->numVectors, x->mask );
+  my = aux_maskCount( y->numVectors, y->mask );
+
+  assert( mx == rHeight && my == rWidth );
+
+  px = (void**) calloc( mx, sizeof(void*) );
+  assert( px != NULL );
+  py = (void**) calloc( my, sizeof(void*) );
+  assert( py != NULL );
+
+  mv_collectVectorPtr( x->mask, x, px );
+  mv_collectVectorPtr( y->mask, y, py );
+
+  jump = rGHeight - rHeight;
+  for ( j = 0, p = (komplex *) rVal; j < my; j++ ) {
+    (x->interpreter->ClearVector)( py[j] );
+    for ( i = 0; i < mx; i++, p++ )
+      (x->interpreter->Axpy)(p,px[i],py[j]);
+    p += jump;
+  }
+
+  free(px);
+  free(py);
+}
+
+void
+mv_TempMultiVectorXapy( void* x_,
+               int rGHeight, int rHeight,
+               int rWidth, void* rVal,
+               void* y_ ) {
 
   int i, j, jump;
   int mx, my;
@@ -416,19 +590,19 @@ mv_TempMultiVectorXapy( void* x_,
   my = aux_maskCount( y->numVectors, y->mask );
 
   assert( mx == rHeight && my == rWidth );
-  
+
   px = (void**) calloc( mx, sizeof(void*) );
   assert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
   assert( py != NULL );
-  
+
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
 
   jump = rGHeight - rHeight;
-  for ( j = 0, p = rVal; j < my; j++ ) {
+  for ( j = 0, p = (double *)rVal; j < my; j++ ) {
     for ( i = 0; i < mx; i++, p++ )
-      (x->interpreter->Axpy)(*p,px[i],py[j]);
+      (x->interpreter->Axpy)(p,px[i],py[j]);
     p += jump;
   }
 
@@ -436,10 +610,52 @@ mv_TempMultiVectorXapy( void* x_,
   free(py);
 }
 
-void 
-mv_TempMultiVectorByDiagonal( void* x_, 
-				int* mask, int n, double* diag,
-				void* y_ ) {
+void
+mv_TempMultiVectorXapy_complex( void* x_,
+               int rGHeight, int rHeight,
+               int rWidth, void* rVal,
+               void* y_ ) {
+
+  int i, j, jump;
+  int mx, my;
+  komplex* p;
+  void** px;
+  void** py;
+  mv_TempMultiVector* x;
+  mv_TempMultiVector* y;
+
+  x = (mv_TempMultiVector*)x_;
+  y = (mv_TempMultiVector*)y_;
+  assert( x != NULL && y != NULL );
+
+  mx = aux_maskCount( x->numVectors, x->mask );
+  my = aux_maskCount( y->numVectors, y->mask );
+
+  assert( mx == rHeight && my == rWidth );
+
+  px = (void**) calloc( mx, sizeof(void*) );
+  assert( px != NULL );
+  py = (void**) calloc( my, sizeof(void*) );
+  assert( py != NULL );
+
+  mv_collectVectorPtr( x->mask, x, px );
+  mv_collectVectorPtr( y->mask, y, py );
+
+  jump = rGHeight - rHeight;
+  for ( j = 0, p = (komplex *)rVal; j < my; j++ ) {
+    for ( i = 0; i < mx; i++, p++ )
+      (x->interpreter->Axpy)(p,px[i],py[j]);
+    p += jump;
+  }
+
+  free(px);
+  free(py);
+}
+
+void
+mv_TempMultiVectorByDiagonal( void* x_,
+                int* mask, int n, void* diag,
+                void* y_ ) {
 
   int j;
   int mx, my, m;
@@ -456,7 +672,7 @@ mv_TempMultiVectorByDiagonal( void* x_,
   mx = aux_maskCount( x->numVectors, x->mask );
   my = aux_maskCount( y->numVectors, y->mask );
   m = aux_maskCount( n, mask );
-	
+
   assert( mx == m && my == m );
 
   if ( m < 1 )
@@ -473,9 +689,12 @@ mv_TempMultiVectorByDiagonal( void* x_,
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
 
+  double * dp;
+  dp = (double *)diag;
+
   for ( j = 0; j < my; j++ ) {
     (x->interpreter->ClearVector)(py[j]);
-    (x->interpreter->Axpy)(diag[index[j]-1],px[j],py[j]);
+    (x->interpreter->Axpy)(dp+index[j]-1,px[j],py[j]);
   }
 
   free(px);
@@ -483,9 +702,59 @@ mv_TempMultiVectorByDiagonal( void* x_,
   free( index );
 }
 
-void 
+void
+mv_TempMultiVectorByDiagonal_complex( void* x_,
+                int* mask, int n, void* diag,
+                void* y_ ) {
+
+  int j;
+  int mx, my, m;
+  void** px;
+  void** py;
+  int* index;
+  mv_TempMultiVector* x;
+  mv_TempMultiVector* y;
+
+  x = (mv_TempMultiVector*)x_;
+  y = (mv_TempMultiVector*)y_;
+  assert( x != NULL && y != NULL );
+
+  mx = aux_maskCount( x->numVectors, x->mask );
+  my = aux_maskCount( y->numVectors, y->mask );
+  m = aux_maskCount( n, mask );
+
+  assert( mx == m && my == m );
+
+  if ( m < 1 )
+    return;
+
+  px = (void**) calloc( mx, sizeof(void*) );
+  assert( px != NULL );
+  py = (void**) calloc( my, sizeof(void*) );
+  assert( py != NULL );
+
+  index = (int*)calloc( m, sizeof(int) );
+  aux_indexFromMask( n, mask, index );
+
+  mv_collectVectorPtr( x->mask, x, px );
+  mv_collectVectorPtr( y->mask, y, py );
+
+  komplex * dp;
+  dp = (komplex *)diag;
+
+  for ( j = 0; j < my; j++ ) {
+    (x->interpreter->ClearVector)(py[j]);
+    (x->interpreter->Axpy)(dp+index[j]-1,px[j],py[j]);
+  }
+
+  free(px);
+  free(py);
+  free( index );
+}
+
+void
 mv_TempMultiVectorEval( void (*f)( void*, void*, void* ), void* par,
-			   void* x_, void* y_ ) {
+               void* x_, void* y_ ) {
 
   long i, mx, my;
   void** px;

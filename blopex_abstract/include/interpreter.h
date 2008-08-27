@@ -1,4 +1,5 @@
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
+/* and Don McCuan  */
 
 #ifndef LOBPCG_INTERFACE_INTERPRETER
 #define LOBPCG_INTERFACE_INTERPRETER
@@ -9,14 +10,14 @@ typedef struct
   void*  (*CreateVector)  ( void *vector );
   int    (*DestroyVector) ( void *vector );
 
-  double (*InnerProd)     ( void *x, void *y );
+  int    (*InnerProd)     ( void *x, void *y, void *result );
   int    (*CopyVector)    ( void *x, void *y );
   int    (*ClearVector)   ( void *x );
   int    (*SetRandomValues)   ( void *x, int seed );
   int    (*ScaleVector)   ( double alpha, void *x );
-  int    (*Axpy)          ( double alpha, void *x, void *y );
+  int    (*Axpy)          ( void * alpha, void *x, void *y );
   int    (*VectorSize)    (void * vector);
-  
+
   /* multivector operations */
   /* do we need the following entry? */
   void*  (*CreateMultiVector)  ( void*, int n, void *vector );
@@ -31,14 +32,15 @@ typedef struct
   void   (*CopyMultiVector)    ( void *x, void *y );
   void   (*ClearMultiVector)   ( void *x );
   void   (*SetRandomVectors)   ( void *x, int seed );
-  void   (*MultiInnerProd)     ( void *x, void *y, int, int, int, double* );
-  void   (*MultiInnerProdDiag) ( void *x, void *y, int*, int, double* );
-  void   (*MultiVecMat)        ( void *x, int, int, int, double*, void *y );
-  void   (*MultiVecMatDiag)    ( void *x, int*, int, double*, void *y );
+  void   (*MultiInnerProd)     ( void *x, void *y, int, int, int, void* );
+  void   (*MultiInnerProdDiag) ( void *x, void *y, int*, int, void* );
+  void   (*MultiVecMat)        ( void *x, int, int, int, void*, void *y );
+  void   (*MultiVecMatDiag)    ( void *x, int*, int, void*, void *y );
   void   (*MultiAxpy)          ( double alpha, void *x, void *y );
+  void   (*MultiPrint)         ( void *x, char * tag,int limit );
 
   /* do we need the following 2 entries? */
-  void   (*MultiXapy)          ( void *x, int, int, int, double*, void *y );
+  void   (*MultiXapy)          ( void *x, int, int, int, void*, void *y );
   void   (*Eval)               ( void (*f)( void*, void*, void* ), void*, void *x, void *y );
 
 } mv_InterfaceInterpreter;

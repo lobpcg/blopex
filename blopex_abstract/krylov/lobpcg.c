@@ -6,13 +6,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "lobpcg.h"
 #include "fortran_matrix.h"
+#include "fortran_interpreter.h"
+#include "lobpcg.h"
 #include "multivector.h"
 
+
+/* ------------------------------------------------------------
+   lobpcg_chol       chol fact of a ie a=u'*u            double
+                     replaces a with u
+   ------------------------------------------------------------ */
 static int
-lobpcg_chol( utilities_FortranMatrix* a, 
-        int (*dpotrf) (char *uplo, int *n, double *a, int *lda, int *info) )
+lobpcg_chol( utilities_FortranMatrix* a,
+             lobpcg_BLASLAPACKFunctions blap_fn,
+             utilities_FortranInterpreter* util )
 {
 
   int lda, n;
@@ -20,24 +27,47 @@ lobpcg_chol( utilities_FortranMatrix* a,
   char uplo;
   int ierr;
 
-  lda = utilities_FortranMatrixGlobalHeight( a );
-  n = utilities_FortranMatrixHeight( a );
-  aval = utilities_FortranMatrixValues( a );
+  lda = (util->FortranMatrixGlobalHeight) ( a );
+  n = (util->FortranMatrixHeight) ( a );
+  aval = (double *) (util->FortranMatrixValues) ( a );
   uplo = 'U';
 
-  (*dpotrf)( &uplo, &n, aval, &lda, &ierr );
+  blap_fn.dpotrf ( &uplo, &n, aval, &lda, &ierr );
 
   return ierr;
 }
-
+/* ------------------------------------------------------------
+   zlobpcg_chol                                         complex
+   ------------------------------------------------------------ */
 static int
-lobpcg_solveGEVP( 
-utilities_FortranMatrix* mtxA, 
-utilities_FortranMatrix* mtxB,
-utilities_FortranMatrix* eigVal,
-int   (*dsygv) (int *itype, char *jobz, char *uplo, int *
-        n, double *a, int *lda, double *b, int *ldb,
-        double *w, double *work, int *lwork, int *info)
+zlobpcg_chol( utilities_FortranMatrix* a,
+              lobpcg_BLASLAPACKFunctions blap_fn,
+              utilities_FortranInterpreter* util )
+{
+
+  int lda, n;
+  komplex* aval;
+  char uplo;
+  int ierr;
+
+  lda = (util->FortranMatrixGlobalHeight) ( a );
+  n = (util->FortranMatrixHeight) ( a );
+  aval = (komplex *) (util->FortranMatrixValues) ( a );
+  uplo = 'U';
+
+  blap_fn.zpotrf( &uplo, &n, aval, &lda, &ierr );
+
+  return ierr;
+}
+/* ------------------------------------------------------------
+   lobpcg_solveGEVP                                      double
+   ------------------------------------------------------------ */
+static int
+lobpcg_solveGEVP( utilities_FortranMatrix* mtxA,
+                  utilities_FortranMatrix* mtxB,
+                  utilities_FortranMatrix* eigVal,
+                  lobpcg_BLASLAPACKFunctions blap_fn,
+                  utilities_FortranInterpreter* util
 ){
 
   int n, lda, ldb, itype, lwork, info;
@@ -50,117 +80,209 @@ int   (*dsygv) (int *itype, char *jobz, char *uplo, int *
   itype = 1;
   jobz = 'V';
   uplo = 'L';
-    
-  a = utilities_FortranMatrixValues( mtxA );
-  b = utilities_FortranMatrixValues( mtxB );
-  lmd = utilities_FortranMatrixValues( eigVal );
 
-  n = utilities_FortranMatrixHeight( mtxA );
-  lda = utilities_FortranMatrixGlobalHeight( mtxA );
-  ldb = utilities_FortranMatrixGlobalHeight( mtxB );
+  a = (double *) (util->FortranMatrixValues)( mtxA );
+  b = (double *) (util->FortranMatrixValues)( mtxB );
+  lmd = (double *) (util->FortranMatrixValues)( eigVal );
+
+  n = (util->FortranMatrixHeight)( mtxA );
+  lda = (util->FortranMatrixGlobalHeight)( mtxA );
+  ldb = (util->FortranMatrixGlobalHeight)( mtxB );
   lwork = 10*n;
 
   work = (double*)calloc( lwork, sizeof(double) );
 
-  (*dsygv)( &itype, &jobz, &uplo, &n, 
-				       a, &lda, b, &ldb,
-				       lmd, &work[0], &lwork, &info );
+  blap_fn.dsygv( &itype, &jobz, &uplo, &n,
+                  a, &lda, b, &ldb,
+                  lmd, &work[0], &lwork, &info );
 
   free( work );
   return info;
 
 }
+/* ------------------------------------------------------------
+   zlobpcg_solveGEVP                                    complex
+                     find eig of A*x=(lambda)*B*x
+                     mtxA is Hermitian (contains e-vec on ret)
+                     mtxB is Hermitian, Pos Def
+   ------------------------------------------------------------ */
+static int
+zlobpcg_solveGEVP( utilities_FortranMatrix* mtxA,
+                   utilities_FortranMatrix* mtxB,
+                   utilities_FortranMatrix* eigVal,
+                   lobpcg_BLASLAPACKFunctions blap_fn,
+                   utilities_FortranInterpreter* util )
+{
 
+  int i;
+  int n, lda, ldb, itype, lwork, info;
+  char jobz, uplo;
+  komplex* work;
+  komplex* a;
+  komplex* b;
+  double* w;
+  komplex * lmd;
+  double * rwork;
 
+  itype = 1;
+  jobz = 'V';
+  uplo = 'L';
+
+  a = (komplex *) (util->FortranMatrixValues)( mtxA );
+  b = (komplex *) (util->FortranMatrixValues)( mtxB );
+
+  n = (util->FortranMatrixHeight)( mtxA );
+  lda = (util->FortranMatrixGlobalHeight)( mtxA );
+  ldb = (util->FortranMatrixGlobalHeight)( mtxB );
+
+  lwork = 10*n;
+  work = (komplex*)calloc( lwork, sizeof(komplex) );
+  w = (double *)calloc(n,sizeof(double));
+  rwork = (double *)calloc(3*n,sizeof(double));
+
+  blap_fn.zhegv( &itype, &jobz, &uplo, &n,
+                 a, &lda, b, &ldb,
+                 w, &work[0], &lwork, rwork, &info );
+
+  lmd = (komplex *) (util->FortranMatrixValues)( eigVal );
+  for (i=0;i<n;i++) {
+    lmd[i].real = w[i];
+    lmd[i].imag = 0.0;
+  }
+
+  free( work );
+  free( w );
+  return info;
+
+}
+/* ------------------------------------------------------------
+   lobpcg_MultiVectorByMultiVector    xy=x'*y           generic
+   ------------------------------------------------------------ */
 static void
 lobpcg_MultiVectorByMultiVector(
-mv_MultiVectorPtr x,
-mv_MultiVectorPtr y,
-utilities_FortranMatrix* xy
-){
+              mv_MultiVectorPtr x,
+              mv_MultiVectorPtr y,
+              utilities_FortranMatrix* xy,
+              utilities_FortranInterpreter* util )
+{
   mv_MultiVectorByMultiVector( x, y,
-				  utilities_FortranMatrixGlobalHeight( xy ),
-				  utilities_FortranMatrixHeight( xy ),
-				  utilities_FortranMatrixWidth( xy ),
-				  utilities_FortranMatrixValues( xy ) );
+                  (util->FortranMatrixGlobalHeight)( xy ),
+                  (util->FortranMatrixHeight)( xy ),
+                  (util->FortranMatrixWidth)( xy ),
+                  (util->FortranMatrixValues)( xy ) );
 }
-
+/* ------------------------------------------------------------
+   lobpcg_MultiVectorByMatrix   y=x*r                   generic
+   ------------------------------------------------------------ */
 static void
 lobpcg_MultiVectorByMatrix(
-mv_MultiVectorPtr x,
-utilities_FortranMatrix* r,
-mv_MultiVectorPtr y
-){
-  mv_MultiVectorByMatrix( x, 
-			     utilities_FortranMatrixGlobalHeight( r ),
-			     utilities_FortranMatrixHeight( r ),
-			     utilities_FortranMatrixWidth( r ),
-			     utilities_FortranMatrixValues( r ),
-			     y );
+             mv_MultiVectorPtr x,
+             utilities_FortranMatrix* r,
+             mv_MultiVectorPtr y,
+             utilities_FortranInterpreter* util )
+{
+  mv_MultiVectorByMatrix( x,
+                 (util->FortranMatrixGlobalHeight)( r ),
+                 (util->FortranMatrixHeight)( r ),
+                 (util->FortranMatrixWidth)( r ),
+                 (util->FortranMatrixValues)( r ),
+                 y );
 }
-
+/* ------------------------------------------------------------
+   lobpcg_MultiVectorImplicitQR                         generic
+   orthonormalize x
+   ------------------------------------------------------------ */
 static int
-lobpcg_MultiVectorImplicitQR( 
-mv_MultiVectorPtr x, mv_MultiVectorPtr y,
-utilities_FortranMatrix* r,
-mv_MultiVectorPtr z,
-int (*dpotrf) (char *uplo, int *n, double *a, int *lda, int *info)
-
-){
+lobpcg_MultiVectorImplicitQR(
+       mv_MultiVectorPtr x, mv_MultiVectorPtr y,
+       utilities_FortranMatrix* r,
+       mv_MultiVectorPtr z,
+       lobpcg_BLASLAPACKFunctions blap_fn,
+       lobpcg_Interpreter* lobpcg,
+       utilities_FortranInterpreter* util )
+{
 
   /* B-orthonormalizes x using y = B x */
 
   int ierr;
 
-  lobpcg_MultiVectorByMultiVector( x, y, r );
+  /*--- r = x'*y                   */
+  lobpcg_MultiVectorByMultiVector( x, y, r, util );
 
-  ierr = lobpcg_chol( r,dpotrf );
-
+ /*--- r = u in chol fact r=u'*u  */
+  ierr = (lobpcg->chol)( r,blap_fn, util );
   if ( ierr != 0 )
     return ierr;
 
-  utilities_FortranMatrixUpperInv( r );
-  utilities_FortranMatrixClearL( r );
+  /*--- r = inverse(r)  */
+  (util->FortranMatrixUpperInv)( r );
 
+  /*--- lower(r)=0      */
+  (util->FortranMatrixClearL)( r );
+
+  /*--- z = x           */
   mv_MultiVectorCopy( x, z );
-  lobpcg_MultiVectorByMatrix( z, r, x );
+
+  /*--- x = z * r       */
+  lobpcg_MultiVectorByMatrix( z, r, x, util );
 
   return 0;
 }
 
+/* ------------------------------------------------------------
+   lobpcg_ComputeResidualNorms                          generic
+   ------------------------------------------------------------ */
 static void
-lobpcg_sqrtVector( int n, int* mask, double* v ) {
+lobpcg_ComputeResidualNorms( mv_MultiVectorPtr blockVectorR,
+                             utilities_FortranMatrix* resNorms,
+                             utilities_FortranMatrix* resDiag,
+                             int* mask, int sizeX,
+                             utilities_FortranInterpreter* util )
+{
+  /* take inner product of blockVectorR with mask and
+     return results in resDiag */
+
+  mv_MultiVectorByMultiVectorDiag( blockVectorR, blockVectorR,
+                                 mask, sizeX, resDiag->value);
+
+  /* take sqrt of resDiag and place in resNorms */
 
   int i;
+  double *rp;
 
-  for ( i = 0; i < n; i++ )
+  rp = (double *)resNorms->value;
+
+  for ( i = 0; i < sizeX; i++ )
     if ( mask == NULL || mask[i] )
-      v[i] = sqrt(v[i]);
+      rp[i] = sqrt((util->FortranMatrixAbs)(resDiag,i+1,1));
 }
 
+/* ------------------------------------------------------------
+   lobpcg_checkResiduals                                generic
+   ------------------------------------------------------------ */
 static int
-lobpcg_checkResiduals( 
-utilities_FortranMatrix* resNorms,
-utilities_FortranMatrix* lambda,
-lobpcg_Tolerance tol,
-int* activeMask
-){
+lobpcg_checkResiduals( utilities_FortranMatrix* resNorms,
+                       utilities_FortranMatrix* lambda,
+                       lobpcg_Tolerance tol,
+                       int* activeMask,
+                       utilities_FortranInterpreter* util )
+{
   int i, n;
   int notConverged;
   double atol;
   double rtol;
 
-  n = utilities_FortranMatrixHeight( resNorms );
+  n = (util->FortranMatrixHeight)( resNorms );
 
   atol = tol.absolute;
   rtol = tol.relative;
 
   notConverged = 0;
   for ( i = 0; i < n; i++ ) {
-    if ( utilities_FortranMatrixValue( resNorms, i + 1, 1 ) >
-	 utilities_FortranMatrixValue( lambda, i + 1, 1 )*rtol + atol
-	 + DBL_EPSILON ) {
-      activeMask[i] = 1; 
+    if ( utilities_FortranMatrixAbs( resNorms, i + 1, 1 ) >
+     (util->FortranMatrixAbs)( lambda, i + 1, 1 )*rtol + atol
+     + DBL_EPSILON ) {
+      activeMask[i] = 1;
       notConverged++;
     }
     else
@@ -168,7 +290,9 @@ int* activeMask
   }
   return notConverged;
 }
-
+/* ------------------------------------------------------------
+   lobpcg_errorMessage                                  generic
+   ------------------------------------------------------------ */
 static void
 lobpcg_errorMessage( int verbosityLevel, char* message )
 {
@@ -177,143 +301,328 @@ lobpcg_errorMessage( int verbosityLevel, char* message )
     fprintf( stderr, message );
   }
 }
+/* ------------------------------------------------------------
+   lobpcg_dumpLambda                                    generic
+   ------------------------------------------------------------ */
+static void
+lobpcg_dumpLambda( utilities_FortranMatrix* residualNorms,
+                   utilities_FortranMatrix* lambda,
+                   int* iterationNumber,
+                   int sizeX,
+                   utilities_FortranInterpreter* util )
+{
+    int i;
+    double * eig;
 
+    printf("\n");
+    printf("Eigenvalue lambda       Residual              \n");
+    for ( i = 1; i <= sizeX; i++ ) {
+      eig = (double *)(util->FortranMatrixValuePtr)( lambda, i, 1);
+      printf("%22.16e  %22.16e\n", *eig,
+              utilities_FortranMatrixAbs( residualNorms, i, 1) );
+      }
+    printf("\n%d iterations\n", *iterationNumber );
+}
+
+/* ------------------------------------------------------------
+   lobpcg_solve_double                                   double
+   ------------------------------------------------------------ */
+int
+lobpcg_solve_double( mv_MultiVectorPtr blockVectorX,
+          void * operatorAData,
+          void (*operatorA)( void*, void*, void* ),
+          void * operatorBData,
+          void (*operatorB)( void*, void*, void* ),
+          void * operatorTData,
+          void (*operatorT)( void*, void*, void* ),
+          mv_MultiVectorPtr blockVectorY,
+          lobpcg_BLASLAPACKFunctions blap_fn,
+          lobpcg_Tolerance tolerance,
+          int      maxIterations,
+          int      verbosityLevel,
+          int    * iterationNumber,
+          double * lambda_values,
+          double * lambdaHistory_values,
+          int      lambdaHistory_gh,
+          double * residualNorms_values,
+          double * residualNormsHistory_values ,
+          int      residualNormsHistory_gh
+){
+  int exitflag;
+  utilities_FortranInterpreter util;
+  lobpcg_Interpreter lobpcg;
+
+  util.FortranMatrixCreate = utilities_FortranMatrixCreate;
+  util.FortranMatrixAllocateData = utilities_FortranMatrixAllocateData;
+  util.FortranMatrixWrap = utilities_FortranMatrixWrap;
+  util.FortranMatrixDestroy = utilities_FortranMatrixDestroy ;
+  util.FortranMatrixGlobalHeight = utilities_FortranMatrixGlobalHeight;
+  util.FortranMatrixHeight = utilities_FortranMatrixHeight;
+  util.FortranMatrixWidth = utilities_FortranMatrixWidth;
+  util.FortranMatrixValues = utilities_FortranMatrixValues;
+  util.FortranMatrixClear = utilities_FortranMatrixClear;
+  util.FortranMatrixClearL = utilities_FortranMatrixClearL;
+  util.FortranMatrixSetToIdentity = utilities_FortranMatrixSetToIdentity;
+  util.FortranMatrixTransposeSquare = utilities_FortranMatrixTransposeSquare;
+  util.FortranMatrixSymmetrize = utilities_FortranMatrixSymmetrize;
+  util.FortranMatrixCopy = utilities_FortranMatrixCopy;
+  util.FortranMatrixIndexCopy = utilities_FortranMatrixIndexCopy;
+  util.FortranMatrixSetDiagonal = utilities_FortranMatrixSetDiagonal;
+  util.FortranMatrixGetDiagonal = utilities_FortranMatrixGetDiagonal;
+  util.FortranMatrixAdd = utilities_FortranMatrixAdd;
+  util.FortranMatrixDMultiply = utilities_FortranMatrixDMultiply;
+  util.FortranMatrixMultiplyD = utilities_FortranMatrixMultiplyD;
+  util.FortranMatrixMultiply = utilities_FortranMatrixMultiply;
+  util.FortranMatrixFNorm = utilities_FortranMatrixFNorm;
+  util.FortranMatrixAbs = utilities_FortranMatrixAbs;
+  util.FortranMatrixValuePtr = utilities_FortranMatrixValuePtr;
+  util.FortranMatrixMaxValue = utilities_FortranMatrixMaxValue;
+  util.FortranMatrixSelectBlock = utilities_FortranMatrixSelectBlock;
+  util.FortranMatrixUpperInv = utilities_FortranMatrixUpperInv;
+  util.FortranMatrixPrint = utilities_FortranMatrixPrint;
+
+  lobpcg.chol = lobpcg_chol;
+  lobpcg.solveGEVP = lobpcg_solveGEVP;
+
+  exitflag = lobpcg_solve(
+          blockVectorX,
+          operatorAData,
+          operatorA,
+          operatorBData,
+          operatorB,
+          operatorTData,
+          operatorT,
+          blockVectorY,
+          blap_fn,
+          tolerance,
+          maxIterations,
+          verbosityLevel,
+          iterationNumber,
+          (void *) lambda_values,
+          (void *) lambdaHistory_values,
+          lambdaHistory_gh,
+          residualNorms_values,
+          residualNormsHistory_values ,
+          residualNormsHistory_gh,
+          &lobpcg,
+          &util );
+
+   return(exitflag);
+}
+/* ------------------------------------------------------------
+   lobpcg_solve_complex                                complex
+   ------------------------------------------------------------ */
+int
+lobpcg_solve_complex( mv_MultiVectorPtr blockVectorX,
+          void * operatorAData,
+          void (*operatorA)( void*, void*, void* ),
+          void * operatorBData,
+          void (*operatorB)( void*, void*, void* ),
+          void * operatorTData,
+          void (*operatorT)( void*, void*, void* ),
+          mv_MultiVectorPtr blockVectorY,
+          lobpcg_BLASLAPACKFunctions blap_fn,
+          lobpcg_Tolerance tolerance,
+          int      maxIterations,
+          int      verbosityLevel,
+          int    * iterationNumber,
+          komplex * lambda_values,
+          komplex * lambdaHistory_values,
+          int      lambdaHistory_gh,
+          double * residualNorms_values,
+          double * residualNormsHistory_values ,
+          int      residualNormsHistory_gh
+){
+  int exitflag;
+  utilities_FortranInterpreter util;
+  lobpcg_Interpreter lobpcg;
+
+  util.FortranMatrixCreate = utilities_FortranMatrixCreate;
+  util.FortranMatrixAllocateData = zutilities_FortranMatrixAllocateData;
+  util.FortranMatrixWrap = utilities_FortranMatrixWrap;
+  util.FortranMatrixDestroy = utilities_FortranMatrixDestroy ;
+  util.FortranMatrixGlobalHeight = utilities_FortranMatrixGlobalHeight;
+  util.FortranMatrixHeight = utilities_FortranMatrixHeight;
+  util.FortranMatrixWidth = utilities_FortranMatrixWidth;
+  util.FortranMatrixValues = utilities_FortranMatrixValues;
+  util.FortranMatrixClear = zutilities_FortranMatrixClear;
+  util.FortranMatrixClearL = zutilities_FortranMatrixClearL;
+  util.FortranMatrixSetToIdentity = zutilities_FortranMatrixSetToIdentity;
+  util.FortranMatrixTransposeSquare = zutilities_FortranMatrixTransposeSquare;
+  util.FortranMatrixSymmetrize = zutilities_FortranMatrixSymmetrize;
+  util.FortranMatrixCopy = zutilities_FortranMatrixCopy;
+  util.FortranMatrixIndexCopy = zutilities_FortranMatrixIndexCopy;
+  util.FortranMatrixSetDiagonal = zutilities_FortranMatrixSetDiagonal;
+  util.FortranMatrixGetDiagonal = zutilities_FortranMatrixGetDiagonal;
+  util.FortranMatrixAdd = zutilities_FortranMatrixAdd;
+  util.FortranMatrixDMultiply = zutilities_FortranMatrixDMultiply;
+  util.FortranMatrixMultiplyD = zutilities_FortranMatrixMultiplyD;
+  util.FortranMatrixMultiply = zutilities_FortranMatrixMultiply;
+  util.FortranMatrixFNorm = utilities_FortranMatrixFNorm;
+  util.FortranMatrixAbs = zutilities_FortranMatrixAbs;
+  util.FortranMatrixValuePtr = zutilities_FortranMatrixValuePtr;
+  util.FortranMatrixMaxValue = utilities_FortranMatrixMaxValue;
+  util.FortranMatrixSelectBlock = zutilities_FortranMatrixSelectBlock;
+  util.FortranMatrixUpperInv = zutilities_FortranMatrixUpperInv;
+  util.FortranMatrixPrint = zutilities_FortranMatrixPrint;
+
+  lobpcg.chol = zlobpcg_chol;
+  lobpcg.solveGEVP = zlobpcg_solveGEVP;
+
+  exitflag = lobpcg_solve(
+          blockVectorX,
+          operatorAData,
+          operatorA,
+          operatorBData,
+          operatorB,
+          operatorTData,
+          operatorT,
+          blockVectorY,
+          blap_fn,
+          tolerance,
+          maxIterations,
+          verbosityLevel,
+          iterationNumber,
+          (void *) lambda_values,
+          (void *) lambdaHistory_values,
+          lambdaHistory_gh,
+          residualNorms_values,
+          residualNormsHistory_values ,
+          residualNormsHistory_gh,
+          &lobpcg,
+          &util );
+
+   return(exitflag);
+}
+/* ------------------------------------------------------------
+   lobpcg_solve                                         generic
+   ------------------------------------------------------------ */
 int
 lobpcg_solve( mv_MultiVectorPtr blockVectorX,
-	      void* operatorAData,
-	      void (*operatorA)( void*, void*, void* ),
-	      void* operatorBData,
-	      void (*operatorB)( void*, void*, void* ),
-	      void* operatorTData,
-	      void (*operatorT)( void*, void*, void* ),
-	      mv_MultiVectorPtr blockVectorY,
+              void* operatorAData,
+              void (*operatorA)( void*, void*, void* ),
+              void* operatorBData,
+              void (*operatorB)( void*, void*, void* ),
+              void* operatorTData,
+              void (*operatorT)( void*, void*, void* ),
+              mv_MultiVectorPtr blockVectorY,
               lobpcg_BLASLAPACKFunctions blap_fn,
-	      lobpcg_Tolerance tolerance,
-	      int maxIterations,
-	      int verbosityLevel,
-	      int* iterationNumber,
+              lobpcg_Tolerance tolerance,
+              int maxIterations,
+              int verbosityLevel,
+              int* iterationNumber,
 
-/* eigenvalues; "lambda_values" should point to array  containing <blocksize> doubles where <blocksi
-ze> is the width of multivector "blockVectorX" */
-              double * lambda_values,
-
-/* eigenvalues history; a pointer to the entries of the  <blocksize>-by-(<maxIterations>+1) matrix s
-tored
-in  fortran-style. (i.e. column-wise) The matrix may be  a submatrix of a larger matrix, see next
-argument; If you don't need eigenvalues history, provide NULL in this entry */
-              double * lambdaHistory_values,
-
-/* global height of the matrix (stored in fotran-style)  specified by previous argument */
+              void * lambda_values,
+              void * lambdaHistory_values,
               int lambdaHistory_gh,
 
-/* residual norms; argument should point to array of <blocksize> doubles */
               double * residualNorms_values,
-
-/* residual norms history; a pointer to the entries of the  <blocksize>-by-(<maxIterations>+1) matri
-x
-stored in  fortran-style. (i.e. column-wise) The matrix may be  a submatrix of a larger matrix, see
-next
-argument If you don't need residual norms history, provide NULL in this entry */
               double * residualNormsHistory_values ,
+              int residualNormsHistory_gh,
 
-/* global height of the matrix (stored in fotran-style)  specified by previous argument */
-              int residualNormsHistory_gh
+              lobpcg_Interpreter *lobpcg,
+              utilities_FortranInterpreter *util
 
 ){
 
-  int				sizeX; /* number of eigenvectors */
-  int				sizeY; /* number of constraints */
-  int				sizeR; /* number of residuals used */
-  int				sizeP; /* number of conj. directions used */
-  int				sizeA; /* size of the Gram matrix for A */
-  int				sizeX3; /* 3*sizeX */
+  int               sizeX; /* number of eigenvectors */
+  int               sizeY; /* number of constraints */
+  int               sizeR; /* number of residuals used */
+  int               sizeP; /* number of conj. directions used */
+  int               sizeA; /* size of the Gram matrix for A */
+  int               sizeX3; /* 3*sizeX */
 
-  int				firstR; /* first line of the Gram block
-					   corresponding to residuals */
-  int				lastR; /* last line of this block */
-  int				firstP; /* same for conjugate directions */
-  int				lastP;
+  int               firstR; /* first line of the Gram block
+                               corresponding to residuals */
+  int               lastR; /* last line of this block */
+  int               firstP; /* same for conjugate directions */
+  int               lastP;
 
-  int				noTFlag; /* nonzero: no preconditioner */
-  int				noBFlag; /* nonzero: no operator B */
-  int				noYFlag; /* nonzero: no constaints */
+  int               noTFlag; /* nonzero: no preconditioner */
+  int               noBFlag; /* nonzero: no operator B */
+  int               noYFlag; /* nonzero: no constaints */
 
-  int				exitFlag; /* 1: problem size is too small,
-					     2: block size < 1,
-					     3: linearly dependent constraints,
-					     -1: requested accuracy not 
-					     achieved */
+  int               exitFlag; /* 1: problem size is too small,
+                                 2: block size < 1,
+                                 3: linearly dependent constraints,
+                                -1: requested accuracy not achieved */
 
-  int*				activeMask; /* soft locking mask */
+  int*              activeMask; /* soft locking mask */
 
-  int				i; /* short loop counter */
+  int               i; /* short loop counter */
 
 #if 0
-  long				n; /* dimension 1 of X */
-  /* had to remove because n is not available in some interfaces */ 
-#endif 
+  long              n; /* dimension 1 of X */
+  /* had to remove because n is not available in some interfaces */
+#endif
 
-  mv_MultiVectorPtr		blockVectorR; /* residuals */
-  mv_MultiVectorPtr		blockVectorP; /* conjugate directions */
+  mv_MultiVectorPtr     blockVectorR; /* residuals */
+  mv_MultiVectorPtr     blockVectorP; /* conjugate directions */
 
-  mv_MultiVectorPtr		blockVectorW; /* auxiliary block vector */
+  mv_MultiVectorPtr     blockVectorW; /* auxiliary block vector */
 
-  mv_MultiVectorPtr		blockVectorAX; /* A*X */
-  mv_MultiVectorPtr		blockVectorAR; /* A*R */
-  mv_MultiVectorPtr		blockVectorAP; /* A*P */
+  mv_MultiVectorPtr     blockVectorAX; /* A*X */
+  mv_MultiVectorPtr     blockVectorAR; /* A*R */
+  mv_MultiVectorPtr     blockVectorAP; /* A*P */
 
-  mv_MultiVectorPtr		blockVectorBX; /* B*X */
-  mv_MultiVectorPtr		blockVectorBR; /* B*R */
-  mv_MultiVectorPtr		blockVectorBP; /* B*P */
+  mv_MultiVectorPtr     blockVectorBX; /* B*X */
+  mv_MultiVectorPtr     blockVectorBR; /* B*R */
+  mv_MultiVectorPtr     blockVectorBP; /* B*P */
 
-  mv_MultiVectorPtr		blockVectorBY; /* B*Y */
+  mv_MultiVectorPtr     blockVectorBY; /* B*Y */
 
-  utilities_FortranMatrix*	gramA; /* Gram matrix for A */
-  utilities_FortranMatrix*	gramB; /* Gram matrix for B */
-  utilities_FortranMatrix*	lambdaAB; /* eigenvalues of 
-					     gramA u = lambda gram B u */
-  utilities_FortranMatrix*	lambdaX; /* first sizeX eigenvalues in
-					    lambdaAB (ref) */
+  utilities_FortranMatrix*  gramA; /* Gram matrix for A */
+  utilities_FortranMatrix*  gramB; /* Gram matrix for B */
+  utilities_FortranMatrix*  lambdaAB; /* eigenvalues of
+                                         gramA u = lambda gram B u */
+  utilities_FortranMatrix*  lambdaX; /* first sizeX eigenvalues in
+                                        lambdaAB (ref) */
 
-  utilities_FortranMatrix*	gramXAX; /* XX block of gramA (ref) */
-  utilities_FortranMatrix*	gramRAX; /* XR block of gramA (ref) */
-  utilities_FortranMatrix*	gramPAX; /* XP block of gramA (ref) */
+  utilities_FortranMatrix*  gramXAX; /* XX block of gramA (ref) */
+  utilities_FortranMatrix*  gramRAX; /* XR block of gramA (ref) */
+  utilities_FortranMatrix*  gramPAX; /* XP block of gramA (ref) */
 
-  utilities_FortranMatrix*	gramRAR; /* RR block of gramA (ref) */
-  utilities_FortranMatrix*	gramPAR; /* RP block of gramA (ref) */
-	
-  utilities_FortranMatrix*	gramPAP; /* PP block of gramA (ref) */
+  utilities_FortranMatrix*  gramRAR; /* RR block of gramA (ref) */
+  utilities_FortranMatrix*  gramPAR; /* RP block of gramA (ref) */
 
-  utilities_FortranMatrix*	gramXBX; /* XX block of gramB (ref) */
-  utilities_FortranMatrix*	gramRBX; /* XR block of gramB (ref) */
-  utilities_FortranMatrix*	gramPBX; /* XP block of gramB (ref) */
+  utilities_FortranMatrix*  gramPAP; /* PP block of gramA (ref) */
 
-  utilities_FortranMatrix*	gramRBR; /* RR block of gramB (ref) */
-  utilities_FortranMatrix*	gramPBR; /* RP block of gramB (ref) */
-	
-  utilities_FortranMatrix*	gramPBP; /* PP block of gramB (ref) */
-	
-  utilities_FortranMatrix*	gramYBY; /* Matrices for constraints */
-  utilities_FortranMatrix*	gramYBX; 
-  utilities_FortranMatrix*	tempYBX; 
-  utilities_FortranMatrix*	gramYBR; /* ref. */
-  utilities_FortranMatrix*	tempYBR; /* ref. */ 
+  utilities_FortranMatrix*  gramXBX; /* XX block of gramB (ref) */
+  utilities_FortranMatrix*  gramRBX; /* XR block of gramB (ref) */
+  utilities_FortranMatrix*  gramPBX; /* XP block of gramB (ref) */
 
-  utilities_FortranMatrix*	coordX; /* coordinates of the first sizeX
-					   Ritz vectors in the XRP basis */
-  utilities_FortranMatrix*	coordXX; /* coordinates of the above in X */
-  utilities_FortranMatrix*	coordRX; /* coordinates of the above in R */
-  utilities_FortranMatrix*	coordPX; /* coordinates of the above in P */
+  utilities_FortranMatrix*  gramRBR; /* RR block of gramB (ref) */
+  utilities_FortranMatrix*  gramPBR; /* RP block of gramB (ref) */
 
-  utilities_FortranMatrix*	upperR; /* R factor in QR-fact. (ref) */
-  utilities_FortranMatrix*	historyColumn; /* reference to a column
-						  in history matrices */
+  utilities_FortranMatrix*  gramPBP; /* PP block of gramB (ref) */
+
+  utilities_FortranMatrix*  gramYBY; /* Matrices for constraints */
+  utilities_FortranMatrix*  gramYBX;
+  utilities_FortranMatrix*  tempYBX;
+  utilities_FortranMatrix*  gramYBR; /* ref. */
+  utilities_FortranMatrix*  tempYBR; /* ref. */
+
+  utilities_FortranMatrix*  coordX; /* coordinates of the first sizeX
+                                       Ritz vectors in the XRP basis */
+  utilities_FortranMatrix*  coordXX; /* coordinates of the above in X */
+  utilities_FortranMatrix*  coordRX; /* coordinates of the above in R */
+  utilities_FortranMatrix*  coordPX; /* coordinates of the above in P */
+
+  utilities_FortranMatrix*  upperR; /* R factor in QR-fact. (ref) */
+
   utilities_FortranMatrix* lambda;
   utilities_FortranMatrix* lambdaHistory;
+  utilities_FortranMatrix* lambdaColumn; /* reference to a column
+                                            in lambda history */
+
   utilities_FortranMatrix* residualNorms;
   utilities_FortranMatrix* residualNormsHistory;
+  utilities_FortranMatrix* residualNormsColumn;  /* reference to a column
+                                                    in norms history */
 
-  /* initialization */
+  utilities_FortranMatrix* residualDiag;
+
+  /* ------------- initialization ------------- */
 
   exitFlag = 0;
   *iterationNumber = 0;
@@ -325,16 +634,17 @@ argument If you don't need residual norms history, provide NULL in this entry */
 
   sizeX = mv_MultiVectorWidth( blockVectorX );
 
-  lambda = utilities_FortranMatrixCreate();
-  utilities_FortranMatrixWrap(lambda_values, sizeX, sizeX, 1, lambda);
+  lambda = (util->FortranMatrixCreate)();
+  (util->FortranMatrixWrap)(lambda_values, sizeX, sizeX, 1, lambda);
 
-/* prepare to process eigenvalues history, if user has provided non-NULL as "lambdaHistory_values" a
-rgument */
-  if (lambdaHistory_values!=NULL)
-  {
-      lambdaHistory = utilities_FortranMatrixCreate();
-      utilities_FortranMatrixWrap(lambdaHistory_values, lambdaHistory_gh, sizeX,
-                                    maxIterations+1, lambdaHistory);
+
+/* prepare to process eigenvalues history, if user has provided non-NULL
+   as "lambdaHistory_values" argument */
+
+  if (lambdaHistory_values!=NULL) {
+      lambdaHistory = (util->FortranMatrixCreate)();
+      (util->FortranMatrixWrap)(lambdaHistory_values, lambdaHistory_gh, sizeX,
+                                maxIterations+1, lambdaHistory);
   }
   else
       lambdaHistory = NULL;
@@ -342,10 +652,14 @@ rgument */
   residualNorms = utilities_FortranMatrixCreate();
   utilities_FortranMatrixWrap(residualNorms_values, sizeX, sizeX, 1, residualNorms);
 
-/* prepare to process residuals history, if user has provided non-NULL as "residualNormsHistory_valu
-es" argument */
-  if (residualNormsHistory_values!=NULL)
-  {
+/* while residualNorms is always double residualDiag is same as blockVectors */
+  residualDiag = (util->FortranMatrixCreate)();
+  (util->FortranMatrixAllocateData)(sizeX,1,residualDiag);
+
+/* prepare to process residuals history, if user has provided non-NULL as
+"residualNormsHistory_values " argument */
+
+  if (residualNormsHistory_values!=NULL) {
       residualNormsHistory = utilities_FortranMatrixCreate();
       utilities_FortranMatrixWrap(residualNormsHistory_values, residualNormsHistory_gh,
                                  sizeX, maxIterations+1,residualNormsHistory);
@@ -354,66 +668,68 @@ es" argument */
       residualNormsHistory = NULL;
 
 #if 0
-  /* had to remove because n is not available in some interfaces */ 
+  /* had to remove because n is not available in some interfaces */
   n = mv_MultiVectorHeight( blockVectorX );
 
   if ( n < 5*sizeX ) {
     exitFlag = PROBLEM_SIZE_TOO_SMALL;
     lobpcg_errorMessage( verbosityLevel,
-			 "Problem size too small compared to block size\n" );
+                        "Problem size too small compared to block size\n" );
     return exitFlag;
   }
 #endif
-  
+
   if ( sizeX < 1 ) {
     exitFlag = WRONG_BLOCK_SIZE;
-    lobpcg_errorMessage( verbosityLevel,
-			 "The bloc size is wrong.\n" );
+    lobpcg_errorMessage( verbosityLevel, "The bloc size is wrong.\n" );
     return exitFlag;
   }
 
-  gramYBY = utilities_FortranMatrixCreate();
-  gramYBX = utilities_FortranMatrixCreate();
-  tempYBX = utilities_FortranMatrixCreate();
-  gramYBR = utilities_FortranMatrixCreate();
-  tempYBR = utilities_FortranMatrixCreate();
+  gramYBY = (util->FortranMatrixCreate)();
+  gramYBX = (util->FortranMatrixCreate)();
+  tempYBX = (util->FortranMatrixCreate)();
+  gramYBR = (util->FortranMatrixCreate)();
+  tempYBR = (util->FortranMatrixCreate)();
 
   blockVectorW = mv_MultiVectorCreateCopy( blockVectorX, 0 );
 
   if ( !noYFlag ) {
-    utilities_FortranMatrixAllocateData( sizeY, sizeY, gramYBY );
-    utilities_FortranMatrixAllocateData( sizeY, sizeX, gramYBX );
-    utilities_FortranMatrixAllocateData( sizeY, sizeX, tempYBX );
+    (util->FortranMatrixAllocateData)( sizeY, sizeY, gramYBY );
+    (util->FortranMatrixAllocateData)( sizeY, sizeX, gramYBX );
+    (util->FortranMatrixAllocateData)( sizeY, sizeX, tempYBX );
     blockVectorBY = blockVectorY;
-    if ( !noBFlag ) {      
+    if ( !noBFlag ) {
       blockVectorBY = mv_MultiVectorCreateCopy( blockVectorY, 0 );
-      operatorB( operatorBData, mv_MultiVectorGetData(blockVectorY), 
+      operatorB( operatorBData, mv_MultiVectorGetData(blockVectorY),
                  mv_MultiVectorGetData(blockVectorBY) );
     };
 
-    lobpcg_MultiVectorByMultiVector( blockVectorBY, blockVectorY, gramYBY );
-    exitFlag = lobpcg_chol( gramYBY, blap_fn.dpotrf );
+    lobpcg_MultiVectorByMultiVector( blockVectorBY, blockVectorY, gramYBY, util );
+    exitFlag = (lobpcg->chol)( gramYBY, blap_fn, util );
+
     if ( exitFlag != 0 ) {
       if ( verbosityLevel )
-	printf("Cannot handle linear dependent constraints\n");
-      utilities_FortranMatrixDestroy( gramYBY );
-      utilities_FortranMatrixDestroy( gramYBX );
-      utilities_FortranMatrixDestroy( tempYBX );
-      utilities_FortranMatrixDestroy( gramYBR );
-      utilities_FortranMatrixDestroy( tempYBR );
+        printf("Cannot handle linear dependent constraints\n");
+      (util->FortranMatrixDestroy)( gramYBY );
+      (util->FortranMatrixDestroy)( gramYBX );
+      (util->FortranMatrixDestroy)( tempYBX );
+      (util->FortranMatrixDestroy)( gramYBR );
+      (util->FortranMatrixDestroy)( tempYBR );
       if ( !noBFlag )
-	mv_MultiVectorDestroy( blockVectorBY );
+        mv_MultiVectorDestroy( blockVectorBY );
       mv_MultiVectorDestroy( blockVectorW );
       return WRONG_CONSTRAINTS;
-    }      
-    utilities_FortranMatrixUpperInv( gramYBY );
-    utilities_FortranMatrixClearL( gramYBY );
+    }
 
-    /* apply the constraints to the initial X */
-    lobpcg_MultiVectorByMultiVector( blockVectorBY, blockVectorX, gramYBX );
-    utilities_FortranMatrixMultiply( gramYBY, 1, gramYBX, 0, tempYBX );
-    utilities_FortranMatrixMultiply( gramYBY, 0, tempYBX, 0, gramYBX );
-    lobpcg_MultiVectorByMatrix( blockVectorY, gramYBX, blockVectorW );
+    (util->FortranMatrixUpperInv)( gramYBY );
+    (util->FortranMatrixClearL)( gramYBY );
+
+    /*--------- apply the constraints to the initial X -------- */
+
+    lobpcg_MultiVectorByMultiVector( blockVectorBY, blockVectorX, gramYBX, util );
+    (util->FortranMatrixMultiply)( gramYBY, 1, gramYBX, 0, tempYBX );
+    (util->FortranMatrixMultiply)( gramYBY, 0, tempYBX, 0, gramYBX );
+    lobpcg_MultiVectorByMatrix( blockVectorY, gramYBX, blockVectorW, util );
     mv_MultiVectorAxpy( -1.0, blockVectorW, blockVectorX );
   }
 
@@ -432,58 +748,60 @@ es" argument */
       printf("No constraints\n\n");
     else {
       if ( sizeY > 1 )
-	printf("%d constraints\n\n", sizeY);
+        printf("%d constraints\n\n", sizeY);
       else
-	printf("%d constraint\n\n", sizeY);
+        printf("%d constraint\n\n", sizeY);
     }
   }
 
-  /* creating fortran matrix shells */
+  /* -------------- creating fortran matrix shells --------- */
 
-  gramA = utilities_FortranMatrixCreate();
-  gramB = utilities_FortranMatrixCreate();
-  lambdaAB = utilities_FortranMatrixCreate();
-  lambdaX = utilities_FortranMatrixCreate();
+  gramA = (util->FortranMatrixCreate)();
+  gramB = (util->FortranMatrixCreate)();
+  lambdaAB = (util->FortranMatrixCreate)();
+  lambdaX = (util->FortranMatrixCreate)();
 
-  gramXAX = utilities_FortranMatrixCreate();
-  gramRAX = utilities_FortranMatrixCreate();
-  gramPAX = utilities_FortranMatrixCreate();
+  gramXAX = (util->FortranMatrixCreate)();
+  gramRAX = (util->FortranMatrixCreate)();
+  gramPAX = (util->FortranMatrixCreate)();
 
-  gramRAR = utilities_FortranMatrixCreate();
-  gramPAR = utilities_FortranMatrixCreate();
-	
-  gramPAP = utilities_FortranMatrixCreate();
+  gramRAR = (util->FortranMatrixCreate)();
+  gramPAR = (util->FortranMatrixCreate)();
 
-  gramXBX = utilities_FortranMatrixCreate();
-  gramRBX = utilities_FortranMatrixCreate();
-  gramPBX = utilities_FortranMatrixCreate();
+  gramPAP = (util->FortranMatrixCreate)();
 
-  gramRBR = utilities_FortranMatrixCreate();
-  gramPBR = utilities_FortranMatrixCreate();
-	
-  gramPBP = utilities_FortranMatrixCreate();
-	
-  coordX = utilities_FortranMatrixCreate();
-  coordXX = utilities_FortranMatrixCreate();
-  coordRX = utilities_FortranMatrixCreate();
-  coordPX = utilities_FortranMatrixCreate();
+  gramXBX = (util->FortranMatrixCreate)();
+  gramRBX = (util->FortranMatrixCreate)();
+  gramPBX = (util->FortranMatrixCreate)();
 
-  upperR = utilities_FortranMatrixCreate();
-  historyColumn = utilities_FortranMatrixCreate();
-  
-  /* initializing soft locking mask */
+  gramRBR = (util->FortranMatrixCreate)();
+  gramPBR = (util->FortranMatrixCreate)();
+
+  gramPBP = (util->FortranMatrixCreate)();
+
+  coordX  = (util->FortranMatrixCreate)();
+  coordXX = (util->FortranMatrixCreate)();
+  coordRX = (util->FortranMatrixCreate)();
+  coordPX = (util->FortranMatrixCreate)();
+
+  upperR = (util->FortranMatrixCreate)();
+
+  lambdaColumn = utilities_FortranMatrixCreate();
+  residualNormsColumn = utilities_FortranMatrixCreate();
+
+  /* --------- initializing soft locking mask ------------ */
   activeMask = (int*)calloc( sizeX, sizeof(int) );
   assert( activeMask != NULL );
   for ( i = 0; i < sizeX; i++ )
     activeMask[i] = 1;
 
-  /* allocate memory for Gram matrices and the Ritz values */
+  /*------- allocate memory for Gram matrices and the Ritz values ----- */
   sizeX3 = 3*sizeX;
-  utilities_FortranMatrixAllocateData( sizeX3, sizeX3, gramA );
-  utilities_FortranMatrixAllocateData( sizeX3, sizeX3, gramB );
-  utilities_FortranMatrixAllocateData( sizeX3, 1, lambdaAB );
+  (util->FortranMatrixAllocateData)( sizeX3, sizeX3, gramA );
+  (util->FortranMatrixAllocateData)( sizeX3, sizeX3, gramB );
+  (util->FortranMatrixAllocateData)( sizeX3, 1, lambdaAB );
 
-  /* creating block vectors R, P, AX, AR, AP, BX, BR, BP and W */
+  /*------ creating block vectors R, P, AX, AR, AP, BX, BR, BP and W ----- */
   blockVectorR = mv_MultiVectorCreateCopy( blockVectorX, 0 );
   blockVectorP = mv_MultiVectorCreateCopy( blockVectorX, 0 );
   blockVectorAX = mv_MultiVectorCreateCopy( blockVectorX, 0 );
@@ -511,122 +829,137 @@ es" argument */
   }
   mv_MultiVectorSetMask( blockVectorW, activeMask );
 
-  /* B-orthonormaliization of X */
+  /*--- B-orthonormaliization of blockVectorX */
   /* selecting a block in gramB for R factor upperR */
-  utilities_FortranMatrixSelectBlock( gramB, 1, sizeX, 1, sizeX, upperR );
+
+  (util->FortranMatrixSelectBlock)( gramB, 1, sizeX, 1, sizeX, upperR );
   if ( !noBFlag ) {
-    operatorB( operatorBData, mv_MultiVectorGetData(blockVectorX), 
+    operatorB( operatorBData, mv_MultiVectorGetData(blockVectorX),
                               mv_MultiVectorGetData(blockVectorBX) );
   }
-  exitFlag = lobpcg_MultiVectorImplicitQR( blockVectorX, blockVectorBX, 
-					   upperR, blockVectorW,blap_fn.dpotrf );
+  exitFlag = lobpcg_MultiVectorImplicitQR( blockVectorX, blockVectorBX,
+                       upperR, blockVectorW,blap_fn,lobpcg, util );
   if ( exitFlag ) {
     lobpcg_errorMessage( verbosityLevel, "Bad initial vectors: orthonormalization failed\n" );
     if ( verbosityLevel )
       printf("DPOTRF INFO = %d\n", exitFlag);
   }
   else {
-
     if ( !noBFlag ) { /* update BX */
-      lobpcg_MultiVectorByMatrix( blockVectorBX, upperR, blockVectorW );
+      lobpcg_MultiVectorByMatrix( blockVectorBX, upperR, blockVectorW, util );
       mv_MultiVectorCopy( blockVectorW, blockVectorBX );
     }
 
-    operatorA( operatorAData, mv_MultiVectorGetData(blockVectorX), 
+    /*--- blockVectorAX = operatorAData*blockVectorX  */
+    /*--- or, if no operatorAData */
+    /*--- blockVectorAX = ???(blockVectorX)  */
+    operatorA( operatorAData, mv_MultiVectorGetData(blockVectorX),
                mv_MultiVectorGetData(blockVectorAX) );
+ /*
+    mv_MultiVectorPrint( blockVectorX,"blockVectorX",0 );
+    mv_MultiVectorPrint( blockVectorAX,"blockVectorAX",0 );
+ */
+    /*--- gramXAX = gramA(1:sizeX,1:sizeX) */
+    /*--- gramXAX = blockVectorX'*blockVectorAX */
+    /*--- gramXAX = (gramXAX'+gramXAX)/2 */
+    (util->FortranMatrixSelectBlock)( gramA, 1, sizeX, 1, sizeX, gramXAX );
+    lobpcg_MultiVectorByMultiVector( blockVectorX, blockVectorAX, gramXAX, util );
+    (util->FortranMatrixSymmetrize)( gramXAX );
 
-    /* gramXAX = X'*AX */
-    utilities_FortranMatrixSelectBlock( gramA, 1, sizeX, 1, sizeX, gramXAX );
-    lobpcg_MultiVectorByMultiVector( blockVectorX, blockVectorAX, gramXAX );
-    utilities_FortranMatrixSymmetrize( gramXAX );
+    /*--- gramXBX = gramB(1:sizeX,1:sizeX) */
+    /*--- gramXBX = blockVectorX'*blockVectorBX */
+    /*--- gramXBX = (gramXBX'+gramXBX)/2 */
+    (util->FortranMatrixSelectBlock)( gramB, 1, sizeX, 1, sizeX, gramXBX );
+    lobpcg_MultiVectorByMultiVector( blockVectorX, blockVectorBX, gramXBX, util );
+    (util->FortranMatrixSymmetrize)( gramXBX );
 
-    /* gramXBX = X'*X */ 
-    utilities_FortranMatrixSelectBlock( gramB, 1, sizeX, 1, sizeX, gramXBX );
-    lobpcg_MultiVectorByMultiVector( blockVectorX, blockVectorBX, gramXBX );
-    utilities_FortranMatrixSymmetrize( gramXBX );
-    /*  utilities_FortranMatrixSetToIdentity( gramXBX );*/ /* X may be bad! */
-    
-    if ( (exitFlag = lobpcg_solveGEVP( gramXAX, gramXBX, lambda,blap_fn.dsygv)) != 0 ) {
-      lobpcg_errorMessage( verbosityLevel, 
-			   "Bad problem: Rayleigh-Ritz in the initial subspace failed\n" );
+    /*  (util->FortranMatrixSetToIdentity}( gramXBX );*/ /* X may be bad! */
+
+    /*--- find eig of gramXAX*x=(lambda)*gramXBX*x */
+    /*--- gramXAX = eig-vectors */
+    /*--- lambda  = eig-values  */
+    if ( (exitFlag = (lobpcg->solveGEVP)( gramXAX, gramXBX, lambda,blap_fn, util)) != 0 ) {
+      lobpcg_errorMessage( verbosityLevel,
+                          "Bad problem: Rayleigh-Ritz in the initial subspace failed\n" );
       if ( verbosityLevel )
-	printf("DSYGV INFO = %d\n", exitFlag);
+        printf("DSYGV INFO = %d\n", exitFlag);
     }
     else {
-      utilities_FortranMatrixSelectBlock( gramXAX, 1, sizeX, 1, sizeX, coordX );
+      /*--- coordX = gramXAX(1:sizeZ,1:sizeX) */
+      (util->FortranMatrixSelectBlock)( gramXAX, 1, sizeX, 1, sizeX, coordX );
 
-      lobpcg_MultiVectorByMatrix( blockVectorX, coordX, blockVectorW );
+      /*--- blockVectorW = blockVectorX * coordX */
+      /*--- blockVectorX = blockVectorW */
+      lobpcg_MultiVectorByMatrix( blockVectorX, coordX, blockVectorW, util );
       mv_MultiVectorCopy( blockVectorW, blockVectorX );
 
-      lobpcg_MultiVectorByMatrix( blockVectorAX, coordX, blockVectorW );
+      /*--- blockVectorW = blockVectorAX * coordX */
+      /*--- blockVectorAx = blockVectorW */
+      lobpcg_MultiVectorByMatrix( blockVectorAX, coordX, blockVectorW, util );
       mv_MultiVectorCopy( blockVectorW, blockVectorAX );
 
       if ( !noBFlag ) {
-	lobpcg_MultiVectorByMatrix( blockVectorBX, coordX, blockVectorW );
-	mv_MultiVectorCopy( blockVectorW, blockVectorBX );
+        lobpcg_MultiVectorByMatrix( blockVectorBX, coordX, blockVectorW, util );
+        mv_MultiVectorCopy( blockVectorW, blockVectorBX );
       }
 
       /*
-      lobpcg_MultiVectorByMultiVector( blockVectorBX, blockVectorX, upperR );
-      utilities_FortranMatrixPrint( upperR, "xbx.dat" );
-      utilities_FortranMatrixPrint( lambda, "lmd.dat" );
+      lobpcg_MultiVectorByMultiVector( blockVectorBX, blockVectorX, upperR, util );
+      (util->FortranMatrixPrint)( upperR, "xbx.dat" );
+      (util->FortranMatrixPrint)( lambda, "lmd.dat" );
       */
 
-      mv_MultiVectorByDiagonal( blockVectorBX, 
-				   NULL, sizeX, 
-				   utilities_FortranMatrixValues( lambda ),
-				   blockVectorR );
+      /*--- blockVectorR = blockVectorBX*lambda */
+      mv_MultiVectorByDiagonal( blockVectorBX,
+                                NULL, sizeX,
+                               (util->FortranMatrixValues)( lambda ),
+                                blockVectorR );
 
+      /*--- blockVectorR = BlockVectorR - blockVectorAx */
       mv_MultiVectorAxpy( -1.0, blockVectorAX, blockVectorR );
 
-      mv_MultiVectorByMultiVectorDiag( blockVectorR, blockVectorR, 
-					  NULL, sizeX, 
-					  utilities_FortranMatrixValues( residualNorms ) ); 
-
-      lobpcg_sqrtVector( sizeX, NULL, 
-			 utilities_FortranMatrixValues( residualNorms ) );
+      /*--- residualDiag = diag(blockVectorR'*blockVectorR) */
+      /*--- residualNorms = sqrt(abs(residualDiag))  */
+      lobpcg_ComputeResidualNorms( blockVectorR, residualNorms,
+                                   residualDiag, NULL, sizeX, util );
 
       if ( lambdaHistory != NULL ) {
-	utilities_FortranMatrixSelectBlock( lambdaHistory, 1, sizeX, 1, 1, 
-					    historyColumn );
-	utilities_FortranMatrixCopy( lambda, 0, historyColumn );
+        (util->FortranMatrixSelectBlock)( lambdaHistory, 1, sizeX, 1, 1,
+                                          lambdaColumn );
+        (util->FortranMatrixCopy)( lambda, 0, lambdaColumn );
       }
-	
+
       if ( residualNormsHistory != NULL ) {
-	utilities_FortranMatrixSelectBlock( residualNormsHistory, 1, sizeX, 1, 1, 
-					    historyColumn );
-	utilities_FortranMatrixCopy( residualNorms, 0, historyColumn );
+        utilities_FortranMatrixSelectBlock( residualNormsHistory, 1, sizeX, 1, 1,
+                                            residualNormsColumn );
+        utilities_FortranMatrixCopy( residualNorms, 0, residualNormsColumn );
       }
-	
-      if ( verbosityLevel == 2 ) {
-	printf("\n");
-	for (i = 1; i <= sizeX; i++ ) 
-	  printf("Initial eigenvalues lambda %22.16e\n",
-		 utilities_FortranMatrixValue( lambda, i, 1) );
-	for (i = 1; i <= sizeX; i++) 
-	  printf("Initial residuals %12.6e\n",
-		 utilities_FortranMatrixValue( residualNorms, i, 1) );
-      }
+
+      if ( verbosityLevel == 2 )
+        lobpcg_dumpLambda( residualNorms, lambda,
+                           iterationNumber, sizeX, util);
       else if ( verbosityLevel == 1 )
-	printf("\nInitial Max. Residual %22.16e\n",
-	       utilities_FortranMatrixMaxValue( residualNorms ) );
+        printf("\nInitial Max. Residual %22.16e\n",
+               utilities_FortranMatrixMaxValue( residualNorms ) );
     }
   }
 
-  for ( *iterationNumber = 1; exitFlag == 0 && *iterationNumber <= maxIterations; 
-	(*iterationNumber)++ ) {
-    
-    sizeR = lobpcg_checkResiduals( residualNorms, lambda, tolerance, 
-				   activeMask );
+  /*================== start of main loop ====================*/
+  for ( *iterationNumber = 1; exitFlag == 0 && *iterationNumber <= maxIterations;
+      (*iterationNumber)++ ) {
+
+    /*--- sets activeMask, eliminating lambda that have converged */
+    sizeR = lobpcg_checkResiduals( residualNorms, lambda, tolerance,
+                                   activeMask, util );
     if ( sizeR < 1 )
       break;
 
-/* following code added by Ilya Lashuk on March 22, 2005; with current 
+/* following code added by Ilya Lashuk on March 22, 2005; with current
    multivector implementation mask needs to be reset after it has changed on each vector
    mask applies to */
-   
-    mv_MultiVectorSetMask( blockVectorR, activeMask );
-    mv_MultiVectorSetMask( blockVectorP, activeMask );
+
+    mv_MultiVectorSetMask( blockVectorR,  activeMask );
+    mv_MultiVectorSetMask( blockVectorP,  activeMask );
     mv_MultiVectorSetMask( blockVectorAR, activeMask );
     mv_MultiVectorSetMask( blockVectorAP, activeMask );
     if ( !noBFlag ) {
@@ -638,19 +971,26 @@ es" argument */
 /* ***** end of added code ***** */
 
     if ( !noTFlag ) {
-      operatorT( operatorTData, mv_MultiVectorGetData(blockVectorR), 
+      operatorT( operatorTData, mv_MultiVectorGetData(blockVectorR),
                  mv_MultiVectorGetData(blockVectorW) );
       mv_MultiVectorCopy( blockVectorW, blockVectorR );
     }
 
     if ( !noYFlag ) { /* apply the constraints to R  */
-      utilities_FortranMatrixSelectBlock( gramYBX, 1, sizeY, 1, sizeR, gramYBR );
-      utilities_FortranMatrixSelectBlock( tempYBX, 1, sizeY, 1, sizeR, tempYBR );
+      /*--- gramYBR = gramYBX(1:sizeY,1:sizeR) */
+      /*--- tempYBR = tempYBX(1:sizeY,1:sizeR) */
+      (util->FortranMatrixSelectBlock)( gramYBX, 1, sizeY, 1, sizeR, gramYBR );
+      (util->FortranMatrixSelectBlock)( tempYBX, 1, sizeY, 1, sizeR, tempYBR );
 
-      lobpcg_MultiVectorByMultiVector( blockVectorBY, blockVectorR, gramYBR );
-      utilities_FortranMatrixMultiply( gramYBY, 1, gramYBR, 0, tempYBR );
-      utilities_FortranMatrixMultiply( gramYBY, 0, tempYBR, 0, gramYBR );
-      lobpcg_MultiVectorByMatrix( blockVectorY, gramYBR, blockVectorW );
+      /*--- gramYBR = blockVectorBY'*blockVectorR      */
+      /*--- tempYBR = gramYBY'*gramYBR                 */
+      /*--- gramYBR = gramYBY*tempYBR                  */
+      /*--- blockVectorW = blockVectorY*gramYBR        */
+      /*--- blockVectorR = blockVectorR - blockVectorW */
+      lobpcg_MultiVectorByMultiVector( blockVectorBY, blockVectorR, gramYBR, util );
+      (util->FortranMatrixMultiply)( gramYBY, 1, gramYBR, 0, tempYBR );
+      (util->FortranMatrixMultiply)( gramYBY, 0, tempYBR, 0, gramYBR );
+      lobpcg_MultiVectorByMatrix( blockVectorY, gramYBR, blockVectorW, util );
       mv_MultiVectorAxpy( -1.0, blockVectorW, blockVectorR );
     }
 
@@ -658,28 +998,31 @@ es" argument */
     lastR = sizeX + sizeR;
     firstP = lastR + 1;
 
-    utilities_FortranMatrixSelectBlock( gramB, firstR, lastR, firstR, lastR, upperR );
+    /*--- upperR = gramB(firstR:lastR,firstR:lastR)  */
+    (util->FortranMatrixSelectBlock)( gramB, firstR, lastR, firstR, lastR, upperR );
 
     if ( !noBFlag ) {
-      operatorB( operatorBData, mv_MultiVectorGetData(blockVectorR), 
+      operatorB( operatorBData, mv_MultiVectorGetData(blockVectorR),
                  mv_MultiVectorGetData(blockVectorBR) );
     }
-    exitFlag = lobpcg_MultiVectorImplicitQR( blockVectorR, blockVectorBR, 
-					     upperR, blockVectorW,blap_fn.dpotrf );
+
+    /*--- orthonormilize blockVectorR */
+    exitFlag = lobpcg_MultiVectorImplicitQR( blockVectorR, blockVectorBR,
+                                             upperR, blockVectorW,blap_fn,lobpcg, util );
     if ( exitFlag ) {
       lobpcg_errorMessage( verbosityLevel, "Orthonormalization of residuals failed\n" );
       if ( verbosityLevel )
-	printf("DPOTRF INFO = %d\n", exitFlag);
+        printf("DPOTRF INFO = %d\n", exitFlag);
       break;
     }
 
     if ( !noBFlag ) { /* update BR */
-      lobpcg_MultiVectorByMatrix( blockVectorBR, upperR, blockVectorW );
+      lobpcg_MultiVectorByMatrix( blockVectorBR, upperR, blockVectorW, util );
       mv_MultiVectorCopy( blockVectorW, blockVectorBR );
     }
 
-    /* AR = A*R */
-    operatorA( operatorAData, mv_MultiVectorGetData(blockVectorR), 
+    /*--- blockVectorAR = operatorAdata*blockVectorR */
+    operatorA( operatorAData, mv_MultiVectorGetData(blockVectorR),
                mv_MultiVectorGetData(blockVectorAR) );
 
     if ( *iterationNumber > 1 ) {
@@ -687,209 +1030,265 @@ es" argument */
       sizeP = sizeR;
       lastP = lastR + sizeP;
 
-      utilities_FortranMatrixSelectBlock( gramB, firstP, lastP, firstP, lastP, upperR );
+      /*--- upperR = gramB(firstP:lastP,firstP:lastP)  */
+      (util->FortranMatrixSelectBlock)( gramB, firstP, lastP, firstP, lastP, upperR );
 
-      exitFlag = lobpcg_MultiVectorImplicitQR( blockVectorP, blockVectorBP, 
-					       upperR, blockVectorW,blap_fn.dpotrf );
+      /*--- orthonormilize blockVectorP */
+      exitFlag = lobpcg_MultiVectorImplicitQR( blockVectorP, blockVectorBP,
+                                               upperR, blockVectorW,blap_fn,lobpcg, util );
       if ( exitFlag ) {
-	/*
-	lobpcg_errorMessage( verbosityLevel, "Orthonormalization of P failed\n" );
-	if ( verbosityLevel )
-	  printf("DPOTRF INFO = %d\n", exitFlag);
-	*/
-	sizeP = 0;
+    /*
+        lobpcg_errorMessage( verbosityLevel, "Orthonormalization of P failed\n" );
+        if ( verbosityLevel )
+          printf("DPOTRF INFO = %d\n", exitFlag);
+    */
+        sizeP = 0;
       }
       else {
-			
-	if ( !noBFlag ) { /* update BP */
-	  lobpcg_MultiVectorByMatrix( blockVectorBP, upperR, blockVectorW );
-	  mv_MultiVectorCopy( blockVectorW, blockVectorBP );
-	}
 
-	/* update AP */
-	lobpcg_MultiVectorByMatrix( blockVectorAP, upperR, blockVectorW );
-	mv_MultiVectorCopy( blockVectorW, blockVectorAP );
+        if ( !noBFlag ) { /* update BP */
+          lobpcg_MultiVectorByMatrix( blockVectorBP, upperR, blockVectorW, util );
+        mv_MultiVectorCopy( blockVectorW, blockVectorBP );
+      }
+
+      /*--- update AP */
+      /*--- blockVectorW = blockVectorAP * upperR  */
+      /*--- blockVectorAP = blockVectorW           */
+      lobpcg_MultiVectorByMatrix( blockVectorAP, upperR, blockVectorW, util );
+      mv_MultiVectorCopy( blockVectorW, blockVectorAP );
       }
     }
     else {
-      
+
       sizeP = 0;
       lastP = lastR;
     }
 
     sizeA = lastR + sizeP;
 
-    utilities_FortranMatrixSelectBlock( gramA, 1, sizeX, 1, sizeX, gramXAX );
-    utilities_FortranMatrixSelectBlock( gramA, firstR, lastR, 1, sizeX, 
-					gramRAX );
-    utilities_FortranMatrixSelectBlock( gramA, firstR, lastR, firstR, lastR, 
-					gramRAR );
+    /*--- gramXAX = gramA(1:sizeX,1:sizeX)            */
+    /*--- gramRAX = gramA(firstR:lastR,1:sizeX)       */
+    /*--- gramRAR = gramA(firstR:lastR,firstR:lastR)  */
+    /*--- gramXBX = gramB(1:sizeX,1:sizeX)            */
+    /*--- gramRBX = gramB(firstR:lastR,1:sizeX)       */
+    /*--- gramRBR = gramB(firstR:lastR,firstR:lastR)  */
+    (util->FortranMatrixSelectBlock)( gramA, 1, sizeX, 1, sizeX, gramXAX );
+    (util->FortranMatrixSelectBlock)( gramA, firstR, lastR, 1, sizeX,
+                                      gramRAX );
+    (util->FortranMatrixSelectBlock)( gramA, firstR, lastR, firstR, lastR,
+                                      gramRAR );
+    (util->FortranMatrixSelectBlock)( gramB, 1, sizeX, 1, sizeX, gramXBX );
+    (util->FortranMatrixSelectBlock)( gramB, firstR, lastR, 1, sizeX,
+                                      gramRBX );
+    (util->FortranMatrixSelectBlock)( gramB, firstR, lastR, firstR, lastR,
+                                      gramRBR );
 
-    utilities_FortranMatrixSelectBlock( gramB, 1, sizeX, 1, sizeX, gramXBX );
-    utilities_FortranMatrixSelectBlock( gramB, firstR, lastR, 1, sizeX, 
-					gramRBX );
-    utilities_FortranMatrixSelectBlock( gramB, firstR, lastR, firstR, lastR, 
-					gramRBR );
+    /*--- gramXAX = 0.0;        */
+    /*--- diag(gramXAX)=lambda  */
+    (util->FortranMatrixClear)( gramXAX );
+    (util->FortranMatrixSetDiagonal)( gramXAX, lambda );
 
-    utilities_FortranMatrixClear( gramXAX );
-    utilities_FortranMatrixSetDiagonal( gramXAX, lambda );
-		
-    lobpcg_MultiVectorByMultiVector( blockVectorR, blockVectorAX, gramRAX );
-		
-    lobpcg_MultiVectorByMultiVector( blockVectorR, blockVectorAR, gramRAR );
-    utilities_FortranMatrixSymmetrize( gramRAR );
+    /*--- gramRAX = blockVectorR'*blockVectorAX  */
+    lobpcg_MultiVectorByMultiVector( blockVectorR, blockVectorAX, gramRAX, util );
 
-    utilities_FortranMatrixSetToIdentity( gramXBX );
+    /*--- gramRAR = blockVectorR'*blockVectorAR  */
+    /*--- gramRAR = (gramRAR'+gramRAR)/2         */
+    lobpcg_MultiVectorByMultiVector( blockVectorR, blockVectorAR, gramRAR, util );
+    (util->FortranMatrixSymmetrize)( gramRAR );
 
-    lobpcg_MultiVectorByMultiVector( blockVectorR, blockVectorBX, gramRBX );
-		
-    utilities_FortranMatrixSetToIdentity( gramRBR );
+    /*--- gramXBX = eye  */
+    (util->FortranMatrixSetToIdentity)( gramXBX );
+
+    /*--- gramRBX = blockVectorR'*blockVectorBX  */
+    lobpcg_MultiVectorByMultiVector( blockVectorR, blockVectorBX, gramRBX, util );
+
+    /*--- gramRBR = eye  */
+    (util->FortranMatrixSetToIdentity)( gramRBR );
 
     if ( *iterationNumber > 1 ) {
-      
-      utilities_FortranMatrixSelectBlock( gramA, firstP, lastP, 1, sizeX, gramPAX );
-      utilities_FortranMatrixSelectBlock( gramA, firstP, lastP, firstR, lastR, gramPAR );
-      utilities_FortranMatrixSelectBlock( gramA, firstP, lastP, firstP, lastP, gramPAP );
-			
-      utilities_FortranMatrixSelectBlock( gramB, firstP, lastP, 1, sizeX, gramPBX );
-      utilities_FortranMatrixSelectBlock( gramB, firstP, lastP, firstR, lastR, gramPBR );
-      utilities_FortranMatrixSelectBlock( gramB, firstP, lastP, firstP, lastP, gramPBP );
 
-      lobpcg_MultiVectorByMultiVector( blockVectorP, blockVectorAX, gramPAX );
-			
-      lobpcg_MultiVectorByMultiVector( blockVectorP, blockVectorAR, gramPAR );
-			
-      lobpcg_MultiVectorByMultiVector( blockVectorP, blockVectorAP, gramPAP );
-      utilities_FortranMatrixSymmetrize( gramPAP );
+      /*--- gramPAX = gramA(firstP:lastP,1:sizeX)       */
+      /*--- gramPAR = gramA(firstP:lastP,firstR:lastR)  */
+      /*--- gramPAP = gramA(firstP:lastP,firstP:lastP)  */
+      (util->FortranMatrixSelectBlock)( gramA, firstP, lastP, 1, sizeX, gramPAX );
+      (util->FortranMatrixSelectBlock)( gramA, firstP, lastP, firstR, lastR, gramPAR );
+      (util->FortranMatrixSelectBlock)( gramA, firstP, lastP, firstP, lastP, gramPAP );
 
-      lobpcg_MultiVectorByMultiVector( blockVectorP, blockVectorBX, gramPBX );
-			
-      lobpcg_MultiVectorByMultiVector( blockVectorP, blockVectorBR, gramPBR );
-		
-      utilities_FortranMatrixSetToIdentity( gramPBP );
+      /*--- gramPBX = gramB(firstP:lastP,1:sizeX)        */
+      /*--- gramPBR = gramB(firstP:lastP,firstR:lastR)   */
+      /*--- gramPBP = gramB(firstP:lastP,firstP:lastP)   */
+      (util->FortranMatrixSelectBlock)( gramB, firstP, lastP, 1, sizeX, gramPBX );
+      (util->FortranMatrixSelectBlock)( gramB, firstP, lastP, firstR, lastR, gramPBR );
+      (util->FortranMatrixSelectBlock)( gramB, firstP, lastP, firstP, lastP, gramPBP );
+
+      /*--- gramPAX = blockVectorP'*blockVectorAX    */
+      lobpcg_MultiVectorByMultiVector( blockVectorP, blockVectorAX, gramPAX, util );
+
+      /*--- gramPAR = blockVectorP'*blockVectorAR    */
+      lobpcg_MultiVectorByMultiVector( blockVectorP, blockVectorAR, gramPAR, util );
+
+      /*--- gramPAP = blockVectorP'*blockVectorAP    */
+      /*--- gramPAP = (gramPAP'+gramPAP)/2           */
+      lobpcg_MultiVectorByMultiVector( blockVectorP, blockVectorAP, gramPAP, util );
+      (util->FortranMatrixSymmetrize)( gramPAP );
+
+      /*--- gramPBX = blockVectorP'*blockVectorBX    */
+      lobpcg_MultiVectorByMultiVector( blockVectorP, blockVectorBX, gramPBX, util );
+
+      /*--- gramPBR = blockVectorP'*blockVectorBR    */
+      lobpcg_MultiVectorByMultiVector( blockVectorP, blockVectorBR, gramPBR, util );
+
+      /*--- gramPBP = eye   */
+      (util->FortranMatrixSetToIdentity)( gramPBP );
     }
-	
-    utilities_FortranMatrixSelectBlock( gramA, 1, sizeA, 1, sizeA, gramXAX );
-    utilities_FortranMatrixSelectBlock( gramB, 1, sizeA, 1, sizeA, gramXBX );
 
-    if ( (exitFlag = lobpcg_solveGEVP( gramXAX, gramXBX, lambdaAB, blap_fn.dsygv )) != 0 ) {
+    /*--- gramXAX = gramA(1:sizeA,1:sizeA)   */
+    /*--- gramXBX = gramB(1:sizeA,1:sizeA)   */
+    (util->FortranMatrixSelectBlock)( gramA, 1, sizeA, 1, sizeA, gramXAX );
+    (util->FortranMatrixSelectBlock)( gramB, 1, sizeA, 1, sizeA, gramXBX );
+
+    /*--- find eig of gramXAX*x=(lambdaAB)*gramXBX*x  */
+    /*--- gramXAX  = eig-vectors */
+    /*--- lambdaAB = eig-values  */
+    if ( (exitFlag = (lobpcg->solveGEVP)( gramXAX, gramXBX, lambdaAB, blap_fn, util )) != 0 ) {
       lobpcg_errorMessage( verbosityLevel, "GEVP solver failure\n" );
+      fprintf(stderr, "Return Code %d\n", exitFlag);
+      printf("INFO = %d\n", exitFlag);
       (*iterationNumber)--;
-      /* if ( verbosityLevel )
-	 printf("INFO = %d\n", exitFlag);*/
       break;
     }
 
-    utilities_FortranMatrixSelectBlock( lambdaAB, 1, sizeX, 1, 1, lambdaX );
-    utilities_FortranMatrixCopy( lambdaX, 0, lambda );
+    /*--- lambdaX = lambdaAB(1:sizeX,1:1)    */
+    /*--- lambda  = lambdaX                  */
+    (util->FortranMatrixSelectBlock)( lambdaAB, 1, sizeX, 1, 1, lambdaX );
+    (util->FortranMatrixCopy)( lambdaX, 0, lambda );
 
-    utilities_FortranMatrixSelectBlock( gramA, 1, sizeA, 1, sizeX, coordX );
+    /*--- coordX = gramA(1:sizeA,1:sizeX)    */
+    (util->FortranMatrixSelectBlock)( gramA, 1, sizeA, 1, sizeX, coordX );
 
-    utilities_FortranMatrixSelectBlock( coordX, 1, sizeX, 1, sizeX, coordXX );
-    utilities_FortranMatrixSelectBlock( coordX, firstR, lastR, 1, sizeX, coordRX );
+    /*--- coordXX = coordX(1:sizeX,1:sizeX)        */
+    /*--- coordRX = coordX(firstR:lastR,1:sizeX)   */
+    (util->FortranMatrixSelectBlock)( coordX, 1, sizeX, 1, sizeX, coordXX );
+    (util->FortranMatrixSelectBlock)( coordX, firstR, lastR, 1, sizeX, coordRX );
 
     if ( *iterationNumber > 1 ) {
-	
-      utilities_FortranMatrixSelectBlock( coordX, firstP, lastP, 1, sizeX, coordPX );
 
+      /*--- coordPX = coordX(firstP:lastP,1:sizeX)   */
+      (util->FortranMatrixSelectBlock)( coordX, firstP, lastP, 1, sizeX, coordPX );
+
+      /*--- make all vectors in blockVectorW active  */
+      /*--- blockVectorW = blockVectorP*coordPX      */
+      /*--- make all vectors in blockVectorP active  */
+      /*--- blockVectorP = blockVectorW              */
       mv_MultiVectorSetMask( blockVectorW, NULL );
-      lobpcg_MultiVectorByMatrix( blockVectorP, coordPX, blockVectorW );
+      lobpcg_MultiVectorByMatrix( blockVectorP, coordPX, blockVectorW, util );
       mv_MultiVectorSetMask( blockVectorP, NULL );
       mv_MultiVectorCopy( blockVectorW, blockVectorP );
 
-      lobpcg_MultiVectorByMatrix( blockVectorAP, coordPX, blockVectorW );
+      /*--- blockVectorW = blockVectorAP * coordPX   */
+      /*--- make all vectors of blockVectorAP active */
+      /*--- blockVectorAP = blockVectorW             */
+      lobpcg_MultiVectorByMatrix( blockVectorAP, coordPX, blockVectorW, util );
       mv_MultiVectorSetMask( blockVectorAP, NULL );
       mv_MultiVectorCopy( blockVectorW, blockVectorAP );
 
       if ( !noBFlag ) {
-	lobpcg_MultiVectorByMatrix( blockVectorBP, coordPX, blockVectorW );
-	mv_MultiVectorSetMask( blockVectorBP, NULL );
-	mv_MultiVectorCopy( blockVectorW, blockVectorBP );
+        lobpcg_MultiVectorByMatrix( blockVectorBP, coordPX, blockVectorW, util );
+        mv_MultiVectorSetMask( blockVectorBP, NULL );
+        mv_MultiVectorCopy( blockVectorW, blockVectorBP );
       }
 
-      lobpcg_MultiVectorByMatrix( blockVectorR, coordRX, blockVectorW );
+      /*--- blockVectorW = blockVectorR * coordRX         */
+      /*--- blockVectorP = blockVectorP + blockVector W   */
+      lobpcg_MultiVectorByMatrix( blockVectorR, coordRX, blockVectorW, util );
       mv_MultiVectorAxpy( 1.0, blockVectorW, blockVectorP );
-			
-      lobpcg_MultiVectorByMatrix( blockVectorAR, coordRX, blockVectorW );
+
+      /*--- blockVectorW = blockVectorAR * coordRX        */
+      /*--- blockVectorAP = blockVectorAP + glockVectorW  */
+      lobpcg_MultiVectorByMatrix( blockVectorAR, coordRX, blockVectorW, util );
       mv_MultiVectorAxpy( 1.0, blockVectorW, blockVectorAP );
 
       if ( !noBFlag ) {
-	lobpcg_MultiVectorByMatrix( blockVectorBR, coordRX, blockVectorW );
-	mv_MultiVectorAxpy( 1.0, blockVectorW, blockVectorBP );
+        lobpcg_MultiVectorByMatrix( blockVectorBR, coordRX, blockVectorW, util );
+        mv_MultiVectorAxpy( 1.0, blockVectorW, blockVectorBP );
       }
 
     }
     else {
-      
+
+      /*--- make all vectors of blockVectorP active */
+      /*--- blockVectorP = blockVectorR * coordRX   */
       mv_MultiVectorSetMask( blockVectorP, NULL );
-      lobpcg_MultiVectorByMatrix( blockVectorR, coordRX, blockVectorP );
-			
+      lobpcg_MultiVectorByMatrix( blockVectorR, coordRX, blockVectorP, util );
+
+      /*--- make all vectors of blockVectorAP active */
+      /*--- blockVectorAP = blockVectorAR * coordRX  */
       mv_MultiVectorSetMask( blockVectorAP, NULL );
-      lobpcg_MultiVectorByMatrix( blockVectorAR, coordRX, blockVectorAP );
+      lobpcg_MultiVectorByMatrix( blockVectorAR, coordRX, blockVectorAP, util );
 
       if ( !noBFlag ) {
-	mv_MultiVectorSetMask( blockVectorBP, NULL );
-	lobpcg_MultiVectorByMatrix( blockVectorBR, coordRX, blockVectorBP );
+        mv_MultiVectorSetMask( blockVectorBP, NULL );
+        lobpcg_MultiVectorByMatrix( blockVectorBR, coordRX, blockVectorBP, util );
       }
-		
+
     }
-		
+
+    /*--- blockVectorW = blockVector X              */
+    /*--- blockVectorX = blockVector W * coordXX    */
+    /*--- blockVectorX = blockVectorX + blockVectorP  */
     mv_MultiVectorCopy( blockVectorX, blockVectorW );
-    lobpcg_MultiVectorByMatrix( blockVectorW, coordXX, blockVectorX );
+    lobpcg_MultiVectorByMatrix( blockVectorW, coordXX, blockVectorX, util );
     mv_MultiVectorAxpy( 1.0, blockVectorP, blockVectorX );
 
+    /*--- blockVectorW  = blockVectorAX  */
+    /*--- blockVectorAX = blockVector W * coordXX    */
+    /*--- blockVectorAX = blockVectorAX + blockVectorAP  */
     mv_MultiVectorCopy( blockVectorAX, blockVectorW );
-    lobpcg_MultiVectorByMatrix( blockVectorW, coordXX, blockVectorAX );
+    lobpcg_MultiVectorByMatrix( blockVectorW, coordXX, blockVectorAX, util );
     mv_MultiVectorAxpy( 1.0, blockVectorAP, blockVectorAX );
 
     if ( !noBFlag ) {
       mv_MultiVectorCopy( blockVectorBX, blockVectorW );
-      lobpcg_MultiVectorByMatrix( blockVectorW, coordXX, blockVectorBX );
+      lobpcg_MultiVectorByMatrix( blockVectorW, coordXX, blockVectorBX, util );
       mv_MultiVectorAxpy( 1.0, blockVectorBP, blockVectorBX );
     }
 
     mv_MultiVectorSetMask( blockVectorAX, activeMask );
     mv_MultiVectorSetMask( blockVectorBX, activeMask );
 
-    mv_MultiVectorByDiagonal( blockVectorBX, 
-				 activeMask, sizeX, 
-				 utilities_FortranMatrixValues( lambda ),
-				 blockVectorR );
+    /*--- blockVectorR = blockVectorBX(activeMask)*lambda  */
+    mv_MultiVectorByDiagonal( blockVectorBX, activeMask, sizeX,
+                             (util->FortranMatrixValues)( lambda ),
+                              blockVectorR );
 
+    /*--- blockVectorR = blockVectorR - blockVectorAX  */
     mv_MultiVectorAxpy( -1.0, blockVectorAX, blockVectorR );
 
-    mv_MultiVectorByMultiVectorDiag(	blockVectorR, blockVectorR, 
-					activeMask, sizeX, 
-					utilities_FortranMatrixValues( residualNorms ) );
-    lobpcg_sqrtVector( 	sizeX, activeMask, 
-			utilities_FortranMatrixValues( residualNorms ) );
+    lobpcg_ComputeResidualNorms( blockVectorR, residualNorms,
+                                 residualDiag, activeMask, sizeX, util );
 
     i = *iterationNumber + 1;
     if ( lambdaHistory != NULL ) {
-      utilities_FortranMatrixSelectBlock( lambdaHistory, 1, sizeX, i, i, 
-					  historyColumn );
-      utilities_FortranMatrixCopy( lambda, 0, historyColumn );
+      (util->FortranMatrixSelectBlock)( lambdaHistory, 1, sizeX, i, i,
+                                        lambdaColumn );
+      (util->FortranMatrixCopy)( lambda, 0, lambdaColumn );
     }
-	
+
     if ( residualNormsHistory != NULL ) {
-      utilities_FortranMatrixSelectBlock( residualNormsHistory, 1, sizeX, i, i, 
-					  historyColumn );
-      utilities_FortranMatrixCopy( residualNorms, 0, historyColumn );
+      utilities_FortranMatrixSelectBlock( residualNormsHistory, 1, sizeX, i, i,
+                                          residualNormsColumn );
+      utilities_FortranMatrixCopy( residualNorms, 0, residualNormsColumn );
     }
-    
+
     if ( verbosityLevel == 2 ) {
       printf( "Iteration %d \tbsize %d\n", *iterationNumber, sizeR );
-      for ( i = 1; i <= sizeX; i++ ) 
-	printf("Eigenvalue lambda %22.16e\n",
-	       utilities_FortranMatrixValue( lambda, i, 1) );
-      for ( i = 1; i <= sizeX; i++ ) 
-	printf("Residual %12.6e\n",
-	       utilities_FortranMatrixValue( residualNorms, i, 1) );
-    }
+      lobpcg_dumpLambda( residualNorms, lambda,
+                       iterationNumber, sizeX, util);
+      }
     else if ( verbosityLevel == 1 )
       printf("Iteration %d \tbsize %d \tmaxres %22.16e\n",
-	     *iterationNumber, sizeR, 
-	     utilities_FortranMatrixMaxValue( residualNorms ) );
+             *iterationNumber, sizeR,
+             utilities_FortranMatrixMaxValue( residualNorms ) );
 
     mv_MultiVectorSetMask( blockVectorAX, NULL );
     mv_MultiVectorSetMask( blockVectorBX, NULL );
@@ -899,22 +1298,16 @@ es" argument */
     mv_MultiVectorSetMask( blockVectorW, activeMask );
 
   }
+  /*================== end of main loop ====================*/
 
   if ( exitFlag != 0 || *iterationNumber > maxIterations )
     exitFlag = REQUESTED_ACCURACY_NOT_ACHIEVED;
 
   (*iterationNumber)--;
-	
-  if ( verbosityLevel == 1 ) {
-    printf("\n");
-    for ( i = 1; i <= sizeX; i++ ) 
-      printf("Eigenvalue lambda %22.16e\n",
-	     utilities_FortranMatrixValue( lambda, i, 1) );
-    for ( i = 1; i <= sizeX; i++ ) 
-      printf("Residual %22.16e\n",
-	     utilities_FortranMatrixValue( residualNorms, i, 1) );
-    printf("\n%d iterations\n", *iterationNumber );
-  }
+
+  if ( verbosityLevel == 1 )
+    lobpcg_dumpLambda( residualNorms, lambda,
+                       iterationNumber, sizeX, util);
 
   mv_MultiVectorDestroy( blockVectorR );
   mv_MultiVectorDestroy( blockVectorP );
@@ -930,43 +1323,44 @@ es" argument */
   }
   mv_MultiVectorDestroy( blockVectorW );
 
-  utilities_FortranMatrixDestroy( gramA );
-  utilities_FortranMatrixDestroy( gramB );
-  utilities_FortranMatrixDestroy( lambdaAB );
-  utilities_FortranMatrixDestroy( lambdaX );
-  
-  utilities_FortranMatrixDestroy( gramXAX );
-  utilities_FortranMatrixDestroy( gramRAX );
-  utilities_FortranMatrixDestroy( gramPAX );
-  utilities_FortranMatrixDestroy( gramRAR );
-  utilities_FortranMatrixDestroy( gramPAR );
-  utilities_FortranMatrixDestroy( gramPAP );
-  
-  utilities_FortranMatrixDestroy( gramXBX );
-  utilities_FortranMatrixDestroy( gramRBX );
-  utilities_FortranMatrixDestroy( gramPBX );
-  utilities_FortranMatrixDestroy( gramRBR );
-  utilities_FortranMatrixDestroy( gramPBR );
-  utilities_FortranMatrixDestroy( gramPBP );
+  (util->FortranMatrixDestroy)( gramA );
+  (util->FortranMatrixDestroy)( gramB );
+  (util->FortranMatrixDestroy)( lambdaAB );
+  (util->FortranMatrixDestroy)( lambdaX );
 
-  utilities_FortranMatrixDestroy( gramYBY );
-  utilities_FortranMatrixDestroy( gramYBX );
-  utilities_FortranMatrixDestroy( tempYBX );
-  utilities_FortranMatrixDestroy( gramYBR );
-  utilities_FortranMatrixDestroy( tempYBR );
+  (util->FortranMatrixDestroy)( gramXAX );
+  (util->FortranMatrixDestroy)( gramRAX );
+  (util->FortranMatrixDestroy)( gramPAX );
+  (util->FortranMatrixDestroy)( gramRAR );
+  (util->FortranMatrixDestroy)( gramPAR );
+  (util->FortranMatrixDestroy)( gramPAP );
 
-  utilities_FortranMatrixDestroy( coordX );
-  utilities_FortranMatrixDestroy( coordXX );
-  utilities_FortranMatrixDestroy( coordRX );
-  utilities_FortranMatrixDestroy( coordPX );
+  (util->FortranMatrixDestroy)( gramXBX );
+  (util->FortranMatrixDestroy)( gramRBX );
+  (util->FortranMatrixDestroy)( gramPBX );
+  (util->FortranMatrixDestroy)( gramRBR );
+  (util->FortranMatrixDestroy)( gramPBR );
+  (util->FortranMatrixDestroy)( gramPBP );
 
-  utilities_FortranMatrixDestroy( upperR );
-  utilities_FortranMatrixDestroy( historyColumn );
+  (util->FortranMatrixDestroy)( gramYBY );
+  (util->FortranMatrixDestroy)( gramYBX );
+  (util->FortranMatrixDestroy)( tempYBX );
+  (util->FortranMatrixDestroy)( gramYBR );
+  (util->FortranMatrixDestroy)( tempYBR );
 
-  utilities_FortranMatrixDestroy( lambda );
-  utilities_FortranMatrixDestroy( lambdaHistory );
+  (util->FortranMatrixDestroy)( coordX );
+  (util->FortranMatrixDestroy)( coordXX );
+  (util->FortranMatrixDestroy)( coordRX );
+  (util->FortranMatrixDestroy)( coordPX );
+
+  (util->FortranMatrixDestroy)( upperR );
+
+
+  (util->FortranMatrixDestroy)( lambda );
+  (util->FortranMatrixDestroy)( lambdaHistory );
+  (util->FortranMatrixDestroy)( lambdaColumn );
   utilities_FortranMatrixDestroy( residualNorms );
-  utilities_FortranMatrixDestroy( residualNormsHistory );	
+  utilities_FortranMatrixDestroy( residualNormsHistory );
 
   free( activeMask );
 

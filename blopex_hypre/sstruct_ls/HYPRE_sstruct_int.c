@@ -1,62 +1,38 @@
+/*BHEADER**********************************************************************
+ * Copyright (c) 2006   The Regents of the University of California.
+ * Produced at the Lawrence Livermore National Laboratory.
+ * Written by the HYPRE team. UCRL-CODE-222953.
+ * All rights reserved.
+ *
+ * This file is part of HYPRE (see http://www.llnl.gov/CASC/hypre/).
+ * Please see the COPYRIGHT_and_LICENSE file for the copyright notice, 
+ * disclaimer, contact information and the GNU Lesser General Public License.
+ *
+ * HYPRE is free software; you can redistribute it and/or modify it under the 
+ * terms of the GNU General Public License (as published by the Free Software
+ * Foundation) version 2.1 dated February 1999.
+ *
+ * HYPRE is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * WARRANTY; without even the IMPLIED WARRANTY OF MERCHANTABILITY or FITNESS 
+ * FOR A PARTICULAR PURPOSE.  See the terms and conditions of the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * $Revision: 2.8 $
+ ***********************************************************************EHEADER*/
+
+
+
+#include "HYPRE_struct_int.h"
 #include "HYPRE_sstruct_int.h"
-#include "sstruct_ls.h"
+#include "_hypre_sstruct_ls.h"
 #include "interpreter.h"
 #include "HYPRE_MatvecFunctions.h"
 #include "temp_multivector.h"
 
-int 
-hypre_StructVectorSetRandomValues( hypre_StructVector *vector,
-                                   int seed )
-{
-   int    ierr = 0;
-
-   hypre_Box          *v_data_box;
-                    
-   int                 vi;
-   double             *vp;
-
-   hypre_BoxArray     *boxes;
-   hypre_Box          *box;
-   hypre_Index         loop_size;
-   hypre_IndexRef      start;
-   hypre_Index         unit_stride;
-
-   int                 i;
-   int                 loopi, loopj, loopk;
-
-   /*-----------------------------------------------------------------------
-    * Set the vector coefficients
-    *-----------------------------------------------------------------------*/
-
-   srand( seed );
-
-   hypre_SetIndex(unit_stride, 1, 1, 1);
- 
-   boxes = hypre_StructGridBoxes(hypre_StructVectorGrid(vector));
-   hypre_ForBoxI(i, boxes)
-      {
-         box      = hypre_BoxArrayBox(boxes, i);
-         start = hypre_BoxIMin(box);
-
-         v_data_box =
-            hypre_BoxArrayBox(hypre_StructVectorDataSpace(vector), i);
-         vp = hypre_StructVectorBoxData(vector, i);
- 
-         hypre_BoxGetSize(box, loop_size);
-
-         hypre_BoxLoop1Begin(loop_size,
-                             v_data_box, start, unit_stride, vi);
-#define HYPRE_BOX_SMP_PRIVATE loopk,loopi,loopj,vi 
-#include "hypre_box_smp_forloop.h"
-         hypre_BoxLoop1For(loopi, loopj, loopk, vi)
-            {
-               vp[vi] = 2.0*rand()/RAND_MAX - 1.0;
-            }
-         hypre_BoxLoop1End(vi);
-      }
-
-   return ierr;
-}
 
 int 
 hypre_SStructPVectorSetRandomValues( hypre_SStructPVector *pvector, int seed )
@@ -104,17 +80,29 @@ hypre_SStructSetRandomValues( void* v, int seed ) {
   return hypre_SStructVectorSetRandomValues( (hypre_SStructVector*)v, seed );
 }
 
+int hypre_SStructKrylovInnerProd_WRAPPER  ( void *x, void *y, void *result )
+{
+   *((double *)result) = hypre_SStructKrylovInnerProd (x,y);
+   return 0;
+}
+
+int hypre_SStructKrylovAxpy_WRAPPER ( void * alpha, void *x, void *y )
+{
+   hypre_SStructKrylovAxpy( *((double *)alpha), x, y );
+   return 0;
+}
+
 int
 HYPRE_SStructSetupInterpreter( mv_InterfaceInterpreter *i )
 {
   i->CreateVector = hypre_SStructKrylovCreateVector;
   i->DestroyVector = hypre_SStructKrylovDestroyVector; 
-  i->InnerProd = hypre_SStructKrylovInnerProd; 
+  i->InnerProd = hypre_SStructKrylovInnerProd_WRAPPER; 
   i->CopyVector = hypre_SStructKrylovCopyVector;
   i->ClearVector = hypre_SStructKrylovClearVector;
   i->SetRandomValues = hypre_SStructSetRandomValues;
   i->ScaleVector = hypre_SStructKrylovScaleVector;
-  i->Axpy = hypre_SStructKrylovAxpy;
+  i->Axpy = hypre_SStructKrylovAxpy_WRAPPER;
 
   i->CreateMultiVector = mv_TempMultiVectorCreateFromSampleVector;
   i->CopyCreateMultiVector = mv_TempMultiVectorCreateCopy;
@@ -136,6 +124,7 @@ HYPRE_SStructSetupInterpreter( mv_InterfaceInterpreter *i )
 
   return 0;
 }
+
 
 int
 HYPRE_SStructSetupMatvec(HYPRE_MatvecFunctions * mv)

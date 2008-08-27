@@ -1,9 +1,39 @@
-/* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
+/*BHEADER**********************************************************************
+ * Copyright (c) 2006   The Regents of the University of California.
+ * Produced at the Lawrence Livermore National Laboratory.
+ * Written by the HYPRE team. UCRL-CODE-222953.
+ * All rights reserved.
+ *
+ * This file is part of HYPRE (see http://www.llnl.gov/CASC/hypre/).
+ * Please see the COPYRIGHT_and_LICENSE file for the copyright notice, 
+ * disclaimer, contact information and the GNU Lesser General Public License.
+ *
+ * HYPRE is free software; you can redistribute it and/or modify it under the 
+ * terms of the GNU General Public License (as published by the Free Software
+ * Foundation) version 2.1 dated February 1999.
+ *
+ * HYPRE is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * WARRANTY; without even the IMPLIED WARRANTY OF MERCHANTABILITY or FITNESS 
+ * FOR A PARTICULAR PURPOSE.  See the terms and conditions of the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ * $Revision: 2.8 $
+ ***********************************************************************EHEADER*/
 
-#include "HYPRE_lobpcg.h"
-#include "lobpcg.h"
 
-#include "utilities.h"
+
+
+/******************************************************************************
+ *
+ * HYPRE_LOBPCG interface
+ *
+ *****************************************************************************/
+
+#include "_hypre_utilities.h"
 
 #include "HYPRE_config.h"
 #ifdef HYPRE_USING_ESSL
@@ -13,15 +43,18 @@
 #else
 
 #include "fortran.h"
-void hypre_F90_NAME_BLAS(dsygv, DSYGV)
+int hypre_F90_NAME_BLAS(dsygv, DSYGV)
 ( int *itype, char *jobz, char *uplo, int *n,
   double *a, int *lda, double *b, int *ldb, double *w,
   double *work, int *lwork, /*@out@*/ int *info
 );
-void hypre_F90_NAME_BLAS( dpotrf, DPOTRF )
+int hypre_F90_NAME_BLAS( dpotrf, DPOTRF )
 ( char* uplo, int* n, double* aval, int* lda, int* ierr );
 
 #endif
+
+#include "HYPRE_lobpcg.h"
+#include "lobpcg.h"
 
 #include "interpreter.h"
 #include "HYPRE_MatvecFunctions.h"
@@ -425,7 +458,7 @@ hypre_LOBPCGSolve( void *vdata,
   blap_fn.dsygv = dsygv_interface;
   blap_fn.dpotrf = dpotrf_interface;
   
-  ierr = lobpcg_solve( vec, 
+  ierr = lobpcg_solve_double( vec, 
 		       vdata, operatorA, 
 		       vdata, operatorB,
 		       vdata, prec,
@@ -617,3 +650,4 @@ utilities_FortranMatrix* xy
                                   utilities_FortranMatrixWidth( xy ),
                                   utilities_FortranMatrixValues( xy ) );
 }
+

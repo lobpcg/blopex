@@ -7,17 +7,17 @@
 
 typedef struct
 {
-  long	 numVectors;
+  long   numVectors;
   int*   mask;
   void** vector;
-  int	 ownsVectors;
+  int    ownsVectors;
   int    ownsMask;
-  
+
   mv_InterfaceInterpreter* interpreter;
-  
+
 } mv_TempMultiVector;
 
-typedef mv_TempMultiVector* mv_TempMultiVectorPtr; /*Error fixed by by Hong Zhang, PETSc*/
+typedef mv_TempMultiVector* mv_TempMultiVectorPtr;
 
 /*******************************************************************/
 /*
@@ -25,7 +25,7 @@ The above is a temporary implementation of the hypre_MultiVector
 data type, just to get things going with LOBPCG eigensolver.
 
 A more proper implementation would be to define hypre_MultiParVector,
-hypre_MultiStructVector and hypre_MultiSStructVector by adding a new 
+hypre_MultiStructVector and hypre_MultiSStructVector by adding a new
 record
 
 int numVectors;
@@ -34,7 +34,7 @@ in hypre_ParVector, hypre_StructVector and hypre_SStructVector,
 and increasing the size of data numVectors times. Respective
 modifications of most vector operations are straightforward
 (it is strongly suggested that BLAS routines are used wherever
-possible), efficient implementation of matrix-by-multivector 
+possible), efficient implementation of matrix-by-multivector
 multiplication may be more difficult.
 
 With the above implementation of hypre vectors, the definition
@@ -42,19 +42,19 @@ of hypre_MultiVector becomes simply (cf. multivector.h)
 
 typedef struct
 {
-  void*	multiVector;
-  HYPRE_InterfaceInterpreter* interpreter;  
+  void* multiVector;
+  HYPRE_InterfaceInterpreter* interpreter;
 } hypre_MultiVector;
 
 with pointers to abstract multivector functions added to the structure
 HYPRE_InterfaceInterpreter (cf. HYPRE_interpreter.h; particular values
-are assigned to these pointers by functions 
+are assigned to these pointers by functions
 HYPRE_ParCSRSetupInterpreter, HYPRE_StructSetupInterpreter and
 int HYPRE_SStructSetupInterpreter),
 and the abstract multivector functions become simply interfaces
 to the actual multivector functions of the form (cf. multivector.c):
 
-void 
+void
 hypre_MultiVectorCopy( hypre_MultiVectorPtr src_, hypre_MultiVectorPtr dest_ ) {
 
   hypre_MultiVector* src = (hypre_MultiVector*)src_;
@@ -71,13 +71,15 @@ hypre_MultiVectorCopy( hypre_MultiVectorPtr src_, hypre_MultiVectorPtr dest_ ) {
 extern "C" {
 #endif
 
+/* ---------------------------- Generic ---------- */
+
 void*
 mv_TempMultiVectorCreateFromSampleVector( void*, int n, void* sample );
 
 void*
 mv_TempMultiVectorCreateCopy( void*, int copyValues );
 
-void 
+void
 mv_TempMultiVectorDestroy( void* );
 
 int
@@ -89,47 +91,76 @@ mv_TempMultiVectorHeight( void* v );
 void
 mv_TempMultiVectorSetMask( void* v, int* mask );
 
-void 
+void
 mv_TempMultiVectorClear( void* );
 
-void 
+void
 mv_TempMultiVectorSetRandom( void* v, int seed );
 
-void 
+void
 mv_TempMultiVectorCopy( void* src, void* dest );
 
-void 
-mv_TempMultiVectorAxpy( double, void*, void* ); 
-
-void 
-mv_TempMultiVectorByMultiVector( void*, void*,
-				    int gh, int h, int w, double* v );
-
-void 
-mv_TempMultiVectorByMultiVectorDiag( void* x, void* y,
-					int* mask, int n, double* diag );
-
-void 
-mv_TempMultiVectorByMatrix( void*, 
-			       int gh, int h, int w, double* v,
-			       void* );
-
-void 
-mv_TempMultiVectorXapy( void* x, 
-			   int gh, int h, int w, double* v,
-			   void* y );
-
-void mv_TempMultiVectorByDiagonal( void* x, 
-				      int* mask, int n, double* diag,
-				      void* y );
-
-void 
+void
 mv_TempMultiVectorEval( void (*f)( void*, void*, void* ), void* par,
-			   void* x, void* y );
+               void* x, void* y );
+
+/* ---------------------------- Double ---------- */
+
+void
+mv_TempMultiVectorAxpy( double, void*, void* );
+
+void
+mv_TempMultiVectorByMultiVector( void*, void*,
+                    int gh, int h, int w, void* v );
+
+void
+mv_TempMultiVectorByMultiVectorDiag( void* x, void* y,
+                    int* mask, int n, void* diag );
+
+void
+mv_TempMultiVectorByMatrix( void*,
+                   int gh, int h, int w, void* v,
+                   void* );
+
+void
+mv_TempMultiVectorXapy( void* x,
+               int gh, int h, int w, void* v,
+               void* y );
+
+void mv_TempMultiVectorByDiagonal( void* x,
+                      int* mask, int n, void* diag,
+                      void* y );
+
+
+/* ---------------------------- Complex ---------- */
+
+void
+mv_TempMultiVectorAxpy_complex( double, void*, void* );
+
+void
+mv_TempMultiVectorByMultiVector_complex( void*, void*,
+                    int gh, int h, int w, void* v );
+
+void
+mv_TempMultiVectorByMultiVectorDiag_complex( void* x, void* y,
+                    int* mask, int n, void* diag );
+
+void
+mv_TempMultiVectorByMatrix_complex( void*,
+                   int gh, int h, int w, void* v,
+                   void* );
+
+void
+mv_TempMultiVectorXapy_complex( void* x,
+               int gh, int h, int w, void* v,
+               void* y );
+
+void mv_TempMultiVectorByDiagonal_complex( void* x,
+                      int* mask, int n, void* diag,
+                      void* y );
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* MULTIVECTOR_FUNCTION_PROTOTYPES */
-
