@@ -1236,6 +1236,7 @@ lobpcg_solve( mv_MultiVectorPtr blockVectorX,
     /*--- blockVectorW = blockVector X              */
     /*--- blockVectorX = blockVector W * coordXX    */
     /*--- blockVectorX = blockVectorX + blockVectorP  */
+    mv_MultiVectorSetMask( blockVectorW, NULL );
     mv_MultiVectorCopy( blockVectorX, blockVectorW );
     lobpcg_MultiVectorByMatrix( blockVectorW, coordXX, blockVectorX, util );
     mv_MultiVectorAxpy( 1.0, blockVectorP, blockVectorX );
