@@ -7,7 +7,7 @@ Author: William F. Mitchell
         Gaithersburg, MD
         william.mitchell@nist.gov
         April 8, 2008
-        Last modified August 20, 2008
+        Last modified August 29, 2008
 
 This software was produced as part of work done by the U.S. Government, and is
 not subject to copyright in the United States.
@@ -18,41 +18,25 @@ not subject to copyright in the United States.
 Contains C routines for the interface with BLOPEX compiled with PETSc.
 */
 
-/* Fortran name mangling choices */
-
-#define LOWERCASE 1
-#define UPPERCASE 2
-#define UNDERSCORE 3
-#define DOUBLEUNDERSCORE 4
-
-/* Select the form of name mangling used by your Fortran compiler.  This
-   can either be set here by changing the next statement, or on the C
-   compiler command line with something like -DFMANGLE=UNDERSCORE
-*/
-
-#define FMANGLE UNDERSCORE
-
-/* mangle the names of routines callable from Fortran */
-
-#if FMANGLE==LOWERCASE
-#define petsc_lobpcg_solve_c   petsc_lobpcg_solve_c
-#elif FMANGLE==UPPERCASE
-#define petsc_lobpcg_solve_c   PETSC_LOBPCG_SOLVE_C
-#elif FMANGLE==UNDERSCORE
-#define petsc_lobpcg_solve_c   petsc_lobpcg_solve_c_
-#elif FMANGLE==DOUBLEUNDERSCORE
-#define petsc_lobpcg_solve_c   petsc_lobpcg_solve_c__
-#endif
-
 /* include files for PETSc and BLOPEX */
 
 #include "petscvec.h"
 #include "petscksp.h"
 #include "petscda.h"
 #include "lobpcg.h"
-#include "petsc-interface.h"
+#include "src/contrib/blopex/petsc-interface/petsc-interface.h"
 #include "interpreter.h"
 #include "multivector.h"
+
+/* mangle the names of routines callable from Fortran */
+
+#if defined(PETSC_HAVE_FORTRAN_CAPS)
+#define petsc_lobpcg_solve_c_   PETSC_LOBPCG_SOLVE_C
+#elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
+#define petsc_lobpcg_solve_c_   petsc_lobpcg_solve_c
+#elif defined(PETSC_HAVE_FORTRAN_UNDERSCORE_UNDERSCORE)
+#define petsc_lobpcg_solve_c_   petsc_lobpcg_solve_c__
+#endif
 
 /* auxillary data structure */
 
@@ -136,7 +120,7 @@ void petsc_lobpcg_return_evec_MultiVector(void * data, void * x, void * y)
 
 /* the main routine called from Fortran to solve the eigenvalue problem */
 
-void petsc_lobpcg_solve_c(
+void petsc_lobpcg_solve_c_(
    Vec* u,                           /* prototype of a vector, not used   */
    int* num_eval,                    /* number of eigenvalues to compute  */
    int* maxit,                       /* maximum number of iterations      */

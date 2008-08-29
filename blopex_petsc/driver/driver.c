@@ -1,9 +1,9 @@
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
 
-/* Program usage:  mpirun -np <procs> driver [-help] [all PETSc options] */ 
+/* Program usage:  mpiexec -n <procs> driver [-help] [all PETSc options] */ 
 
 static char help[] = "Test driver for 'abstract lobpcg' in PETSC\n\
-Usage: mpirun -np <procs> driver [-help] [all PETSc options]\n\
+Usage: mpiexec -n <procs> driver [-help] [all PETSc options]\n\
 Special options:\n\
 -n_eigs <integer>      Number of eigenvalues to calculate\n\
 -tol <real number>     absolute tolerance for residuals\n\
@@ -12,7 +12,7 @@ Special options:\n\
 -seed <integer>        seed for random number generator\n\
 -itr <integer>         Maximal number of iterations\n\
 Example:\n\
-mpirun -np 2 driver -n_eigs 3 -tol 1e-6 -itr 20\n";
+mpiexec -n 2 driver -n_eigs 3 -tol 1e-6 -itr 20\n";
 
 /* 
   Include "petscksp.h" so that we can use KSP solvers.  Note that this file
@@ -27,7 +27,7 @@ mpirun -np 2 driver -n_eigs 3 -tol 1e-6 -itr 20\n";
 #include "petscda.h"
 #include <assert.h>
 #include "lobpcg.h"
-#include "petsc-interface.h"
+#include "src/contrib/blopex/petsc-interface/petsc-interface.h"
 #include "interpreter.h"
 #include "multivector.h"
 
@@ -76,7 +76,7 @@ void Precond_FnSingleVector(void * data, void * x, void * y)
 {
       PetscErrorCode     ierr;
       
-      ierr = KSPSolve(((aux_data_struct*)data)->ksp, x, y);
+      ierr = KSPSolve(((aux_data_struct*)data)->ksp, (Vec)x, (Vec)y);
       assert(!ierr);
 }
 
