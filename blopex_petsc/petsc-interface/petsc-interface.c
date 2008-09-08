@@ -1,3 +1,10 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 1.1)                                              */
+/* @@@ University of Colorado at Denver                                  */
+/* @@@ Copyright 2008 Merico Argentati, Andrew Knyazev,                  */
+/* @@@ Ilya Lashuk, Evgueni Ovtchinnikov, and Don McCuan                 */
+/* @@@ LGPL Version 3 or above.  See www.gnu.org.                        */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
 
 #include "petscsys.h"
@@ -10,158 +17,199 @@
 
 static PetscRandom LOBPCG_RandomContext = PETSC_NULL;
 
-int PETSC_dpotrf_interface (char *uplo,PetscInt *n, double *a,PetscInt * lda,PetscInt *info)
+typedef struct {double real, imag;} komplex;
+
+int PETSC_dpotrf_interface (char *uplo, int *n, double *a, int * lda, int *info)
 {
    PetscBLASInt n_, lda_, info_;
-   
-/* we assume that "PetscScalar" is just double; we must abort if PETSc has been
-   compiled for complex */   
-
-   #ifdef PETSC_USE_COMPLEX
-     SETERRQ(1,"dpotrf_interface: PETSC must be compiled without support for complex numbers");
-   #endif
 
    /* type conversion */
-     n_ = PetscBLASIntCast(*n);
-     lda_ = PetscBLASIntCast(*lda);
-     info_ = PetscBLASIntCast(*info);
-   
+   n_ = *n;
+   lda_ = *lda;
+   info_ = *info;
+
    LAPACKpotrf_(uplo, &n_, (PetscScalar*)a, &lda_, &info_);
-   
+
    *info = info_;
    return 0;
 }
 
+int PETSC_zpotrf_interface (char *uplo, int *n, komplex *a, int * lda, int *info)
+{
+   PetscBLASInt n_, lda_, info_;
 
-int PETSC_dsygv_interface (int *itype, char *jobz, char *uplo,PetscInt *
-                    n, double *a,PetscInt *lda, double *b,PetscInt *ldb,
-                    double *w, double *work,PetscInt *lwork,PetscInt *info)
+   /* type conversion */
+   n_ = *n;
+   lda_ = *lda;
+   info_ = *info;
+
+   LAPACKpotrf_(uplo, &n_, (PetscScalar*)a, &lda_, &info_);
+
+   *info = info_;
+   return 0;
+}
+
+int PETSC_dsygv_interface (int *itype, char *jobz, char *uplo, int *
+                    n, double *a, int *lda, double *b, int *ldb,
+                    double *w, double *work, int *lwork, int *info)
 {
    PetscBLASInt itype_, n_, lda_, ldb_, lwork_, info_;
 
-   #ifdef PETSC_USE_COMPLEX
-     SETERRQ(1,"dsygv_interface: PETSC must be compiled without support for complex numbers");
-   #endif
+   itype_ = *itype;
+   n_ = *n;
+   lda_ = *lda;
+   ldb_ = *ldb;
+   lwork_ = *lwork;
+   info_ = *info;
 
-   itype_ = PetscBLASIntCast(*itype);
-   n_ = PetscBLASIntCast(*n); /* it said n0 here */
-   lda_ = PetscBLASIntCast(*lda);
-   ldb_ = PetscBLASIntCast(*ldb);
-   lwork_ = PetscBLASIntCast(*lwork);
-   info_ = PetscBLASIntCast(*info);
-   
-
+#ifdef PETSC_USE_COMPLEX
+#else
    LAPACKsygv_(&itype_, jobz, uplo, &n_, (PetscScalar*)a, &lda_,
       (PetscScalar*)b, &ldb_, (PetscScalar*)w, (PetscScalar*)work, &lwork_, &info_);
-      
+#endif
+
    *info = info_;
    return 0;
 
 }
+
+int PETSC_zsygv_interface (int *itype, char *jobz, char *uplo, int *
+                    n, komplex *a, int *lda, komplex *b, int *ldb,
+                    double *w, komplex *work, int *lwork, double *rwork, int *info)
+{
+   PetscBLASInt itype_, n_, lda_, ldb_, lwork_, info_;
+
+   itype_ = *itype;
+   n_ = *n;
+   lda_ = *lda;
+   ldb_ = *ldb;
+   lwork_ = *lwork;
+   info_ = *info;
+
+#ifdef PETSC_USE_COMPLEX
+   LAPACKsygv_(&itype_, jobz, uplo, &n_, (PetscScalar*)a, &lda_,
+      (PetscScalar*)b, &ldb_, (PetscReal*)w, (PetscScalar*)work, &lwork_, (PetscReal*)rwork, &info_);
+#endif
+
+   *info = info_;
+   return 0;
+
+}
+
 void *
 PETSC_MimicVector( void *vvector )
 {
-	PetscErrorCode 	ierr;
-	Vec temp;	
+    PetscErrorCode  ierr;
+    Vec temp;
 
-	ierr=VecDuplicate((Vec) vvector, &temp );
+    ierr=VecDuplicate((Vec) vvector, &temp );
         assert (ierr==0);
-	return ((void *)temp);
+    return ((void *)temp);
 }
 
 int
 PETSC_DestroyVector( void *vvector )
 {
    PetscErrorCode ierr;
-   
+
    ierr=VecDestroy((Vec) vvector); CHKERRQ(ierr);
    return(0);
 }
 
-double
-PETSC_InnerProd( void *x, void *y )
+int
+PETSC_InnerProd( void *x, void *y, void *result )
 {
-	PetscErrorCode     ierr;
-	double             result;
+    PetscErrorCode     ierr;
 
-	ierr=VecDot( (Vec)x, (Vec)y, &result);
+    ierr=VecDot( (Vec)x, (Vec)y, (PetscScalar *) result);
         assert(ierr==0);
-	return (result);
+    return (0);
 }
 
 int
 PETSC_CopyVector( void *x, void *y )
 {
-	PetscErrorCode	ierr;
-	
-	ierr = VecCopy( (Vec)x, (Vec)y ); CHKERRQ(ierr);
-	return(0);
+    PetscErrorCode  ierr;
+
+    ierr = VecCopy( (Vec)x, (Vec)y ); CHKERRQ(ierr);
+    return(0);
 }
 
 int
 PETSC_ClearVector( void *x )
 {
-	PetscErrorCode	ierr;	
-		
-	ierr = VecSet((Vec)x, 0.0); CHKERRQ(ierr);
-	return(0);
+    PetscErrorCode  ierr;
+
+    ierr = VecSet((Vec)x, 0.0); CHKERRQ(ierr);
+    return(0);
 }
- 
+
 int
-PETSC_SetRandomValues( void* v,PetscInt seed )
+PETSC_SetRandomValues( void* v, int seed )
 {
-	PetscErrorCode ierr;
+    PetscErrorCode ierr;
 
 /* note: without previous call to LOBPCG_InitRandomContext LOBPCG_RandomContext will be null,
-	and VecSetRandom will use internal petsc random context */
-	
+    and VecSetRandom will use internal petsc random context */
+
         ierr = VecSetRandom((Vec)v, LOBPCG_RandomContext); CHKERRQ(ierr);
 
-	return(0);
+    return(0);
 }
 
 int
 PETSC_ScaleVector( double alpha, void *x)
 {
-	PetscErrorCode ierr;
-	
-	ierr = VecScale ((Vec)x, alpha); CHKERRQ(ierr);
-	return(0);
+    PetscErrorCode ierr;
+
+    ierr = VecScale ((Vec)x, alpha); CHKERRQ(ierr);
+    return(0);
 }
 
 int
-PETSC_Axpy( double alpha,
+PETSC_Axpy( void *alpha,
                 void   *x,
                 void   *y )
 {
-	PetscErrorCode ierr;
-	
-	ierr = VecAXPY( (Vec)y, alpha, (Vec)x ); CHKERRQ(ierr);
-	return(0);
-}
+    PetscErrorCode ierr;
 
+    ierr = VecAXPY( (Vec)y, *(PetscScalar *)alpha, (Vec)x ); CHKERRQ(ierr);
+    return(0);
+}
+int
+PETSC_VectorSize( void *x )
+{
+  PetscInt  N;
+  VecGetSize( (Vec)x, &N );
+  return(N);
+}
 int
 LOBPCG_InitRandomContext(void)
 {
-	PetscErrorCode ierr;
+    PetscErrorCode ierr;
   /* PetscScalar rnd_bound = 1.0; */
-  
+
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&LOBPCG_RandomContext);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(LOBPCG_RandomContext);CHKERRQ(ierr); 
-  
+  ierr = PetscRandomSetFromOptions(LOBPCG_RandomContext);CHKERRQ(ierr);
+
+#ifdef PETSC_USE_COMPLEX
+  ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0-1.0*I,(PetscScalar)1.0+1.0*I);
+#else
   ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0,(PetscScalar)1.0);
-	CHKERRQ(ierr);
-	return 0;
+#endif
+    CHKERRQ(ierr);
+
+    return 0;
 }
 
-int 
+int
 LOBPCG_DestroyRandomContext(void)
 {
-	PetscErrorCode ierr;
-  
-	ierr = PetscRandomDestroy(LOBPCG_RandomContext); 
-	CHKERRQ(ierr);
-	return 0;
+    PetscErrorCode ierr;
+
+    ierr = PetscRandomDestroy(LOBPCG_RandomContext);
+    CHKERRQ(ierr);
+    return 0;
 }
 
 int
@@ -176,6 +224,7 @@ PETSCSetupInterpreter( mv_InterfaceInterpreter *i )
   i->SetRandomValues = PETSC_SetRandomValues;
   i->ScaleVector = PETSC_ScaleVector;
   i->Axpy = PETSC_Axpy;
+  i->VectorSize = PETSC_VectorSize;
 
   /* Multivector part */
 
@@ -189,13 +238,23 @@ PETSCSetupInterpreter( mv_InterfaceInterpreter *i )
   i->CopyMultiVector = mv_TempMultiVectorCopy;
   i->ClearMultiVector = mv_TempMultiVectorClear;
   i->SetRandomVectors = mv_TempMultiVectorSetRandom;
-  i->MultiInnerProd = mv_TempMultiVectorByMultiVector;
-  i->MultiInnerProdDiag = mv_TempMultiVectorByMultiVectorDiag;
-  i->MultiVecMat = mv_TempMultiVectorByMatrix;
-  i->MultiVecMatDiag = mv_TempMultiVectorByDiagonal;
-  i->MultiAxpy = mv_TempMultiVectorAxpy;
-  i->MultiXapy = mv_TempMultiVectorXapy;
   i->Eval = mv_TempMultiVectorEval;
+
+  #ifdef PETSC_USE_COMPLEX
+    i->MultiInnerProd = mv_TempMultiVectorByMultiVector_complex;
+    i->MultiInnerProdDiag = mv_TempMultiVectorByMultiVectorDiag_complex;
+    i->MultiVecMat = mv_TempMultiVectorByMatrix_complex;
+    i->MultiVecMatDiag = mv_TempMultiVectorByDiagonal_complex;
+    i->MultiAxpy = mv_TempMultiVectorAxpy_complex;
+    i->MultiXapy = mv_TempMultiVectorXapy_complex;
+  #else
+    i->MultiInnerProd = mv_TempMultiVectorByMultiVector;
+    i->MultiInnerProdDiag = mv_TempMultiVectorByMultiVectorDiag;
+    i->MultiVecMat = mv_TempMultiVectorByMatrix;
+    i->MultiVecMatDiag = mv_TempMultiVectorByDiagonal;
+    i->MultiAxpy = mv_TempMultiVectorAxpy;
+    i->MultiXapy = mv_TempMultiVectorXapy;
+  #endif
 
   return 0;
 }

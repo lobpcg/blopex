@@ -1,7 +1,14 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 1.1)                                              */
+/* @@@ University of Colorado at Denver                                  */
+/* @@@ Copyright 2008 Merico Argentati, Andrew Knyazev,                  */
+/* @@@ Ilya Lashuk, Evgueni Ovtchinnikov, and Don McCuan                 */
+/* @@@ LGPL Version 3 or above.  See www.gnu.org.                        */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
 
 static char help[] = "'Fiedler' test driver for 'abstract lobpcg' in PETSC\n\
-Usage: mpiexec -n <procs> driver_fiedler [-help] [all PETSc options]\n\
+Usage: mpirun -np <procs> driver_fiedler [-help] [all PETSc options]\n\
 Special options:\n\
 -matrix <filename>      (mandatory) specify file with 'stiffness' matrix \
 (in petsc format)\n\
@@ -14,12 +21,17 @@ Special options:\n\
 -output_file <string>  Filename to write calculated eigenvectors.\n\
 -shift <real number>   Apply shift to 'stiffness' matrix\n\
 Example:\n\
-mpiexec -n 2 ./driver_fiedler -matrix my_matrix.bin -n_eigs 3 -tol 1e-6 -itr 20\n";
+mpirun -np 2 ./driver_fiedler -matrix my_matrix.bin -n_eigs 3 -tol 1e-6 -itr 20\n";
 
 #include "petscksp.h"
 #include <assert.h>
-#include "lobpcg.h" 
-#include "src/contrib/blopex/petsc-interface/petsc-interface.h" 
+#include "fortran_matrix.h"
+#include "fortran_interpreter.h"
+#include "lobpcg.h"
+/*
+#include "src/contrib/blopex/petsc-interface/petsc-interface.h"
+*/
+#include "petsc-interface.h"
 #include "interpreter.h"
 #include "multivector.h"
 #include "temp_multivector.h"
@@ -35,7 +47,7 @@ typedef struct
 void Precond_FnSingleVector(void * data, void * x, void * y)
 {
       PetscErrorCode     ierr;
-      
+
       ierr = KSPSolve(((aux_data_struct*)data)->ksp, (Vec)x, (Vec)y);
       assert(!ierr);
 }
@@ -48,7 +60,7 @@ void Precond_FnMultiVector(void * data, void * x, void * y)
 void OperatorASingleVector (void * data, void * x, void * y)
 {
    PetscErrorCode     ierr;
-   
+
    ierr = MatMult(((aux_data_struct*)data)->A, (Vec)x, (Vec)y);
    assert(!ierr);
 }
@@ -62,7 +74,7 @@ void OperatorAMultiVector(void * data, void * x, void * y)
 void OperatorBSingleVector (void * data, void * x, void * y)
 {
    PetscErrorCode     ierr;
-   
+
    ierr = MatMult(((aux_data_struct*)data)->B, (Vec)x, (Vec)y);
    assert(!ierr);
 }
@@ -82,14 +94,14 @@ int main(int argc,char **args)
    Mat            B;
 
    PetscErrorCode ierr;
-  
-   mv_MultiVectorPtr          eigenvectors;   
+
+   mv_MultiVectorPtr          eigenvectors;
    mv_MultiVectorPtr          constraints;
    mv_TempMultiVector*        raw_constraints;
    mv_TempMultiVector*        raw_eigenvectors;
-   
-   double *                   eigs;
-   double *                   eigs_hist;
+
+   PetscScalar *              eigs;
+   PetscScalar *              eigs_hist;
    double *                   resid;
    double *                   resid_hist;
    int                        iterations;
@@ -116,16 +128,16 @@ int main(int argc,char **args)
    char                       output_filename[PETSC_MAX_PATH_LEN];
    PetscTruth                 output_filename_present;
    char                       tmp_str[PETSC_MAX_PATH_LEN];
-   
+
    PetscInitialize(&argc,&args,(char *)0,help);
-   
+
    /* read command-line parameters */
    ierr = PetscOptionsGetInt(PETSC_NULL,"-n_eigs",&n_eigs,PETSC_NULL);CHKERRQ(ierr);
    ierr = PetscOptionsGetReal(PETSC_NULL,"-tol", &tol,PETSC_NULL); CHKERRQ(ierr);
    ierr = PetscOptionsGetString(PETSC_NULL,"-matrix",filename,PETSC_MAX_PATH_LEN-1,
            &matrix_present);
    CHKERRQ(ierr);
-   if (!matrix_present) 
+   if (!matrix_present)
     SETERRQ(1,"Must indicate binary file to read matrix from with the "
             "'-matrix' option");
    ierr = PetscOptionsGetString(PETSC_NULL,"-mass_matrix",mass_filename,
@@ -139,14 +151,14 @@ int main(int argc,char **args)
    ierr = PetscOptionsGetReal(PETSC_NULL,"-shift",&shift,&shift_present);
    ierr = PetscOptionsGetString(PETSC_NULL,"-output_file",output_filename,
             PETSC_MAX_PATH_LEN-1, &output_filename_present);
-           
-           
+
+
    /* load matrices */
    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&fd);
    CHKERRQ(ierr);
    ierr = MatLoad(fd,MATMPIAIJ,&A);CHKERRQ(ierr);
    ierr = PetscViewerDestroy(fd);CHKERRQ(ierr);
-   
+
    if (mass_matrix_present)
    {
        ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,mass_filename,FILE_MODE_READ,&fd);
@@ -154,7 +166,7 @@ int main(int argc,char **args)
        ierr = MatLoad(fd,MATMPIAIJ,&B);CHKERRQ(ierr);
        ierr = PetscViewerDestroy(fd);CHKERRQ(ierr);
    }
-     
+
    /* apply shift to stiffness matrix if asked to do so */
    if (shift_present)
    {
@@ -169,34 +181,34 @@ int main(int argc,char **args)
         CHKERRQ(ierr);
       }
    }
-        
-   
-   /* 
+
+
+   /*
     Create parallel vectors.
      - We form 1 vector from scratch and then duplicate as needed.
    */
 
    MatGetVecs(A,&u,NULL);
 
-   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                Create the linear solver and set various options
     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
  /* Here we START measuring time for preconditioner setup */
    ierr = PetscGetTime(&t1);CHKERRQ(ierr);
 
-   /* 
+   /*
       Create linear solver context
    */
    ierr = KSPCreate(PETSC_COMM_WORLD,&ksp);CHKERRQ(ierr);
 
-   /* 
+   /*
       Set operators. Here the matrix that defines the linear system
       also serves as the preconditioning matrix.
    */
    ierr = KSPSetOperators(ksp,A,A,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
 
-   /* 
+   /*
      Set runtime options, e.g.,
          -ksp_type <type> -pc_type <type> -ksp_monitor -ksp_rtol <rtol>
      These options will override those specified above as long as
@@ -215,10 +227,10 @@ int main(int argc,char **args)
    PetscPrintf(PETSC_COMM_WORLD,"Preconditioner setup, seconds: %f\n",elapsed_time);
 
    /* request memory for eig-vals */
-   ierr = PetscMalloc(sizeof(double)*n_eigs,&eigs); CHKERRQ(ierr);
+   ierr = PetscMalloc(sizeof(PetscScalar)*n_eigs,&eigs); CHKERRQ(ierr);
 
    /* request memory for eig-vals history */
-   ierr = PetscMalloc(sizeof(double)*n_eigs*(maxIt+1),&eigs_hist); CHKERRQ(ierr);
+   ierr = PetscMalloc(sizeof(PetscScalar)*n_eigs*(maxIt+1),&eigs_hist); CHKERRQ(ierr);
 
    /* request memory for resid. norms */
    ierr = PetscMalloc(sizeof(double)*n_eigs,&resid); CHKERRQ(ierr);
@@ -237,7 +249,7 @@ int main(int argc,char **args)
    constraints= mv_MultiVectorCreateFromSampleVector(&ii, 1,u);
    raw_constraints = (mv_TempMultiVector*)mv_MultiVectorGetData (constraints);
    tmp_vec = (Vec)(raw_constraints->vector)[0];
-   ierr = VecSet(tmp_vec,1.0); CHKERRQ(ierr); 
+   ierr = VecSet(tmp_vec,1.0); CHKERRQ(ierr);
 
    for (i=0; i<seed; i++) /* this cycle is to imitate changing random seed */
       mv_MultiVectorSetRandom (eigenvectors, 1234);
@@ -245,8 +257,13 @@ int main(int argc,char **args)
    lobpcg_tol.absolute = tol;
    lobpcg_tol.relative = 1e-50;
 
-   blap_fn.dpotrf = PETSC_dpotrf_interface;
-   blap_fn.dsygv = PETSC_dsygv_interface;
+   #ifdef PETSC_USE_COMPLEX
+      blap_fn.zpotrf = PETSC_zpotrf_interface;
+      blap_fn.zhegv = PETSC_zsygv_interface;
+   #else
+      blap_fn.dpotrf = PETSC_dpotrf_interface;
+      blap_fn.dsygv = PETSC_dsygv_interface;
+   #endif
 
    aux_data.A = A;
    aux_data.B = B;
@@ -256,8 +273,9 @@ int main(int argc,char **args)
    /* Here we START measuring time for solution process */
    ierr = PetscGetTime(&t1);CHKERRQ(ierr);
 
-   lobpcg_solve
-   ( 
+#ifdef PETSC_USE_COMPLEX
+   lobpcg_solve_complex
+   (
       eigenvectors,
       &aux_data,
       OperatorAMultiVector,
@@ -271,46 +289,70 @@ int main(int argc,char **args)
       maxIt,
       !rank,
       &iterations,
-	    eigs,
-      eigs_hist, 
-      n_eigs,                  	      
-      resid, 
+      (komplex *) eigs,
+      (komplex *) eigs_hist,
+      n_eigs,
+      resid,
       resid_hist,
-      n_eigs                                     
+      n_eigs
    );
+#else
+   lobpcg_solve_double
+   (
+      eigenvectors,
+      &aux_data,
+      OperatorAMultiVector,
+      mass_matrix_present?&aux_data:NULL,
+      mass_matrix_present?OperatorBMultiVector:NULL,
+      &aux_data,
+      Precond_FnMultiVector,
+      constraints,
+      blap_fn,
+      lobpcg_tol,
+      maxIt,
+      !rank,
+      &iterations,
+        eigs,
+      eigs_hist,
+      n_eigs,
+      resid,
+      resid_hist,
+      n_eigs
+   );
+   #endif
 
    /* Here we STOP measuring time for solution process */
    ierr = PetscGetTime(&t2);CHKERRQ(ierr);
    elapsed_time=t2-t1;
 
    PetscPrintf(PETSC_COMM_WORLD,"Solution process, seconds: %e\n",elapsed_time);
-   
+
    /* shift eigenvalues back */
    for (i=0; i<n_eigs; i++)
       eigs[i]-=shift;
-      
-   PetscPrintf(PETSC_COMM_WORLD,"Final eigenvalues:\n");     
+
+   PetscPrintf(PETSC_COMM_WORLD,"Final eigenvalues:\n");
    for (i=0;i<n_eigs;i++)
-	 {
-		 ierr = PetscPrintf(PETSC_COMM_WORLD,"%e\n",eigs[i]);
-		 CHKERRQ(ierr);
-	 }
-   
+     {
+         ierr = PetscPrintf(PETSC_COMM_WORLD,"%e\n",PetscRealPart(eigs[i]));
+         CHKERRQ(ierr);
+     }
+
    if (full_output)
    {
      PetscPrintf(PETSC_COMM_WORLD,"Output from LOBPCG, eigenvalues history:\n");
      for (j=0; j<iterations+1; j++)
        for (i=0;i<n_eigs;i++)
        {
-         ierr = PetscPrintf(PETSC_COMM_WORLD,"%e\n",*(eigs_hist+j*n_eigs+i));
+         ierr = PetscPrintf(PETSC_COMM_WORLD,"%e\n",PetscRealPart(*(eigs_hist+j*n_eigs+i)));
          CHKERRQ(ierr);
-	     }
+         }
      PetscPrintf(PETSC_COMM_WORLD,"Output from LOBPCG, residual norms:\n");
      for (i=0;i<n_eigs;i++)
-	   {
-		   ierr = PetscPrintf(PETSC_COMM_WORLD,"%e\n",resid[i]);
-		   CHKERRQ(ierr);
-	   }
+       {
+           ierr = PetscPrintf(PETSC_COMM_WORLD,"%e\n",resid[i]);
+           CHKERRQ(ierr);
+       }
 
      PetscPrintf(PETSC_COMM_WORLD,"Output from LOBPCG, residual norms history:\n");
      for (j=0; j<iterations+1; j++)
@@ -319,25 +361,25 @@ int main(int argc,char **args)
          ierr = PetscPrintf(PETSC_COMM_WORLD,"%e\n",*(resid_hist+j*n_eigs+i));
          CHKERRQ(ierr);
        }
-   }	
+   }
 
    /* write eigenvectors to disk, if told to do so */
-   
+
    if (output_filename_present)
    {
       raw_eigenvectors = (mv_TempMultiVector*)mv_MultiVectorGetData (eigenvectors);
       tmp_vec = (Vec)(raw_constraints->vector)[0];
-      for ( i = 0; i < n_eigs; i++ ) 
+      for ( i = 0; i < n_eigs; i++ )
       {
         sprintf( tmp_str, "%s_%d.petsc", output_filename, i );
         PetscViewerBinaryOpen(PETSC_COMM_WORLD, tmp_str, FILE_MODE_WRITE, &fd);
         /* PetscViewerSetFormat(fd,PETSC_VIEWER_ASCII_MATLAB); */
-        ierr = VecView((Vec)(raw_eigenvectors->vector)[i],fd); CHKERRQ(ierr); 
+        ierr = VecView((Vec)(raw_eigenvectors->vector)[i],fd); CHKERRQ(ierr);
         ierr = PetscViewerDestroy(fd);CHKERRQ(ierr);
       }
-  
+
    }
-   
+
    /*
       Free work space.  All PETSc objects should be destroyed when they
       are no longer needed.
@@ -353,13 +395,13 @@ int main(int argc,char **args)
    mv_MultiVectorDestroy(constraints);
 
    /* free memory used for eig-vals */
-   ierr = PetscFree(eigs); 
+   ierr = PetscFree(eigs);
    CHKERRQ(ierr);
-   ierr = PetscFree(eigs_hist); 
+   ierr = PetscFree(eigs_hist);
    CHKERRQ(ierr);
-   ierr = PetscFree(resid); 
+   ierr = PetscFree(resid);
    CHKERRQ(ierr);
-   ierr = PetscFree(resid_hist); 
+   ierr = PetscFree(resid_hist);
    CHKERRQ(ierr);
 
    ierr = PetscFinalize();CHKERRQ(ierr);

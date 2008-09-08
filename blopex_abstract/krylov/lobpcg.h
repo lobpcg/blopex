@@ -1,3 +1,10 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 1.1)                                              */
+/* @@@ University of Colorado at Denver                                  */
+/* @@@ Copyright 2008 Merico Argentati, Andrew Knyazev,                  */
+/* @@@ Ilya Lashuk, Evgueni Ovtchinnikov, and Don McCuan                 */
+/* @@@ LGPL Version 3 or above.  See www.gnu.org.                        */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 #ifndef LOCALLY_OPTIMAL_BLOCK_PRECONDITIONED_CONJUGATE_GRADIENTS
 #define LOCALLY_OPTIMAL_BLOCK_PRECONDITIONED_CONJUGATE_GRADIENTS
 

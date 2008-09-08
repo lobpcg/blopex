@@ -1,0 +1,3 @@
+Usage:
+Edit Makefile.inc (first of all, specify abstract lobpcg root directory if necessary)
+Type "make". This should create a test executable "driver/serial_driver" 

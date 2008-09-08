@@ -1,3 +1,10 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 1.1)                                              */
+/* @@@ University of Colorado at Denver                                  */
+/* @@@ Copyright 2008 Merico Argentati, Andrew Knyazev,                  */
+/* @@@ Ilya Lashuk, Evgueni Ovtchinnikov, and Don McCuan                 */
+/* @@@ LGPL Version 3 or above.  See www.gnu.org.                        */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 #include "mex.h"
 #include "matrix.h"
 
@@ -92,7 +99,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs,
    }
    
 /* execute lobpcg */
-   exitflag = lobpcg_solve( xx,
+   exitflag = lobpcg_solve_double( xx,
 	             (void*)prhs[1],      /* operatorA */
                  MatMultiVec,  
 	             (void*)prhs[2],      /* operatorB */
