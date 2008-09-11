@@ -1,9 +1,3 @@
-/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
-/* @@@ BLOPEX (version 1.1)                                              */
-/* @@@ Copyright 2008 Merico Argentati, Andrew Knyazev,                  */
-/* @@@ Ilya Lashuk, Evgueni Ovtchinnikov, and Don McCuan                 */
-/* @@@ LGPL Version 3 or above.  See www.gnu.org.                        */
-/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* multivector for matlab: structure and access routines */
 
 #include "multivector_for_matlab.h"
