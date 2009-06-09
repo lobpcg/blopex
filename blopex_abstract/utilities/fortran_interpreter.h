@@ -4,6 +4,8 @@
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk, Evgueni Ovtchinnikov */
 /* and Don McCuan  */
 
+#include "fortran_matrix.h"
+
 typedef struct
 {
   utilities_FortranMatrix* (*FortranMatrixCreate)  ( void );
