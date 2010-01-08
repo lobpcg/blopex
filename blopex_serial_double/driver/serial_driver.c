@@ -26,7 +26,7 @@ int dpotrf_ (char *uplo, int *n, double *a, int *
 int main(void)
 {
    serial_Multi_Vector * x;
-   serial_Multi_Vector * operatorA;
+   serial_Multi_Vector * operatorAdata;
    mv_MultiVectorPtr xx;
    double * eigs;
    double * resid;
@@ -37,21 +37,27 @@ int main(void)
 
    int MV_HEIGHT, MV_WIDTH;
 
-/* create operatorA */
-   operatorA = serial_Multi_VectorCreate(40,40);
-   serial_Multi_VectorInitialize(operatorA);
+/* create operatorAdata as a 40x40 matrix */
+   operatorAdata = serial_Multi_VectorCreate(40,40);
+/* reserve space for the matrix */
+   serial_Multi_VectorInitialize(operatorAdata);
+ /* initialize the matrix to zeros */
    double kzero = 0.0;
-   serial_Multi_VectorSetConstantValues( operatorA, kzero);
+   serial_Multi_VectorSetConstantValues( operatorAdata, kzero);
+ /* set diagonals of matrix (1 2 3 ... 40) */
    double * pc;
    int di;
-   pc = (double *)operatorA->data;
+   pc = (double *)operatorAdata->data;
    for (di=0;di<40;di++) {
      *pc = di+1;
      pc=pc+41;
    }
-   serial_Multi_VectorPrint(operatorA,"operatorA",4);
+/* print first part of operatorA */
+   serial_Multi_VectorPrint(operatorAdata,"operatorA",4);
 
-   MV_HEIGHT = operatorA->size;
+/* set eigenvector length and number */
+/* this is how many eigenvalues to solve for */
+   MV_HEIGHT = operatorAdata->size;
    MV_WIDTH =  5;
 
 /* create multivector */
@@ -74,7 +80,6 @@ int main(void)
    lobpcg_tol.relative = 1e-50;
 
 /* setup interface interpreter and wrap around "x" another structure */
-
    SerialSetupInterpreter( &ii );
    xx = mv_MultiVectorWrap( &ii, x, 0);
 
@@ -84,21 +89,72 @@ int main(void)
 
 /* execute lobpcg to solve for Ax=(lambda)Bx
    with initial guess of e-vectors xx
-   and preconditioner T
-   number of vectors in xx determines number of e-values eig to solve for
-   solving for the smallest e-values under constraints Y
-   execution stops when e-values with tolerances or after max iterations */
+   and preconditioner T 
+
+   -for this example there is no B or T
+
+   -number of vectors in xx determines number of e-values eig to solve for
+   -solving for the smallest e-values under constraints Y
+   -execution stops when e-values with tolerances or after max iterations 
+   
+   -serial multivectors are defined by struct serial_Multi_vector in multi_vector.h
+   -a MultiVectorPtr points to a mv_MultiVector struct which contains pointers to 
+    the serial interface routines, which perform matrix operations on serial multivectors 
+    and fortran type matries
+   -these multivectors are needed because lobpcg is designed to interface with software
+    packages where matrices are stored in different formats.  Internally locpcg creates and
+    uses matrices fortran format.  When it must do operations involving the data in external 
+    formats it calls the routines specified via the MultiVectorPtr   
+   -the serial interface uses matrices in fortran format and the interface routines supplied
+    are designed for this */
 
    printf("Call lobpcg solve double\n");
 
     lobpcg_solve_double(
-              xx,           /*input-initial guess of e-vectors */
-   (void *) operatorA,      /*input-matrix A */
-          MatMultiVec,      /*input-operator A */
-          NULL,             /*input-matrix B */
-          NULL,             /*input-operator B */
-          NULL,             /*input-matrix T */
+               xx,           /*input-initial guess of e-vectors  */
+                            /*     -plus pointers to interface routines */
+                            /*     -a MultiVectorPtr  */
+   (void *) operatorAdata,  /*input-operatorAdata (a matrix)  */
+                            /*     -a pointer to a serial multivector */
+                            /*     -use this parameter if data is in  */
+                            /*     -the form of a matrix rather than an */
+                            /*     -operator otherwise set to NULL  */
+          MatMultiVec,      /*input-operatorA                  */
+                            /*     -a pointer to the MatMultiVec function */
+                            /*     -if operatorAdata is null this implements */
+                            /*     -a call to a operator such as 1d laplacian  */
+                            /*     -using X determines AX                      */
+                            /*     -if operatorAdata is not null this does AX=A*X */
+                            /*     -void operatorA(void * A, void * X, void * AX) */
+                            /*     -parameters are all serial multivectors  */
+          NULL,             /*input-operatorBdata (a matrix) */
+                            /*     -a pointer to a serial multivector */
+                            /*     -use this parameter if solving for generalized  */
+                            /*     -eigenvalue problem and an operator for B is not used */
+                            /*     -otherwise leave as NULL */
+          NULL,             /*input-operatorB */
+                            /*     -pointer to a function that either evaluates BY=B*Y */
+                            /*     -when OperatorBdata is not null or does an operator */
+                            /*     -evaluation of BY using Y                           */
+                            /*     -leave as NULL if not doing generalized eigenvalue problem */
+                            /*     -void operatorB(void * B, void * Y, void * BY)    */
+                            /*     -parameters are are serial multivectors          */
+                            /*     -must support Y being a matrix not just a column vector */
+          NULL,             /*input-operatorTdata (a matrix) to use as a preconditioner */
+                            /*     -pointer to a serial multivector */
+                            /*     -leave as NULL if no preconditioner or if predonditioner */
+                            /*     -is an operator                                          */
+                            /*     -void operatorT(void * B, void * Y, void * BY)    */
+                            /*     -parameters are are serial multivectors          */
+                            /*     -must support Y being a matrix not just a column vector */
           NULL,             /*input-operator T */
+                            /*     -pointer to a function that either evaluates R=T*W */
+                            /*     -when OperatorTdata is not null or does an operator */
+                            /*     -evaluation of R using W                           */
+                            /*     -leave as NULL if not using preconditioner  */
+                            /*     -void operatorT(void * T, void * R, void * W)    */
+                            /*     -parameters are are serial multivectors          */
+                            /*     -must support W being a matrix not just a column vector */
           NULL,             /*input-matrix Y */
               blap_fn,      /*input-lapack functions */
               lobpcg_tol,   /*input-tolerances */
