@@ -252,9 +252,9 @@ end
 
 if verbosityLevel 
     if issparse(blockVectorX)
-        fprintf('The sparse initial guess with %i colunms and %i raws is detected  \n',n,blockSize) 
+        fprintf('The sparse initial guess with %i rows and %i columns is detected  \n',n,blockSize) 
     else
-        fprintf('The full initial guess with %i colunms and %i raws is detected  \n',n,blockSize) 
+        fprintf('The full initial guess with %i rows and %i columns is detected  \n',n,blockSize) 
     end
     if ischar(operatorA)
         fprintf('The main operator is detected as an M-function %s \n',operatorA) 
@@ -811,7 +811,7 @@ for iterationNumber=1:maxIterations
     lambdaHistory(1:blockSize,iterationNumber+1)=lambda;
     condestGhistory(iterationNumber+1)=condestG;
     
-    if verbosityLevel 
+    if verbosityLevel == 3
         fprintf('Iteration %i current block size %i \n',iterationNumber,currentBlockSize)
         fprintf('Eigenvalues lambda %17.16e \n',lambda)  
         fprintf('Residual Norms %e \n',residualNorms')

@@ -1,4 +1,7 @@
-/* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 
 #include <assert.h>
 #include <math.h>
@@ -6,7 +9,6 @@
 #include <stdio.h>
 
 #include "fortran_matrix.h"
-#include "fortran_interpreter.h"
 
 typedef struct {
 
@@ -75,7 +77,7 @@ utilities_FortranMatrixCreate(void) {
   utilities_FortranMatrix* mtx;
 
   mtx = (utilities_FortranMatrix*) malloc( sizeof(utilities_FortranMatrix) );
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   mtx->globalHeight = 0;
   mtx->height = 0;
@@ -92,14 +94,14 @@ void
 utilities_FortranMatrixAllocateData( long  h, long w,
                                      utilities_FortranMatrix* mtx ) {
 
-  assert( h > 0 && w > 0 );
-  assert( mtx != NULL );
+  BlopexAssert( h > 0 && w > 0 );
+  BlopexAssert( mtx != NULL );
 
   if ( mtx->value != NULL && mtx->ownsValues )
     free( mtx->value );
 
   mtx->value = calloc( h*w, sizeof(double) );
-  assert ( mtx->value != NULL );
+  BlopexAssert ( mtx->value != NULL );
 
   mtx->globalHeight = h;
   mtx->height = h;
@@ -113,14 +115,14 @@ void
 zutilities_FortranMatrixAllocateData( long  h, long w,
                                       utilities_FortranMatrix* mtx ) {
 
-  assert( h > 0 && w > 0 );
-  assert( mtx != NULL );
+  BlopexAssert( h > 0 && w > 0 );
+  BlopexAssert( mtx != NULL );
 
   if ( mtx->value != NULL && mtx->ownsValues )
     free( mtx->value );
 
   mtx->value = calloc( h*w, sizeof(komplex) );
-  assert ( mtx->value != NULL );
+  BlopexAssert ( mtx->value != NULL );
 
   mtx->globalHeight = h;
   mtx->height = h;
@@ -134,14 +136,14 @@ void
 utilities_FortranMatrixWrap( void* v, long gh, long  h, long w,
                              utilities_FortranMatrix* mtx ) {
 
-  assert( h > 0 && w > 0 );
-  assert( mtx != NULL );
+  BlopexAssert( h > 0 && w > 0 );
+  BlopexAssert( mtx != NULL );
 
   if ( mtx->value != NULL && mtx->ownsValues )
     free( mtx->value );
 
   mtx->value = v;
-  assert ( mtx->value != NULL );
+  BlopexAssert ( mtx->value != NULL );
 
   mtx->globalHeight = gh;
   mtx->height = h;
@@ -168,7 +170,7 @@ utilities_FortranMatrixDestroy( utilities_FortranMatrix* mtx ) {
 long
 utilities_FortranMatrixGlobalHeight( utilities_FortranMatrix* mtx ) {
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   return mtx->globalHeight;
 }
@@ -178,7 +180,7 @@ utilities_FortranMatrixGlobalHeight( utilities_FortranMatrix* mtx ) {
 long
 utilities_FortranMatrixHeight( utilities_FortranMatrix* mtx ) {
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   return mtx->height;
 }
@@ -188,7 +190,7 @@ utilities_FortranMatrixHeight( utilities_FortranMatrix* mtx ) {
 long
 utilities_FortranMatrixWidth( utilities_FortranMatrix* mtx ) {
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   return mtx->width;
 }
@@ -198,7 +200,7 @@ utilities_FortranMatrixWidth( utilities_FortranMatrix* mtx ) {
 void*
 utilities_FortranMatrixValues( utilities_FortranMatrix* mtx ) {
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   return mtx->value;
 }
@@ -211,7 +213,7 @@ utilities_FortranMatrixClear( utilities_FortranMatrix* mtx ) {
   long i, j, h, w, jump;
   double* p;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   h = mtx->height;
   w = mtx->width;
@@ -233,7 +235,7 @@ zutilities_FortranMatrixClear( utilities_FortranMatrix* mtx ) {
   long i, j, h, w, jump;
   komplex* p;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   h = mtx->height;
   w = mtx->width;
@@ -257,7 +259,7 @@ utilities_FortranMatrixClearL( utilities_FortranMatrix* mtx ) {
   long i, j, k, h, w, jump;
   double* p;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   h = mtx->height;
   w = mtx->width;
@@ -284,7 +286,7 @@ zutilities_FortranMatrixClearL( utilities_FortranMatrix* mtx ) {
   long i, j, k, h, w, jump;
   komplex* p;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   h = mtx->height;
   w = mtx->width;
@@ -313,7 +315,7 @@ utilities_FortranMatrixSetToIdentity( utilities_FortranMatrix* mtx ) {
   long j, h, w, jump;
   double* p;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   utilities_FortranMatrixClear( mtx );
 
@@ -335,7 +337,7 @@ zutilities_FortranMatrixSetToIdentity( utilities_FortranMatrix* mtx ) {
   long j, h, w, jump;
   komplex* p;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   utilities_FortranMatrixClear( mtx );
 
@@ -360,13 +362,13 @@ utilities_FortranMatrixTransposeSquare( utilities_FortranMatrix* mtx ) {
   double* q;
   double tmp;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   g = mtx->globalHeight;
   h = mtx->height;
   w = mtx->width;
 
-  assert( h == w );
+  BlopexAssert( h == w );
 
   jump = mtx->globalHeight - h;
 
@@ -393,13 +395,13 @@ zutilities_FortranMatrixTransposeSquare( utilities_FortranMatrix* mtx ) {
   komplex* q;
   komplex  tmp;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   g = mtx->globalHeight;
   h = mtx->height;
   w = mtx->width;
 
-  assert( h == w );
+  BlopexAssert( h == w );
 
   jump = mtx->globalHeight - h;
 
@@ -429,13 +431,13 @@ utilities_FortranMatrixSymmetrize( utilities_FortranMatrix* mtx ) {
   double* p;
   double* q;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   g = mtx->globalHeight;
   h = mtx->height;
   w = mtx->width;
 
-  assert( h == w );
+  BlopexAssert( h == w );
 
   jump = mtx->globalHeight - h;
 
@@ -460,13 +462,13 @@ zutilities_FortranMatrixSymmetrize( utilities_FortranMatrix* mtx ) {
   komplex* q;
   komplex conj_q;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   g = mtx->globalHeight;
   h = mtx->height;
   w = mtx->width;
 
-  assert( h == w );
+  BlopexAssert( h == w );
 
   jump = mtx->globalHeight - h;
 
@@ -493,7 +495,7 @@ zutilities_FortranMatrixSymmetrize( utilities_FortranMatrix* mtx ) {
    ------------------------------------------------------------ */
 void
 utilities_FortranMatrixCopy( utilities_FortranMatrix* src,
-                             int t,
+                             BlopexInt t,
                              utilities_FortranMatrix* dest ) {
 
   long i, j, h, w;
@@ -502,7 +504,7 @@ utilities_FortranMatrixCopy( utilities_FortranMatrix* src,
   double* q;
   double* r;
 
-  assert( src != NULL && dest != NULL );
+  BlopexAssert( src != NULL && dest != NULL );
 
   h = dest->height;
   w = dest->width;
@@ -510,12 +512,12 @@ utilities_FortranMatrixCopy( utilities_FortranMatrix* src,
   jp = dest->globalHeight - h;
 
   if ( t == 0 ) {
-    assert( src->height == h && src->width == w );
+    BlopexAssert( src->height == h && src->width == w );
     jq = 1;
     jr = src->globalHeight;
   }
   else {
-    assert( src->height == w && src->width == h );
+    BlopexAssert( src->height == w && src->width == h );
     jr = 1;
     jq = src->globalHeight;
   }
@@ -532,7 +534,7 @@ utilities_FortranMatrixCopy( utilities_FortranMatrix* src,
    ------------------------------------------------------------ */
 void
 zutilities_FortranMatrixCopy( utilities_FortranMatrix* src,
-                              int t,
+                              BlopexInt t,
                               utilities_FortranMatrix* dest ) {
 
   long i, j, h, w;
@@ -541,7 +543,7 @@ zutilities_FortranMatrixCopy( utilities_FortranMatrix* src,
   komplex* q;
   komplex* r;
 
-  assert( src != NULL && dest != NULL );
+  BlopexAssert( src != NULL && dest != NULL );
 
   h = dest->height;
   w = dest->width;
@@ -549,12 +551,12 @@ zutilities_FortranMatrixCopy( utilities_FortranMatrix* src,
   jp = dest->globalHeight - h;
 
   if ( t == 0 ) {
-    assert( src->height == h && src->width == w );
+    BlopexAssert( src->height == h && src->width == w );
     jq = 1;
     jr = src->globalHeight;
   }
   else {
-    assert( src->height == w && src->width == h );
+    BlopexAssert( src->height == w && src->width == h );
     jr = 1;
     jq = src->globalHeight;
   }
@@ -575,9 +577,9 @@ zutilities_FortranMatrixCopy( utilities_FortranMatrix* src,
                                     t ne 0   dest=index(src')
    ------------------------------------------------------------ */
 void
-utilities_FortranMatrixIndexCopy( int* index,
+utilities_FortranMatrixIndexCopy( BlopexInt* index,
                                   utilities_FortranMatrix* src,
-                                  int t,
+                                  BlopexInt t,
                                   utilities_FortranMatrix* dest ) {
 
   long i, j, h, w;
@@ -586,7 +588,7 @@ utilities_FortranMatrixIndexCopy( int* index,
   double* q;
   double* r;
 
-  assert( src != NULL && dest != NULL );
+  BlopexAssert( src != NULL && dest != NULL );
 
   h = dest->height;
   w = dest->width;
@@ -594,12 +596,12 @@ utilities_FortranMatrixIndexCopy( int* index,
   jp = dest->globalHeight - h;
 
   if ( t == 0 ) {
-    assert( src->height == h && src->width == w );
+    BlopexAssert( src->height == h && src->width == w );
     jq = 1;
     jr = src->globalHeight;
   }
   else {
-    assert( src->height == w && src->width == h );
+    BlopexAssert( src->height == w && src->width == h );
     jr = 1;
     jq = src->globalHeight;
   }
@@ -616,9 +618,9 @@ utilities_FortranMatrixIndexCopy( int* index,
                                     t ne 0   dest=index(src')
    ------------------------------------------------------------ */
 void
-zutilities_FortranMatrixIndexCopy( int* index,
+zutilities_FortranMatrixIndexCopy( BlopexInt* index,
                                    utilities_FortranMatrix* src,
-                                   int t,
+                                   BlopexInt t,
                                    utilities_FortranMatrix* dest ) {
 
   long i, j, h, w;
@@ -627,7 +629,7 @@ zutilities_FortranMatrixIndexCopy( int* index,
   komplex* q;
   komplex* r;
 
-  assert( src != NULL && dest != NULL );
+  BlopexAssert( src != NULL && dest != NULL );
 
   h = dest->height;
   w = dest->width;
@@ -635,12 +637,12 @@ zutilities_FortranMatrixIndexCopy( int* index,
   jp = dest->globalHeight - h;
 
   if ( t == 0 ) {
-    assert( src->height == h && src->width == w );
+    BlopexAssert( src->height == h && src->width == w );
     jq = 1;
     jr = src->globalHeight;
   }
   else {
-    assert( src->height == w && src->width == h );
+    BlopexAssert( src->height == w && src->width == h );
     jr = 1;
     jq = src->globalHeight;
   }
@@ -667,12 +669,12 @@ utilities_FortranMatrixSetDiagonal( utilities_FortranMatrix* mtx,
   double* p;
   double* q;
 
-  assert( mtx != NULL && vec != NULL );
+  BlopexAssert( mtx != NULL && vec != NULL );
 
   h = mtx->height;
   w = mtx->width;
 
-  assert( vec->height >= h );
+  BlopexAssert( vec->height >= h );
 
   jump = mtx->globalHeight + 1;
 
@@ -692,12 +694,12 @@ zutilities_FortranMatrixSetDiagonal( utilities_FortranMatrix* mtx,
   komplex* p;
   komplex* q;
 
-  assert( mtx != NULL && vec != NULL );
+  BlopexAssert( mtx != NULL && vec != NULL );
 
   h = mtx->height;
   w = mtx->width;
 
-  assert( vec->height >= h );
+  BlopexAssert( vec->height >= h );
 
   jump = mtx->globalHeight + 1;
 
@@ -717,12 +719,12 @@ utilities_FortranMatrixGetDiagonal( utilities_FortranMatrix* mtx,
   double* p;
   double* q;
 
-  assert( mtx != NULL && vec != NULL );
+  BlopexAssert( mtx != NULL && vec != NULL );
 
   h = mtx->height;
   w = mtx->width;
 
-  assert( vec->height >= h );
+  BlopexAssert( vec->height >= h );
 
   jump = mtx->globalHeight + 1;
 
@@ -742,12 +744,12 @@ zutilities_FortranMatrixGetDiagonal( utilities_FortranMatrix* mtx,
   komplex* p;
   komplex* q;
 
-  assert( mtx != NULL && vec != NULL );
+  BlopexAssert( mtx != NULL && vec != NULL );
 
   h = mtx->height;
   w = mtx->width;
 
-  assert( vec->height >= h );
+  BlopexAssert( vec->height >= h );
 
   jump = mtx->globalHeight + 1;
 
@@ -770,13 +772,13 @@ utilities_FortranMatrixAdd( double a,
   double *pB;
   double *pC;
 
-  assert( mtxA != NULL && mtxB != NULL && mtxC != NULL );
+  BlopexAssert( mtxA != NULL && mtxB != NULL && mtxC != NULL );
 
   h = mtxA->height;
   w = mtxA->width;
 
-  assert( mtxB->height == h && mtxB->width == w );
-  assert( mtxC->height == h && mtxC->width == w );
+  BlopexAssert( mtxB->height == h && mtxB->width == w );
+  BlopexAssert( mtxC->height == h && mtxC->width == w );
 
   jA = mtxA->globalHeight - h;
   jB = mtxB->globalHeight - h;
@@ -837,13 +839,13 @@ zutilities_FortranMatrixAdd( double a,
   komplex *pB;
   komplex *pC;
 
-  assert( mtxA != NULL && mtxB != NULL && mtxC != NULL );
+  BlopexAssert( mtxA != NULL && mtxB != NULL && mtxC != NULL );
 
   h = mtxA->height;
   w = mtxA->width;
 
-  assert( mtxB->height == h && mtxB->width == w );
-  assert( mtxC->height == h && mtxC->width == w );
+  BlopexAssert( mtxB->height == h && mtxB->width == w );
+  BlopexAssert( mtxC->height == h && mtxC->width == w );
 
   jA = mtxA->globalHeight - h;
   jB = mtxB->globalHeight - h;
@@ -902,12 +904,12 @@ utilities_FortranMatrixDMultiply( utilities_FortranMatrix* vec,
   double* p;
   double* q;
 
-  assert( mtx != NULL && vec != NULL );
+  BlopexAssert( mtx != NULL && vec != NULL );
 
   h = mtx->height;
   w = mtx->width;
 
-  assert( vec->height == h );
+  BlopexAssert( vec->height == h );
 
   jump = mtx->globalHeight - h;
 
@@ -930,12 +932,12 @@ zutilities_FortranMatrixDMultiply( utilities_FortranMatrix* vec,
   komplex* p;
   komplex* q;
 
-  assert( mtx != NULL && vec != NULL );
+  BlopexAssert( mtx != NULL && vec != NULL );
 
   h = mtx->height;
   w = mtx->width;
 
-  assert( vec->height == h );
+  BlopexAssert( vec->height == h );
 
   jump = mtx->globalHeight - h;
 
@@ -959,12 +961,12 @@ utilities_FortranMatrixMultiplyD( utilities_FortranMatrix* mtx,
   double* p;
   double* q;
 
-  assert( mtx != NULL && vec != NULL );
+  BlopexAssert( mtx != NULL && vec != NULL );
 
   h = mtx->height;
   w = mtx->width;
 
-  assert( vec->height == w );
+  BlopexAssert( vec->height == w );
 
   jump = mtx->globalHeight - h;
 
@@ -986,12 +988,12 @@ zutilities_FortranMatrixMultiplyD( utilities_FortranMatrix* mtx,
   komplex* p;
   komplex* q;
 
-  assert( mtx != NULL && vec != NULL );
+  BlopexAssert( mtx != NULL && vec != NULL );
 
   h = mtx->height;
   w = mtx->width;
 
-  assert( vec->height == w );
+  BlopexAssert( vec->height == w );
 
   jump = mtx->globalHeight - h;
 
@@ -1011,8 +1013,8 @@ zutilities_FortranMatrixMultiplyD( utilities_FortranMatrix* mtx,
                                   1   1   C=A'*B'
    ------------------------------------------------------------ */
 void
-utilities_FortranMatrixMultiply( utilities_FortranMatrix* mtxA, int tA,
-                                 utilities_FortranMatrix* mtxB, int tB,
+utilities_FortranMatrixMultiply( utilities_FortranMatrix* mtxA, BlopexInt tA,
+                                 utilities_FortranMatrix* mtxB, BlopexInt tB,
                                  utilities_FortranMatrix* mtxC ) {
   long h, w;
   long i, j, k, l;
@@ -1029,7 +1031,7 @@ utilities_FortranMatrixMultiply( utilities_FortranMatrix* mtxA, int tA,
 
   double s;
 
-  assert( mtxA != NULL && mtxB != NULL && mtxC != NULL );
+  BlopexAssert( mtxA != NULL && mtxB != NULL && mtxC != NULL );
 
   h = mtxC->height;
   w = mtxC->width;
@@ -1037,27 +1039,27 @@ utilities_FortranMatrixMultiply( utilities_FortranMatrix* mtxA, int tA,
   jC = mtxC->globalHeight;
 
   if ( tA == 0 ) {
-    assert( mtxA->height == h );
+    BlopexAssert( mtxA->height == h );
     l = mtxA->width;
     iA = 1;
     kA = mtxA->globalHeight;
   }
   else {
     l = mtxA->height;
-    assert( mtxA->width == h );
+    BlopexAssert( mtxA->width == h );
     kA = 1;
     iA = mtxA->globalHeight;
   }
 
   if ( tB == 0 ) {
-    assert( mtxB->height == l );
-    assert( mtxB->width == w );
+    BlopexAssert( mtxB->height == l );
+    BlopexAssert( mtxB->width == w );
     kB = 1;
     jB = mtxB->globalHeight;
   }
   else {
-    assert( mtxB->width == l );
-    assert( mtxB->height == w );
+    BlopexAssert( mtxB->width == l );
+    BlopexAssert( mtxB->height == w );
     jB = 1;
     kB = mtxB->globalHeight;
   }
@@ -1082,8 +1084,8 @@ utilities_FortranMatrixMultiply( utilities_FortranMatrix* mtxA, int tA,
                                   1   1   C=A'*B'
    ------------------------------------------------------------ */
 void
-zutilities_FortranMatrixMultiply( utilities_FortranMatrix* mtxA, int tA,
-                                  utilities_FortranMatrix* mtxB, int tB,
+zutilities_FortranMatrixMultiply( utilities_FortranMatrix* mtxA, BlopexInt tA,
+                                  utilities_FortranMatrix* mtxB, BlopexInt tB,
                                   utilities_FortranMatrix* mtxC ) {
   long h, w;
   long i, j, k, l;
@@ -1104,7 +1106,7 @@ zutilities_FortranMatrixMultiply( utilities_FortranMatrix* mtxA, int tA,
   komplex tb;
 
 
-  assert( mtxA != NULL && mtxB != NULL && mtxC != NULL );
+  BlopexAssert( mtxA != NULL && mtxB != NULL && mtxC != NULL );
 
   h = mtxC->height;
   w = mtxC->width;
@@ -1112,27 +1114,27 @@ zutilities_FortranMatrixMultiply( utilities_FortranMatrix* mtxA, int tA,
   jC = mtxC->globalHeight;
 
   if ( tA == 0 ) {
-    assert( mtxA->height == h );
+    BlopexAssert( mtxA->height == h );
     l = mtxA->width;
     iA = 1;
     kA = mtxA->globalHeight;
   }
   else {
     l = mtxA->height;
-    assert( mtxA->width == h );
+    BlopexAssert( mtxA->width == h );
     kA = 1;
     iA = mtxA->globalHeight;
   }
 
   if ( tB == 0 ) {
-    assert( mtxB->height == l );
-    assert( mtxB->width == w );
+    BlopexAssert( mtxB->height == l );
+    BlopexAssert( mtxB->width == w );
     kB = 1;
     jB = mtxB->globalHeight;
   }
   else {
-    assert( mtxB->width == l );
-    assert( mtxB->height == w );
+    BlopexAssert( mtxB->width == l );
+    BlopexAssert( mtxB->height == w );
     jB = 1;
     kB = mtxB->globalHeight;
   }
@@ -1168,7 +1170,7 @@ utilities_FortranMatrixFNorm( utilities_FortranMatrix* mtx ) {
 
   double norm;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   h = mtx->height;
   w = mtx->width;
@@ -1197,10 +1199,10 @@ utilities_FortranMatrixAbs( utilities_FortranMatrix* mtx,
   long k;
   double* p;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
-  assert( 1 <= i && i <= mtx->height );
-  assert( 1 <= j && j <= mtx->width );
+  BlopexAssert( 1 <= i && i <= mtx->height );
+  BlopexAssert( 1 <= j && j <= mtx->width );
 
   k = i - 1 + (j - 1)*mtx->globalHeight;
 
@@ -1219,10 +1221,10 @@ zutilities_FortranMatrixAbs( utilities_FortranMatrix* mtx,
   komplex* p;
   double pabs;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
-  assert( 1 <= i && i <= mtx->height );
-  assert( 1 <= j && j <= mtx->width );
+  BlopexAssert( 1 <= i && i <= mtx->height );
+  BlopexAssert( 1 <= j && j <= mtx->width );
 
   k = i - 1 + (j - 1)*mtx->globalHeight;
 
@@ -1241,10 +1243,10 @@ utilities_FortranMatrixValuePtr( utilities_FortranMatrix* mtx,
   long k;
   double *p;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
-  assert( 1 <= i && i <= mtx->height );
-  assert( 1 <= j && j <= mtx->width );
+  BlopexAssert( 1 <= i && i <= mtx->height );
+  BlopexAssert( 1 <= j && j <= mtx->width );
 
   p = (double *)mtx->value;
 
@@ -1261,10 +1263,10 @@ zutilities_FortranMatrixValuePtr( utilities_FortranMatrix* mtx,
   long k;
   komplex *p;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
-  assert( 1 <= i && i <= mtx->height );
-  assert( 1 <= j && j <= mtx->width );
+  BlopexAssert( 1 <= i && i <= mtx->height );
+  BlopexAssert( 1 <= j && j <= mtx->width );
 
   p = (komplex *)mtx->value;
   k = i - 1 + (j - 1)*mtx->globalHeight;
@@ -1283,7 +1285,7 @@ utilities_FortranMatrixMaxValue( utilities_FortranMatrix* mtx ) {
   double* p;
   double maxVal;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   h = mtx->height;
   w = mtx->width;
@@ -1377,10 +1379,10 @@ utilities_FortranMatrixUpperInv( utilities_FortranMatrix* u ) {
   double* pd;   /* &diag(i) */
 
   n = u->height;
-  assert( u->width == n );
+  BlopexAssert( u->width == n );
 
   diag = (double*)calloc( n, sizeof(double) );
-  assert( diag != NULL );
+  BlopexAssert( diag != NULL );
 
   jc = u->globalHeight;
   jd = jc + 1;
@@ -1434,10 +1436,10 @@ zutilities_FortranMatrixUpperInv( utilities_FortranMatrix* u ) {
   komplex one = {1.0, 0.0};
 
   n = u->height;
-  assert( u->width == n );
+  BlopexAssert( u->width == n );
 
   diag = (komplex*)calloc( n, sizeof(komplex) );
-  assert( diag != NULL );
+  BlopexAssert( diag != NULL );
 
   jc = u->globalHeight;
   jd = jc + 1;
@@ -1474,7 +1476,7 @@ zutilities_FortranMatrixUpperInv( utilities_FortranMatrix* u ) {
 /* ------------------------------------------------------------
    utilities_FortranMatrixPrint                          double
    ------------------------------------------------------------ */
-int
+BlopexInt
 utilities_FortranMatrixPrint( utilities_FortranMatrix* mtx,
                               char fileName[] )
 {
@@ -1482,7 +1484,7 @@ utilities_FortranMatrixPrint( utilities_FortranMatrix* mtx,
   double* p;
   FILE* fp;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   if ( !(fp = fopen(fileName,"w")) )
     return 1;
@@ -1497,7 +1499,7 @@ utilities_FortranMatrixPrint( utilities_FortranMatrix* mtx,
 
   for ( j = 0, p = (double *) mtx->value; j < w; j++ ) {
     for ( i = 0; i < h; i++, p++ )
-      fprintf(fp,"%22.16e\n",*p);
+      fprintf(fp,"%22.14e\n",*p);
     p += jump;
   }
 
@@ -1507,7 +1509,7 @@ utilities_FortranMatrixPrint( utilities_FortranMatrix* mtx,
 /* ------------------------------------------------------------
    zutilities_FortranMatrixPrint                       complex
    ------------------------------------------------------------ */
-int
+BlopexInt
 zutilities_FortranMatrixPrint( utilities_FortranMatrix* mtx,
                                char fileName[] )
 {
@@ -1515,7 +1517,7 @@ zutilities_FortranMatrixPrint( utilities_FortranMatrix* mtx,
   komplex* p;
   FILE* fp;
 
-  assert( mtx != NULL );
+  BlopexAssert( mtx != NULL );
 
   if ( !(fp = fopen(fileName,"w")) )
     return 1;
@@ -1530,7 +1532,7 @@ zutilities_FortranMatrixPrint( utilities_FortranMatrix* mtx,
 
   for ( j = 0, p = (komplex *) mtx->value; j < w; j++ ) {
     for ( i = 0; i < h; i++, p++ )
-      fprintf(fp,"%22.16e  %22.16e \n",p->real,p->imag);
+      fprintf(fp,"%22.14e  %22.14e \n",p->real,p->imag);
     p += jump;
   }
 

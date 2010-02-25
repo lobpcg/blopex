@@ -1,8 +1,14 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* multivector structure for use with matlab */
+
 #ifndef MULTIVECTOR_FOR_MATLAB
 #define MULTIVECTOR_FOR_MATLAB
 
 #include "matrix.h"
+#include "fortran_matrix.h" /*eugene, add definition of complex data type*/
 
 typedef struct matlabMultiVector* matlabMultiVectorPtr;
 
@@ -10,22 +16,22 @@ typedef struct matlabMultiVector* matlabMultiVectorPtr;
 matlabMultiVectorPtr MatlabMultiVectorCreate(const mxArray* blockVector);
 void MatlabMultiVectorDestroy(matlabMultiVectorPtr X);
 mxArray* MatlabMultiVectorGetCopyOfBlockVector(matlabMultiVectorPtr X);
-int MatlabMultiVectorWidth(matlabMultiVectorPtr X);
-void MatlabMultiVectorSetMask(matlabMultiVectorPtr X, const int* new_mask);
+BlopexInt MatlabMultiVectorWidth(matlabMultiVectorPtr X);
+void MatlabMultiVectorSetMask(matlabMultiVectorPtr X, const BlopexInt* new_mask);
 matlabMultiVectorPtr MatlabMultiVectorCopyCreate(matlabMultiVectorPtr X,
-                                                 int CopyValues);
+                                                 BlopexInt CopyValues);
 void MatlabMultiVectorCopy(matlabMultiVectorPtr X, matlabMultiVectorPtr Y);
 void MatlabMultiVectorInnerProd(matlabMultiVectorPtr X, 
-                                matlabMultiVectorPtr Y, int xyGHeight, 
-                                int xyHeight, int xyWidth, double* xyVal);
+                                matlabMultiVectorPtr Y, BlopexInt xyGHeight, 
+                                BlopexInt xyHeight, BlopexInt xyWidth, void* xyVal); 
 void MatlabMultiVectorInnerProdDiag(matlabMultiVectorPtr X,
-                               matlabMultiVectorPtr Y, int* mask, int n, 
-                               double* diag);
-void MatlabMultiVectorByMatrix(matlabMultiVectorPtr X, int rGHeight, 
-                               int rHeight, int rWidth, double* rVal, 
+                               matlabMultiVectorPtr Y, BlopexInt* mask, BlopexInt n, 
+                               void* diag);                           
+void MatlabMultiVectorByMatrix(matlabMultiVectorPtr X, BlopexInt rGHeight, 
+                               BlopexInt rHeight, BlopexInt rWidth, void* rVal,  
                                matlabMultiVectorPtr Y);
-void MatlabMultiVectorByDiag(matlabMultiVectorPtr X, int *mask, int n,
-                             double *diag, matlabMultiVectorPtr Y);
+void MatlabMultiVectorByDiag(matlabMultiVectorPtr X, BlopexInt *mask, BlopexInt n,
+                               void *diag, matlabMultiVectorPtr Y);   
 void MatlabMultiVectorAxpy(double alpha, matlabMultiVectorPtr X, 
                            matlabMultiVectorPtr Y);
 void MatlabMultiVectorMatMultiVec( mxArray* data, matlabMultiVectorPtr X,

@@ -1,8 +1,10 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+
 #ifndef LOBPCG_FORTRAN_INTERPRETER_HEADER
 #define LOBPCG_FORTRAN_INTERPRETER_HEADER
-
-/* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk, Evgueni Ovtchinnikov */
-/* and Don McCuan  */
 
 #include "fortran_matrix.h"
 
@@ -21,10 +23,10 @@ typedef struct
   void (*FortranMatrixSetToIdentity) ( utilities_FortranMatrix* );
   void (*FortranMatrixTransposeSquare) ( utilities_FortranMatrix* );
   void (*FortranMatrixSymmetrize) ( utilities_FortranMatrix* );
-  void (*FortranMatrixCopy) ( utilities_FortranMatrix* src, int,
+  void (*FortranMatrixCopy) ( utilities_FortranMatrix* src, BlopexInt,
                               utilities_FortranMatrix* dest);
-  void (*FortranMatrixIndexCopy) ( int* index,
-                                   utilities_FortranMatrix* src, int,
+  void (*FortranMatrixIndexCopy) ( BlopexInt* index,
+                                   utilities_FortranMatrix* src, BlopexInt,
                                    utilities_FortranMatrix* dest);
   void (*FortranMatrixSetDiagonal) ( utilities_FortranMatrix* mtx ,
                                      utilities_FortranMatrix* d );
@@ -37,8 +39,8 @@ typedef struct
                                    utilities_FortranMatrix* mtx);
   void (*FortranMatrixMultiplyD) ( utilities_FortranMatrix* mtx,
                                    utilities_FortranMatrix* d);
-  void (*FortranMatrixMultiply) ( utilities_FortranMatrix* mtxA, int tA,
-                                  utilities_FortranMatrix* mtxB, int tB,
+  void (*FortranMatrixMultiply) ( utilities_FortranMatrix* mtxA, BlopexInt tA,
+                                  utilities_FortranMatrix* mtxB, BlopexInt tB,
                                   utilities_FortranMatrix* mtxC );
   double (*FortranMatrixFNorm) ( utilities_FortranMatrix* mtx );
   double (*FortranMatrixAbs) ( utilities_FortranMatrix* mtx, long i, long j );
@@ -49,7 +51,7 @@ typedef struct
                                      long iFrom, long iTo, long jFrom, long jTo,
                                      utilities_FortranMatrix* block);
   void (*FortranMatrixUpperInv) ( utilities_FortranMatrix* u );
-  int (*FortranMatrixPrint) ( utilities_FortranMatrix* mtx, char fileName[] );
+  BlopexInt (*FortranMatrixPrint) ( utilities_FortranMatrix* mtx, char fileName[] );
 
 } utilities_FortranInterpreter;
 

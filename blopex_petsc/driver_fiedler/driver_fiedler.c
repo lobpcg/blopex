@@ -1,3 +1,7 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
 
 static char help[] = "'Fiedler' test driver for 'abstract lobpcg' in PETSC\n\

@@ -8,7 +8,8 @@ multivector/multivector.h \
 krylov/lobpcg.h \
 multivector/temp_multivector.h \
 utilities/fortran_matrix.h \
-utilities/fortran_interpreter.h 
+utilities/fortran_interpreter.h \
+utilities/fortran_options.h
 
 
 ##################################################################

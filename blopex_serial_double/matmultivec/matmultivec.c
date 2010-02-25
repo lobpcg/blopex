@@ -1,10 +1,14 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
 
 #include "matmultivec.h"
 #include "multi_vector.h"
 #include <assert.h>
 
-int serial_Lapl1DMatMultiVec( serial_Multi_Vector * x,
+BlopexInt serial_Lapl1DMatMultiVec( serial_Multi_Vector * x,
                             serial_Multi_Vector * y  )
 {
    /* this function implements 1D Laplacian operator, Dirichlet BC */
@@ -13,11 +17,11 @@ int serial_Lapl1DMatMultiVec( serial_Multi_Vector * x,
    double  *y_data;
    double * src;
    double * dest;
-   int * x_active_ind;
-   int * y_active_ind;
-   int i, j;
-   int size;
-   int num_active_vectors;
+   BlopexInt * x_active_ind;
+   BlopexInt * y_active_ind;
+   BlopexInt i, j;
+   BlopexInt size;
+   BlopexInt num_active_vectors;
 
    assert (x->size == y->size && x->num_active_vectors == y->num_active_vectors);
    assert (x->size>1);

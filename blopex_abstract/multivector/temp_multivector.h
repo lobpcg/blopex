@@ -1,4 +1,7 @@
-/* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 
 #ifndef TEMPORARY_MULTIVECTOR_FUNCTION_PROTOTYPES
 #define TEMPORARY_MULTIVECTOR_FUNCTION_PROTOTYPES
@@ -8,10 +11,10 @@
 typedef struct
 {
   long   numVectors;
-  int*   mask;
+  BlopexInt*   mask;
   void** vector;
-  int    ownsVectors;
-  int    ownsMask;
+  BlopexInt    ownsVectors;
+  BlopexInt    ownsMask;
 
   mv_InterfaceInterpreter* interpreter;
 
@@ -28,7 +31,7 @@ A more proper implementation would be to define hypre_MultiParVector,
 hypre_MultiStructVector and hypre_MultiSStructVector by adding a new
 record
 
-int numVectors;
+BlopexInt numVectors;
 
 in hypre_ParVector, hypre_StructVector and hypre_SStructVector,
 and increasing the size of data numVectors times. Respective
@@ -50,7 +53,7 @@ with pointers to abstract multivector functions added to the structure
 HYPRE_InterfaceInterpreter (cf. HYPRE_interpreter.h; particular values
 are assigned to these pointers by functions
 HYPRE_ParCSRSetupInterpreter, HYPRE_StructSetupInterpreter and
-int HYPRE_SStructSetupInterpreter),
+BlopexInt HYPRE_SStructSetupInterpreter),
 and the abstract multivector functions become simply interfaces
 to the actual multivector functions of the form (cf. multivector.c):
 
@@ -74,28 +77,28 @@ extern "C" {
 /* ---------------------------- Generic ---------- */
 
 void*
-mv_TempMultiVectorCreateFromSampleVector( void*, int n, void* sample );
+mv_TempMultiVectorCreateFromSampleVector( void*, BlopexInt n, void* sample );
 
 void*
-mv_TempMultiVectorCreateCopy( void*, int copyValues );
+mv_TempMultiVectorCreateCopy( void*, BlopexInt copyValues );
 
 void
 mv_TempMultiVectorDestroy( void* );
 
-int
+BlopexInt
 mv_TempMultiVectorWidth( void* v );
 
-int
+BlopexInt
 mv_TempMultiVectorHeight( void* v );
 
 void
-mv_TempMultiVectorSetMask( void* v, int* mask );
+mv_TempMultiVectorSetMask( void* v, BlopexInt* mask );
 
 void
 mv_TempMultiVectorClear( void* );
 
 void
-mv_TempMultiVectorSetRandom( void* v, int seed );
+mv_TempMultiVectorSetRandom( void* v, BlopexInt seed );
 
 void
 mv_TempMultiVectorCopy( void* src, void* dest );
@@ -111,24 +114,24 @@ mv_TempMultiVectorAxpy( double, void*, void* );
 
 void
 mv_TempMultiVectorByMultiVector( void*, void*,
-                    int gh, int h, int w, void* v );
+                    BlopexInt gh, BlopexInt h, BlopexInt w, void* v );
 
 void
 mv_TempMultiVectorByMultiVectorDiag( void* x, void* y,
-                    int* mask, int n, void* diag );
+                    BlopexInt* mask, BlopexInt n, void* diag );
 
 void
 mv_TempMultiVectorByMatrix( void*,
-                   int gh, int h, int w, void* v,
+                   BlopexInt gh, BlopexInt h, BlopexInt w, void* v,
                    void* );
 
 void
 mv_TempMultiVectorXapy( void* x,
-               int gh, int h, int w, void* v,
+               BlopexInt gh, BlopexInt h, BlopexInt w, void* v,
                void* y );
 
 void mv_TempMultiVectorByDiagonal( void* x,
-                      int* mask, int n, void* diag,
+                      BlopexInt* mask, BlopexInt n, void* diag,
                       void* y );
 
 
@@ -139,24 +142,24 @@ mv_TempMultiVectorAxpy_complex( double, void*, void* );
 
 void
 mv_TempMultiVectorByMultiVector_complex( void*, void*,
-                    int gh, int h, int w, void* v );
+                    BlopexInt gh, BlopexInt h, BlopexInt w, void* v );
 
 void
 mv_TempMultiVectorByMultiVectorDiag_complex( void* x, void* y,
-                    int* mask, int n, void* diag );
+                    BlopexInt* mask, BlopexInt n, void* diag );
 
 void
 mv_TempMultiVectorByMatrix_complex( void*,
-                   int gh, int h, int w, void* v,
+                   BlopexInt gh, BlopexInt h, BlopexInt w, void* v,
                    void* );
 
 void
 mv_TempMultiVectorXapy_complex( void* x,
-               int gh, int h, int w, void* v,
+               BlopexInt gh, BlopexInt h, BlopexInt w, void* v,
                void* y );
 
 void mv_TempMultiVectorByDiagonal_complex( void* x,
-                      int* mask, int n, void* diag,
+                      BlopexInt* mask, BlopexInt n, void* diag,
                       void* y );
 
 #ifdef __cplusplus

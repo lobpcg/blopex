@@ -1,4 +1,5 @@
 include ../Makefile.inc
+CPPFLAGS = -I../utilities 
 
 all: multivector.o temp_multivector.o
 

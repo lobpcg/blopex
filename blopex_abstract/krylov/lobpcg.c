@@ -1,4 +1,7 @@
-/* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 
 #include <assert.h>
 #include <float.h>
@@ -9,23 +12,21 @@
 #include "fortran_matrix.h"
 #include "fortran_interpreter.h"
 #include "lobpcg.h"
-#include "multivector.h"
-
 
 /* ------------------------------------------------------------
    lobpcg_chol       chol fact of a ie a=u'*u            double
                      replaces a with u
    ------------------------------------------------------------ */
-static int
+static BlopexInt
 lobpcg_chol( utilities_FortranMatrix* a,
              lobpcg_BLASLAPACKFunctions blap_fn,
              utilities_FortranInterpreter* util )
 {
 
-  int lda, n;
+  BlopexInt lda, n;
   double* aval;
   char uplo;
-  int ierr;
+  BlopexInt ierr;
 
   lda = (util->FortranMatrixGlobalHeight) ( a );
   n = (util->FortranMatrixHeight) ( a );
@@ -39,16 +40,16 @@ lobpcg_chol( utilities_FortranMatrix* a,
 /* ------------------------------------------------------------
    zlobpcg_chol                                         complex
    ------------------------------------------------------------ */
-static int
+static BlopexInt
 zlobpcg_chol( utilities_FortranMatrix* a,
               lobpcg_BLASLAPACKFunctions blap_fn,
               utilities_FortranInterpreter* util )
 {
 
-  int lda, n;
+  BlopexInt lda, n;
   komplex* aval;
   char uplo;
-  int ierr;
+  BlopexInt ierr;
 
   lda = (util->FortranMatrixGlobalHeight) ( a );
   n = (util->FortranMatrixHeight) ( a );
@@ -62,7 +63,7 @@ zlobpcg_chol( utilities_FortranMatrix* a,
 /* ------------------------------------------------------------
    lobpcg_solveGEVP                                      double
    ------------------------------------------------------------ */
-static int
+static BlopexInt
 lobpcg_solveGEVP( utilities_FortranMatrix* mtxA,
                   utilities_FortranMatrix* mtxB,
                   utilities_FortranMatrix* eigVal,
@@ -70,7 +71,7 @@ lobpcg_solveGEVP( utilities_FortranMatrix* mtxA,
                   utilities_FortranInterpreter* util
 ){
 
-  int n, lda, ldb, itype, lwork, info;
+  BlopexInt n, lda, ldb, itype, lwork, info;
   char jobz, uplo;
   double* work;
   double* a;
@@ -106,7 +107,7 @@ lobpcg_solveGEVP( utilities_FortranMatrix* mtxA,
                      mtxA is Hermitian (contains e-vec on ret)
                      mtxB is Hermitian, Pos Def
    ------------------------------------------------------------ */
-static int
+static BlopexInt
 zlobpcg_solveGEVP( utilities_FortranMatrix* mtxA,
                    utilities_FortranMatrix* mtxB,
                    utilities_FortranMatrix* eigVal,
@@ -114,8 +115,8 @@ zlobpcg_solveGEVP( utilities_FortranMatrix* mtxA,
                    utilities_FortranInterpreter* util )
 {
 
-  int i;
-  int n, lda, ldb, itype, lwork, info;
+  BlopexInt i;
+  BlopexInt n, lda, ldb, itype, lwork, info;
   char jobz, uplo;
   komplex* work;
   komplex* a;
@@ -192,7 +193,7 @@ lobpcg_MultiVectorByMatrix(
    lobpcg_MultiVectorImplicitQR                         generic
    orthonormalize x
    ------------------------------------------------------------ */
-static int
+static BlopexInt
 lobpcg_MultiVectorImplicitQR(
        mv_MultiVectorPtr x, mv_MultiVectorPtr y,
        utilities_FortranMatrix* r,
@@ -204,7 +205,7 @@ lobpcg_MultiVectorImplicitQR(
 
   /* B-orthonormalizes x using y = B x */
 
-  int ierr;
+  BlopexInt ierr;
 
   /*--- r = x'*y                   */
   lobpcg_MultiVectorByMultiVector( x, y, r, util );
@@ -236,7 +237,7 @@ static void
 lobpcg_ComputeResidualNorms( mv_MultiVectorPtr blockVectorR,
                              utilities_FortranMatrix* resNorms,
                              utilities_FortranMatrix* resDiag,
-                             int* mask, int sizeX,
+                             BlopexInt* mask, BlopexInt sizeX,
                              utilities_FortranInterpreter* util )
 {
   /* take inner product of blockVectorR with mask and
@@ -247,7 +248,7 @@ lobpcg_ComputeResidualNorms( mv_MultiVectorPtr blockVectorR,
 
   /* take sqrt of resDiag and place in resNorms */
 
-  int i;
+  BlopexInt i;
   double *rp;
 
   rp = (double *)resNorms->value;
@@ -260,15 +261,15 @@ lobpcg_ComputeResidualNorms( mv_MultiVectorPtr blockVectorR,
 /* ------------------------------------------------------------
    lobpcg_checkResiduals                                generic
    ------------------------------------------------------------ */
-static int
+static BlopexInt
 lobpcg_checkResiduals( utilities_FortranMatrix* resNorms,
                        utilities_FortranMatrix* lambda,
                        lobpcg_Tolerance tol,
-                       int* activeMask,
+                       BlopexInt* activeMask,
                        utilities_FortranInterpreter* util )
 {
-  int i, n;
-  int notConverged;
+  BlopexInt i, n;
+  BlopexInt notConverged;
   double atol;
   double rtol;
 
@@ -294,7 +295,7 @@ lobpcg_checkResiduals( utilities_FortranMatrix* resNorms,
    lobpcg_errorMessage                                  generic
    ------------------------------------------------------------ */
 static void
-lobpcg_errorMessage( int verbosityLevel, char* message )
+lobpcg_errorMessage( BlopexInt verbosityLevel, char* message )
 {
   if ( verbosityLevel ) {
     fprintf( stderr, "Error in LOBPCG:\n" );
@@ -308,17 +309,17 @@ static void
 lobpcg_dumpLambda( utilities_FortranMatrix* residualNorms,
                    utilities_FortranMatrix* lambda,
                    int* iterationNumber,
-                   int sizeX,
+                   BlopexInt sizeX,
                    utilities_FortranInterpreter* util )
 {
-    int i;
+    BlopexInt i;
     double * eig;
 
     printf("\n");
     printf("Eigenvalue lambda       Residual              \n");
     for ( i = 1; i <= sizeX; i++ ) {
       eig = (double *)(util->FortranMatrixValuePtr)( lambda, i, 1);
-      printf("%22.16e  %22.16e\n", *eig,
+      printf("%22.14e  %22.14e\n", *eig,
               utilities_FortranMatrixAbs( residualNorms, i, 1) );
       }
     printf("\n%d iterations\n", *iterationNumber );
@@ -343,10 +344,10 @@ lobpcg_solve_double( mv_MultiVectorPtr blockVectorX,
           int    * iterationNumber,
           double * lambda_values,
           double * lambdaHistory_values,
-          int      lambdaHistory_gh,
+          BlopexInt      lambdaHistory_gh,
           double * residualNorms_values,
           double * residualNormsHistory_values ,
-          int      residualNormsHistory_gh
+          BlopexInt      residualNormsHistory_gh
 ){
   int exitflag;
   utilities_FortranInterpreter util;
@@ -428,10 +429,10 @@ lobpcg_solve_complex( mv_MultiVectorPtr blockVectorX,
           int    * iterationNumber,
           komplex * lambda_values,
           komplex * lambdaHistory_values,
-          int      lambdaHistory_gh,
+          BlopexInt      lambdaHistory_gh,
           double * residualNorms_values,
           double * residualNormsHistory_values ,
-          int      residualNormsHistory_gh
+          BlopexInt      residualNormsHistory_gh
 ){
   int exitflag;
   utilities_FortranInterpreter util;
@@ -508,48 +509,48 @@ lobpcg_solve( mv_MultiVectorPtr blockVectorX,
               mv_MultiVectorPtr blockVectorY,
               lobpcg_BLASLAPACKFunctions blap_fn,
               lobpcg_Tolerance tolerance,
-              int maxIterations,
-              int verbosityLevel,
+              int  maxIterations,
+              int  verbosityLevel,
               int* iterationNumber,
 
               void * lambda_values,
               void * lambdaHistory_values,
-              int lambdaHistory_gh,
+              BlopexInt lambdaHistory_gh,
 
               double * residualNorms_values,
               double * residualNormsHistory_values ,
-              int residualNormsHistory_gh,
+              BlopexInt residualNormsHistory_gh,
 
               lobpcg_Interpreter *lobpcg,
               utilities_FortranInterpreter *util
 
 ){
 
-  int               sizeX; /* number of eigenvectors */
-  int               sizeY; /* number of constraints */
-  int               sizeR; /* number of residuals used */
-  int               sizeP; /* number of conj. directions used */
-  int               sizeA; /* size of the Gram matrix for A */
-  int               sizeX3; /* 3*sizeX */
+  BlopexInt               sizeX; /* number of eigenvectors */
+  BlopexInt               sizeY; /* number of constraints */
+  BlopexInt               sizeR; /* number of residuals used */
+  BlopexInt               sizeP; /* number of conj. directions used */
+  BlopexInt               sizeA; /* size of the Gram matrix for A */
+  BlopexInt               sizeX3; /* 3*sizeX */
 
-  int               firstR; /* first line of the Gram block
+  BlopexInt               firstR; /* first line of the Gram block
                                corresponding to residuals */
-  int               lastR; /* last line of this block */
-  int               firstP; /* same for conjugate directions */
-  int               lastP;
+  BlopexInt               lastR; /* last line of this block */
+  BlopexInt               firstP; /* same for conjugate directions */
+  BlopexInt               lastP;
 
-  int               noTFlag; /* nonzero: no preconditioner */
-  int               noBFlag; /* nonzero: no operator B */
-  int               noYFlag; /* nonzero: no constaints */
+  BlopexInt               noTFlag; /* nonzero: no preconditioner */
+  BlopexInt               noBFlag; /* nonzero: no operator B */
+  BlopexInt               noYFlag; /* nonzero: no constaints */
 
-  int               exitFlag; /* 1: problem size is too small,
+  int                     exitFlag; /* 1: problem size is too small,
                                  2: block size < 1,
                                  3: linearly dependent constraints,
                                 -1: requested accuracy not achieved */
 
-  int*              activeMask; /* soft locking mask */
+  BlopexInt*              activeMask; /* soft locking mask */
 
-  int               i; /* short loop counter */
+  BlopexInt               i; /* short loop counter */
 
 #if 0
   long              n; /* dimension 1 of X */
@@ -743,14 +744,14 @@ lobpcg_solve( mv_MultiVectorPtr blockVectorX,
     if ( noTFlag )
       printf("out");
     printf(" preconditioning\n\n");
-    printf("block size %d\n\n", sizeX );
+    printf("block size %d\n\n",(int) sizeX );
     if ( noYFlag )
       printf("No constraints\n\n");
     else {
       if ( sizeY > 1 )
-        printf("%d constraints\n\n", sizeY);
+        printf("%d constraints\n\n",(int) sizeY);
       else
-        printf("%d constraint\n\n", sizeY);
+        printf("%d constraint\n\n",(int) sizeY);
     }
   }
 
@@ -790,8 +791,8 @@ lobpcg_solve( mv_MultiVectorPtr blockVectorX,
   residualNormsColumn = utilities_FortranMatrixCreate();
 
   /* --------- initializing soft locking mask ------------ */
-  activeMask = (int*)calloc( sizeX, sizeof(int) );
-  assert( activeMask != NULL );
+  activeMask = (BlopexInt*)calloc( sizeX, sizeof(BlopexInt) );
+  BlopexAssert( activeMask != NULL );
   for ( i = 0; i < sizeX; i++ )
     activeMask[i] = 1;
 
@@ -939,7 +940,7 @@ lobpcg_solve( mv_MultiVectorPtr blockVectorX,
         lobpcg_dumpLambda( residualNorms, lambda,
                            iterationNumber, sizeX, util);
       else if ( verbosityLevel == 1 )
-        printf("\nInitial Max. Residual %22.16e\n",
+        printf("\nInitial Max. Residual %22.14e\n",
                utilities_FortranMatrixMaxValue( residualNorms ) );
     }
   }
@@ -1282,13 +1283,13 @@ lobpcg_solve( mv_MultiVectorPtr blockVectorX,
     }
 
     if ( verbosityLevel == 2 ) {
-      printf( "Iteration %d \tbsize %d\n", *iterationNumber, sizeR );
+      printf( "Iteration %d \tbsize %d\n", *iterationNumber,(int) sizeR );
       lobpcg_dumpLambda( residualNorms, lambda,
                        iterationNumber, sizeX, util);
       }
     else if ( verbosityLevel == 1 )
-      printf("Iteration %d \tbsize %d \tmaxres %22.16e\n",
-             *iterationNumber, sizeR,
+      printf("Iteration %d \tbsize %d \tmaxres %22.14e\n",
+             *iterationNumber,(int) sizeR,
              utilities_FortranMatrixMaxValue( residualNorms ) );
 
     mv_MultiVectorSetMask( blockVectorAX, NULL );

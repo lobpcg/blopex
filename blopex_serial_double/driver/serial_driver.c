@@ -1,3 +1,7 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
 /* test driver for double serial implementation of lobpcg */
 
@@ -16,14 +20,14 @@
 #include <stdio.h>
 #include <string.h>
 
-int dsygv_ (int *itype, char *jobz, char *uplo, int *
-                    n, double *a, int *lda, double *b, int *ldb,
-                    double *w, double *work, int *lwork, int *info);
+BlopexInt dsygv_ (BlopexInt *itype, char *jobz, char *uplo, BlopexInt *
+                    n, double *a, BlopexInt *lda, double *b, BlopexInt *ldb,
+                    double *w, double *work, BlopexInt *lwork, BlopexInt *info);
 
-int dpotrf_ (char *uplo, int *n, double *a, int *
-                    lda, int *info);
+BlopexInt dpotrf_ (char *uplo, BlopexInt *n, double *a, BlopexInt *
+                    lda, BlopexInt *info);
 
-int main(void)
+BlopexInt main(void)
 {
    serial_Multi_Vector * x;
    serial_Multi_Vector * operatorAdata;
@@ -35,7 +39,7 @@ int main(void)
    mv_InterfaceInterpreter ii;
    lobpcg_BLASLAPACKFunctions blap_fn;
 
-   int MV_HEIGHT, MV_WIDTH;
+   BlopexInt MV_HEIGHT, MV_WIDTH;
 
 /* create operatorAdata as a 40x40 matrix */
    operatorAdata = serial_Multi_VectorCreate(40,40);

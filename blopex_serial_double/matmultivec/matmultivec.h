@@ -1,3 +1,7 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
 
 #ifndef MATMULTIVECTOR_FUNCTION_PROTOTYPES
@@ -9,7 +13,7 @@
 extern "C" {
 #endif
 
-int serial_Lapl1DMatMultiVec( serial_Multi_Vector * x,
+BlopexInt serial_Lapl1DMatMultiVec( serial_Multi_Vector * x,
                             serial_Multi_Vector * y  );
                             
                             

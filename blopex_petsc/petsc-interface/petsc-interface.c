@@ -1,3 +1,7 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
 
 #include "petscsys.h"
@@ -12,7 +16,7 @@ static PetscRandom LOBPCG_RandomContext = PETSC_NULL;
 
 typedef struct {double real, imag;} komplex;
 
-int PETSC_dpotrf_interface (char *uplo, int *n, double *a, int * lda, int *info)
+BlopexInt PETSC_dpotrf_interface (char *uplo, BlopexInt *n, double *a, BlopexInt * lda, BlopexInt *info)
 {
    PetscBLASInt n_, lda_, info_;
 
@@ -27,7 +31,7 @@ int PETSC_dpotrf_interface (char *uplo, int *n, double *a, int * lda, int *info)
    return 0;
 }
 
-int PETSC_zpotrf_interface (char *uplo, int *n, komplex *a, int * lda, int *info)
+BlopexInt PETSC_zpotrf_interface (char *uplo, BlopexInt *n, komplex *a, BlopexInt * lda, BlopexInt *info)
 {
    PetscBLASInt n_, lda_, info_;
 
@@ -42,9 +46,9 @@ int PETSC_zpotrf_interface (char *uplo, int *n, komplex *a, int * lda, int *info
    return 0;
 }
 
-int PETSC_dsygv_interface (int *itype, char *jobz, char *uplo, int *
-                    n, double *a, int *lda, double *b, int *ldb,
-                    double *w, double *work, int *lwork, int *info)
+BlopexInt PETSC_dsygv_interface (BlopexInt *itype, char *jobz, char *uplo, BlopexInt *
+                    n, double *a, BlopexInt *lda, double *b, BlopexInt *ldb,
+                    double *w, double *work, BlopexInt *lwork, BlopexInt *info)
 {
    PetscBLASInt itype_, n_, lda_, ldb_, lwork_, info_;
 
@@ -66,9 +70,9 @@ int PETSC_dsygv_interface (int *itype, char *jobz, char *uplo, int *
 
 }
 
-int PETSC_zsygv_interface (int *itype, char *jobz, char *uplo, int *
-                    n, komplex *a, int *lda, komplex *b, int *ldb,
-                    double *w, komplex *work, int *lwork, double *rwork, int *info)
+BlopexInt PETSC_zsygv_interface (BlopexInt *itype, char *jobz, char *uplo, BlopexInt *
+                    n, komplex *a, BlopexInt *lda, komplex *b, BlopexInt *ldb,
+                    double *w, komplex *work, BlopexInt *lwork, double *rwork, BlopexInt *info)
 {
    PetscBLASInt itype_, n_, lda_, ldb_, lwork_, info_;
 
@@ -100,7 +104,7 @@ PETSC_MimicVector( void *vvector )
     return ((void *)temp);
 }
 
-int
+BlopexInt
 PETSC_DestroyVector( void *vvector )
 {
    PetscErrorCode ierr;
@@ -109,7 +113,7 @@ PETSC_DestroyVector( void *vvector )
    return(0);
 }
 
-int
+BlopexInt
 PETSC_InnerProd( void *x, void *y, void *result )
 {
     PetscErrorCode     ierr;
@@ -119,7 +123,7 @@ PETSC_InnerProd( void *x, void *y, void *result )
     return (0);
 }
 
-int
+BlopexInt
 PETSC_CopyVector( void *x, void *y )
 {
     PetscErrorCode  ierr;
@@ -128,7 +132,7 @@ PETSC_CopyVector( void *x, void *y )
     return(0);
 }
 
-int
+BlopexInt
 PETSC_ClearVector( void *x )
 {
     PetscErrorCode  ierr;
@@ -137,8 +141,8 @@ PETSC_ClearVector( void *x )
     return(0);
 }
 
-int
-PETSC_SetRandomValues( void* v, int seed )
+BlopexInt
+PETSC_SetRandomValues( void* v, BlopexInt seed )
 {
     PetscErrorCode ierr;
 
@@ -150,7 +154,7 @@ PETSC_SetRandomValues( void* v, int seed )
     return(0);
 }
 
-int
+BlopexInt
 PETSC_ScaleVector( double alpha, void *x)
 {
     PetscErrorCode ierr;
@@ -159,7 +163,7 @@ PETSC_ScaleVector( double alpha, void *x)
     return(0);
 }
 
-int
+BlopexInt
 PETSC_Axpy( void *alpha,
                 void   *x,
                 void   *y )
@@ -169,7 +173,7 @@ PETSC_Axpy( void *alpha,
     ierr = VecAXPY( (Vec)y, *(PetscScalar *)alpha, (Vec)x ); CHKERRQ(ierr);
     return(0);
 }
-int
+BlopexInt
 PETSC_VectorSize( void *x )
 {
   PetscInt  N;
@@ -220,7 +224,7 @@ PETSCSetupInterpreter( mv_InterfaceInterpreter *i )
   i->VectorSize = PETSC_VectorSize;
 
   /* Multivector part */
-
+ 
   i->CreateMultiVector = mv_TempMultiVectorCreateFromSampleVector;
   i->CopyCreateMultiVector = mv_TempMultiVectorCreateCopy;
   i->DestroyMultiVector = mv_TempMultiVectorDestroy;

@@ -1,4 +1,9 @@
-/* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+
+#include "fortran_options.h"
 
 #ifndef FORTRAN_STYLE_MATRIX
 #define FORTRAN_STYLE_MATRIX
@@ -9,7 +14,7 @@ typedef struct
   long  height;
   long  width;
   void* value;
-  int   ownsValues;
+  BlopexInt   ownsValues;
 } utilities_FortranMatrix;
 
 #ifdef __cplusplus
@@ -57,11 +62,11 @@ utilities_FortranMatrixTransposeSquare( utilities_FortranMatrix* mtx );
 void
 utilities_FortranMatrixSymmetrize( utilities_FortranMatrix* mtx );
 void
-utilities_FortranMatrixCopy( utilities_FortranMatrix* src, int t,
+utilities_FortranMatrixCopy( utilities_FortranMatrix* src, BlopexInt t,
                              utilities_FortranMatrix* dest );
 void
-utilities_FortranMatrixIndexCopy( int* index,
-                  utilities_FortranMatrix* src, int t,
+utilities_FortranMatrixIndexCopy( BlopexInt* index,
+                  utilities_FortranMatrix* src, BlopexInt t,
                   utilities_FortranMatrix* dest );
 void
 utilities_FortranMatrixSetDiagonal( utilities_FortranMatrix* mtx,
@@ -81,8 +86,8 @@ void
 utilities_FortranMatrixMultiplyD( utilities_FortranMatrix* mtx,
                   utilities_FortranMatrix* d );
 void
-utilities_FortranMatrixMultiply( utilities_FortranMatrix* mtxA, int tA,
-                 utilities_FortranMatrix* mtxB, int tB,
+utilities_FortranMatrixMultiply( utilities_FortranMatrix* mtxA, BlopexInt tA,
+                 utilities_FortranMatrix* mtxB, BlopexInt tB,
                  utilities_FortranMatrix* mtxC );
 
 double
@@ -100,7 +105,7 @@ utilities_FortranMatrixSelectBlock( utilities_FortranMatrix* mtx,
                     utilities_FortranMatrix* block );
 void
 utilities_FortranMatrixUpperInv( utilities_FortranMatrix* u );
-int
+BlopexInt
 utilities_FortranMatrixPrint( utilities_FortranMatrix* mtx, char fileName[] );
 
 /* ------------ complex routines ------------- */
@@ -119,11 +124,11 @@ zutilities_FortranMatrixTransposeSquare( utilities_FortranMatrix* mtx );
 void
 zutilities_FortranMatrixSymmetrize( utilities_FortranMatrix* mtx );
 void
-zutilities_FortranMatrixCopy( utilities_FortranMatrix* src, int t,
+zutilities_FortranMatrixCopy( utilities_FortranMatrix* src, BlopexInt t,
                              utilities_FortranMatrix* dest );
 void
-zutilities_FortranMatrixIndexCopy( int* index,
-                  utilities_FortranMatrix* src, int t,
+zutilities_FortranMatrixIndexCopy( BlopexInt* index,
+                  utilities_FortranMatrix* src, BlopexInt t,
                   utilities_FortranMatrix* dest );
 void
 zutilities_FortranMatrixSetDiagonal( utilities_FortranMatrix* mtx,
@@ -143,8 +148,8 @@ void
 zutilities_FortranMatrixMultiplyD( utilities_FortranMatrix* mtx,
                   utilities_FortranMatrix* d );
 void
-zutilities_FortranMatrixMultiply( utilities_FortranMatrix* mtxA, int tA,
-                 utilities_FortranMatrix* mtxB, int tB,
+zutilities_FortranMatrixMultiply( utilities_FortranMatrix* mtxA, BlopexInt tA,
+                 utilities_FortranMatrix* mtxB, BlopexInt tB,
                  utilities_FortranMatrix* mtxC );
 
 double
@@ -160,7 +165,7 @@ zutilities_FortranMatrixSelectBlock( utilities_FortranMatrix* mtx,
                     utilities_FortranMatrix* block );
 void
 zutilities_FortranMatrixUpperInv( utilities_FortranMatrix* u );
-int
+BlopexInt
 zutilities_FortranMatrixPrint( utilities_FortranMatrix* mtx, char fileName[] );
 
 #ifdef __cplusplus

@@ -1,3 +1,7 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov, Don McCuan */
 
 #include <stdlib.h>
@@ -19,7 +23,7 @@ void complex_divide(komplex* A, komplex* B, komplex* C);
  *--------------------------------------------------------------------------*/
 
 serial_Multi_Vector *
-serial_Multi_VectorCreate( int size, int num_vectors  )
+serial_Multi_VectorCreate( BlopexInt size, BlopexInt num_vectors  )
 {
    serial_Multi_Vector *mvector;
 
@@ -40,10 +44,10 @@ serial_Multi_VectorCreate( int size, int num_vectors  )
 /*--------------------------------------------------------------------------
  * serial_Multi_VectorInitialize                                    complex
  *--------------------------------------------------------------------------*/
-int
+BlopexInt
 serial_Multi_VectorInitialize( serial_Multi_Vector *mvector )
 {
-   int    ierr = 0, i, size, num_vectors;
+   BlopexInt    ierr = 0, i, size, num_vectors;
 
    size        = serial_Multi_VectorSize(mvector);
    num_vectors = serial_Multi_VectorNumVectors(mvector);
@@ -54,7 +58,7 @@ serial_Multi_VectorInitialize( serial_Multi_Vector *mvector )
    /* now we create a "mask" of "active" vectors; initially all vectors are active */
    if (NULL==mvector->active_indices)
     {
-         mvector->active_indices=(int *) malloc(sizeof(int)*num_vectors);
+         mvector->active_indices=(BlopexInt *) malloc(sizeof(BlopexInt)*num_vectors);
 
          for (i=0; i<num_vectors; i++)
             mvector->active_indices[i]=i;
@@ -68,10 +72,10 @@ serial_Multi_VectorInitialize( serial_Multi_Vector *mvector )
 /*--------------------------------------------------------------------------
  * serial_Multi_VectorSetDataOwner                                   generic
  *--------------------------------------------------------------------------*/
-int
-serial_Multi_VectorSetDataOwner( serial_Multi_Vector *mvector, int owns_data )
+BlopexInt
+serial_Multi_VectorSetDataOwner( serial_Multi_Vector *mvector, BlopexInt owns_data )
 {
-   int    ierr=0;
+   BlopexInt    ierr=0;
 
    serial_Multi_VectorOwnsData(mvector) = owns_data;
 
@@ -81,10 +85,10 @@ serial_Multi_VectorSetDataOwner( serial_Multi_Vector *mvector, int owns_data )
 /*--------------------------------------------------------------------------
  * serial_Multi_VectorDestroy                                        generic
  *--------------------------------------------------------------------------*/
-int
+BlopexInt
 serial_Multi_VectorDestroy( serial_Multi_Vector *mvector )
 {
-   int    ierr=0;
+   BlopexInt    ierr=0;
 
    if (NULL!=mvector)
    {
@@ -102,18 +106,18 @@ serial_Multi_VectorDestroy( serial_Multi_Vector *mvector )
 /*--------------------------------------------------------------------------
  * serial_Multi_VectorSetMask                                        generic
  *--------------------------------------------------------------------------*/
- int
- serial_Multi_VectorSetMask(serial_Multi_Vector *mvector, int * mask)
+ BlopexInt
+ serial_Multi_VectorSetMask(serial_Multi_Vector *mvector, BlopexInt * mask)
  {
    /* this routine accepts mask in "zeros and ones format, and converts it to the one used in
    the structure "serial_Multi_Vector" */
-   int  num_vectors = mvector->num_vectors;
-   int i;
+   BlopexInt  num_vectors = mvector->num_vectors;
+   BlopexInt i;
 
 
    /* may be it's better to just check if it is not null, and throw an error, if it is? */
    if (mvector->active_indices==NULL)
-      mvector->active_indices=(int *) malloc(sizeof(int)*num_vectors);
+      mvector->active_indices=(BlopexInt *) malloc(sizeof(BlopexInt)*num_vectors);
 
    mvector->num_active_vectors=0;
 
@@ -134,13 +138,13 @@ serial_Multi_VectorDestroy( serial_Multi_Vector *mvector )
 /*--------------------------------------------------------------------------
  * serial_Multi_VectorSetConstantValues                             complex
  *--------------------------------------------------------------------------*/
-int
+BlopexInt
 serial_Multi_VectorSetConstantValues( serial_Multi_Vector *v,
                                        komplex value)
 {
    komplex  *vector_data = (komplex *) serial_Multi_VectorData(v);
-   int      size        = serial_Multi_VectorSize(v);
-   int      i, j, start_offset, end_offset;
+   BlopexInt      size        = serial_Multi_VectorSize(v);
+   BlopexInt      i, j, start_offset, end_offset;
 
    for (i = 0; i < v->num_active_vectors; i++)
    {
@@ -159,12 +163,12 @@ serial_Multi_VectorSetConstantValues( serial_Multi_Vector *v,
  *
  *     returns vector of values randomly distributed between -1.0 and +1.0
  *--------------------------------------------------------------------------*/
-int
-serial_Multi_VectorSetRandomValues( serial_Multi_Vector *v, int seed)
+BlopexInt
+serial_Multi_VectorSetRandomValues( serial_Multi_Vector *v, BlopexInt seed)
 {
    komplex  *vector_data = (komplex *) serial_Multi_VectorData(v);
-   int      size        = serial_Multi_VectorSize(v);
-   int      i, j, start_offset, end_offset;
+   BlopexInt      size        = serial_Multi_VectorSize(v);
+   BlopexInt      i, j, start_offset, end_offset;
 
    srand48(seed);
    printf("random size %d\n",size);
@@ -188,19 +192,19 @@ serial_Multi_VectorSetRandomValues( serial_Multi_Vector *v, int seed)
  *
  * y should have already been initialized at the same size as x
  *--------------------------------------------------------------------------*/
-int
+BlopexInt
 serial_Multi_VectorCopy( serial_Multi_Vector *x, serial_Multi_Vector *y)
 {
    komplex *x_data;
    komplex *y_data;
-   int i;
-   int size;
-   int num_bytes;
-   int num_active_vectors;
+   BlopexInt i;
+   BlopexInt size;
+   BlopexInt num_bytes;
+   BlopexInt num_active_vectors;
    komplex * dest;
    komplex * src;
-   int * x_active_ind;
-   int * y_active_ind;
+   BlopexInt * x_active_ind;
+   BlopexInt * y_active_ind;
 
    assert (x->size == y->size && x->num_active_vectors == y->num_active_vectors);
 
@@ -228,10 +232,10 @@ serial_Multi_VectorCopy( serial_Multi_Vector *x, serial_Multi_Vector *y)
  * copies data from x to y without using indices
  * y should have already been initialized at the same size as x
  *--------------------------------------------------------------------------*/
-int
+BlopexInt
 serial_Multi_VectorCopyWithoutMask(serial_Multi_Vector *x , serial_Multi_Vector *y)
 {
-   int byte_count;
+   BlopexInt byte_count;
 
    assert (x->size == y->size && x->num_vectors == y->num_vectors);
 
@@ -251,7 +255,7 @@ serial_Multi_VectorCopyWithoutMask(serial_Multi_Vector *x , serial_Multi_Vector 
  * call seq < MultiVectorAxpy < i->MultiAxpy < mv_MultiVectorAxpy
  * alpha is always 1 or -1 double
  *--------------------------------------------------------------------------*/
-int
+BlopexInt
 serial_Multi_VectorAxpy( double           alpha,
                           serial_Multi_Vector *x,
                           serial_Multi_Vector *y)
@@ -260,11 +264,11 @@ serial_Multi_VectorAxpy( double           alpha,
    komplex  *y_data;
    komplex * src;
    komplex * dest;
-   int * x_active_ind;
-   int * y_active_ind;
-   int i, j;
-   int size;
-   int num_active_vectors;
+   BlopexInt * x_active_ind;
+   BlopexInt * y_active_ind;
+   BlopexInt i, j;
+   BlopexInt size;
+   BlopexInt num_active_vectors;
 
    assert (x->size == y->size && x->num_active_vectors == y->num_active_vectors);
 
@@ -295,31 +299,31 @@ serial_Multi_VectorAxpy( double           alpha,
  * if y and x are mxn then alpha is nx1
  * call seq < MultiVectorByDiagonal < i->MultiVecMatDiag < mv_MultiVectorByDiagonal
  *--------------------------------------------------------------------------*/
-int
+BlopexInt
 serial_Multi_VectorByDiag( serial_Multi_Vector *x,
-                            int                 *mask,
-                            int                 n,
+                            BlopexInt                 *mask,
+                            BlopexInt                 n,
                             komplex             *alpha,
                             serial_Multi_Vector *y)
 {
    komplex  *x_data;
    komplex  *y_data;
-   int      size;
-   int      num_active_vectors;
-   int      i,j;
+   BlopexInt      size;
+   BlopexInt      num_active_vectors;
+   BlopexInt      i,j;
    komplex  *dest;
    komplex  *src;
-   int * x_active_ind;
-   int * y_active_ind;
-   int * al_active_ind;
-   int num_active_als;
+   BlopexInt * x_active_ind;
+   BlopexInt * y_active_ind;
+   BlopexInt * al_active_ind;
+   BlopexInt num_active_als;
    komplex * current_alpha;
 
    assert (x->size == y->size && x->num_active_vectors == y->num_active_vectors);
 
    /* build list of active indices in alpha */
 
-   al_active_ind = (int *) malloc(sizeof(int)*n);
+   al_active_ind = (BlopexInt *) malloc(sizeof(BlopexInt)*n);
    num_active_als = 0;
 
    if (mask!=NULL)
@@ -360,25 +364,25 @@ serial_Multi_VectorByDiag( serial_Multi_Vector *x,
  *
  * call seq < MultiInnerProd < i->MultiInnerProd < mv_MultiVectorByMultiVector
  *--------------------------------------------------------------------------*/
-int serial_Multi_VectorInnerProd( serial_Multi_Vector *x,
+BlopexInt serial_Multi_VectorInnerProd( serial_Multi_Vector *x,
                                    serial_Multi_Vector *y,
-                                   int gh, int h, int w, komplex* v)
+                                   BlopexInt gh, BlopexInt h, BlopexInt w, komplex* v)
 {
    /* to be reworked! */
    komplex *x_data;
    komplex *y_data;
-   int      size;
-   int      x_num_active_vectors;
-   int      y_num_active_vectors;
-   int      i,j,k;
+   BlopexInt      size;
+   BlopexInt      x_num_active_vectors;
+   BlopexInt      y_num_active_vectors;
+   BlopexInt      i,j,k;
    komplex *y_ptr;
    komplex *x_ptr;
-   int * x_active_ind;
-   int * y_active_ind;
+   BlopexInt * x_active_ind;
+   BlopexInt * y_active_ind;
    komplex current_product;
    komplex temp;
    komplex conj;
-   int gap;
+   BlopexInt gap;
 
    assert (x->size==y->size);
 
@@ -429,31 +433,31 @@ int serial_Multi_VectorInnerProd( serial_Multi_Vector *x,
  *
  * call seq < MultiInnerProdDiag < i->MultiInnerProdDiag < mv_MultiVectorByMultiVectorDiag
  *--------------------------------------------------------------------------*/
-int serial_Multi_VectorInnerProdDiag( serial_Multi_Vector *x,
+BlopexInt serial_Multi_VectorInnerProdDiag( serial_Multi_Vector *x,
                                        serial_Multi_Vector *y,
-                                       int* mask, int n, komplex* diag)
+                                       BlopexInt* mask, BlopexInt n, komplex* diag)
 {
 /* to be reworked! */
    komplex  *x_data;
    komplex  *y_data;
-   int      size;
-   int      num_active_vectors;
-   int      * x_active_ind;
-   int      * y_active_ind;
+   BlopexInt      size;
+   BlopexInt      num_active_vectors;
+   BlopexInt      * x_active_ind;
+   BlopexInt      * y_active_ind;
    komplex  *y_ptr;
    komplex  *x_ptr;
    komplex  current_product;
    komplex  temp;
    komplex  conj;
-   int      i, k;
-   int      * al_active_ind;
-   int      num_active_als;
+   BlopexInt      i, k;
+   BlopexInt      * al_active_ind;
+   BlopexInt      num_active_als;
 
    assert(x->size==y->size && x->num_active_vectors == y->num_active_vectors);
 
       /* build list of active indices in alpha */
 
-   al_active_ind = (int *) malloc(sizeof(int)*n);
+   al_active_ind = (BlopexInt *) malloc(sizeof(BlopexInt)*n);
    num_active_als = 0;
 
    if (mask!=NULL)
@@ -500,21 +504,21 @@ int serial_Multi_VectorInnerProdDiag( serial_Multi_Vector *x,
  *
  * call seq < MultiVectorByMatrix < i->MultiVecMat < mv_MultiVectorByMatrix
  *--------------------------------------------------------------------------*/
-int
- serial_Multi_VectorByMatrix(serial_Multi_Vector *x, int rGHeight, int rHeight,
-                              int rWidth, komplex* rVal, serial_Multi_Vector *y)
+BlopexInt
+ serial_Multi_VectorByMatrix(serial_Multi_Vector *x, BlopexInt rGHeight, BlopexInt rHeight,
+                              BlopexInt rWidth, komplex* rVal, serial_Multi_Vector *y)
 {
    komplex *x_data;
    komplex *y_data;
-   int      size;
-   int     * x_active_ind;
-   int     * y_active_ind;
+   BlopexInt      size;
+   BlopexInt     * x_active_ind;
+   BlopexInt     * y_active_ind;
    komplex *y_ptr;
    komplex *x_ptr;
    komplex  current_coef;
    komplex  temp;
-   int      i,j,k;
-   int      gap;
+   BlopexInt      i,j,k;
+   BlopexInt      gap;
 
    assert(rHeight>0);
    assert (rHeight==x->num_active_vectors && rWidth==y->num_active_vectors);
@@ -557,7 +561,7 @@ int
 /*--------------------------------------------------------------------------
  * serial_Multi_VectorByMulti_Vector     z=x*y   with indices        complex
  *--------------------------------------------------------------------------*/
-int
+BlopexInt
  serial_Multi_VectorByMulti_Vector(serial_Multi_Vector *x,
                                    serial_Multi_Vector *y,
                                    serial_Multi_Vector *z)
@@ -566,16 +570,16 @@ int
    komplex *y_data;
    komplex *z_data;
 
-   int     * x_index;
-   int     * y_index;
-   int     * z_index;
+   BlopexInt     * x_index;
+   BlopexInt     * y_index;
+   BlopexInt     * z_index;
    komplex * pzc;
    komplex * pyc;
    komplex * pxr;
    komplex * py;
 
    komplex  temp;
-   int      i,j,k;
+   BlopexInt      i,j,k;
 
    assert (x->num_active_vectors == y->size);
    assert (z->size == x->size);
@@ -612,12 +616,12 @@ int
 /*--------------------------------------------------------------------------
  * serial_Multi_VectorPrint                                          complex
  *--------------------------------------------------------------------------*/
-int serial_Multi_VectorPrint(serial_Multi_Vector * x,char * tag, int limit)
+BlopexInt serial_Multi_VectorPrint(serial_Multi_Vector * x,char * tag, BlopexInt limit)
 {
    komplex * p;
-   int     * pact;
-   int       i, j;
-   int     rows,cols;
+   BlopexInt     * pact;
+   BlopexInt       i, j;
+   BlopexInt     rows,cols;
    printf("======= %s =========\n",tag);
    printf("size %d\n", x->size);
    printf("owns data %d\n",x->owns_data);
@@ -648,7 +652,7 @@ int serial_Multi_VectorPrint(serial_Multi_Vector * x,char * tag, int limit)
 /*--------------------------------------------------------------------------
  * serial_Multi_VectorPrintShort                                     complex
  *--------------------------------------------------------------------------*/
-int serial_Multi_VectorPrintShort(serial_Multi_Vector * x)
+BlopexInt serial_Multi_VectorPrintShort(serial_Multi_Vector * x)
 {
    printf("size %d\n", x->size);
    printf("owns data %d\n",x->owns_data);
@@ -663,7 +667,7 @@ int serial_Multi_VectorPrintShort(serial_Multi_Vector * x)
 serial_Multi_Vector *
 serial_Multi_VectorLoad( char fileName[] ) {
 
-int size, num_vectors, num_elements, j;
+BlopexInt size, num_vectors, num_elements, j;
 serial_Multi_Vector *mvector;
 
 FILE* fp;

@@ -1,7 +1,10 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+
 #ifndef LOCALLY_OPTIMAL_BLOCK_PRECONDITIONED_CONJUGATE_GRADIENTS
 #define LOCALLY_OPTIMAL_BLOCK_PRECONDITIONED_CONJUGATE_GRADIENTS
-
-/* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
 
 #include "multivector.h"
 #include "fortran_interpreter.h"
@@ -25,20 +28,20 @@ typedef struct {
 
 /* double precision */
 
-   int (*dpotrf) (char *uplo, int *n,
-                  double *a, int * lda, int *info);
-   int (*dsygv) (int *itype, char *jobz, char *uplo, int * n,
-                 double *a, int *lda, double *b, int *ldb,
-                 double *w, double *work, int *lwork, int *info);
+   BlopexInt (*dpotrf) (char *uplo, BlopexInt *n,
+                  double *a, BlopexInt * lda, BlopexInt *info);
+   BlopexInt (*dsygv) (BlopexInt *itype, char *jobz, char *uplo, BlopexInt * n,
+                 double *a, BlopexInt *lda, double *b, BlopexInt *ldb,
+                 double *w, double *work, BlopexInt *lwork, BlopexInt *info);
 
 /* komplex (double precision complex)*/
 
-   int (*zpotrf) (char *uplo, int *n,
-                  komplex *a, int *lda, int *info);
-   int (*zhegv) (int *itype, char *jobz, char *uplo, int * n,
-                 komplex *a, int *lda, komplex *b, int *ldb,
-                 double *w, komplex *work, int *lwork,
-                 double * rwork,int *info);
+   BlopexInt (*zpotrf) (char *uplo, BlopexInt *n,
+                  komplex *a, BlopexInt *lda, BlopexInt *info);
+   BlopexInt (*zhegv) (BlopexInt *itype, char *jobz, char *uplo, BlopexInt * n,
+                 komplex *a, BlopexInt *lda, komplex *b, BlopexInt *ldb,
+                 double *w, komplex *work, BlopexInt *lwork,
+                 double * rwork,BlopexInt *info);
 
 } lobpcg_BLASLAPACKFunctions;
 
@@ -48,12 +51,12 @@ extern "C" {
 
 typedef struct
 {
-int
+BlopexInt
 (*chol)( utilities_FortranMatrix* a,
          lobpcg_BLASLAPACKFunctions blap_fn,
          utilities_FortranInterpreter* util );
 
-int
+BlopexInt
 (*solveGEVP)( utilities_FortranMatrix* mtxA,
               utilities_FortranMatrix* mtxB,
               utilities_FortranMatrix* eigVal,
@@ -91,7 +94,7 @@ lobpcg_solve_double(
 
 /* global height of the matrix (stored in fotran-style)  specified by previous argument */
 
-          int lambdaHistory_gh,
+          BlopexInt lambdaHistory_gh,
 
 /* residual norms; argument should point to array of <blocksize> doubles */
 
@@ -105,7 +108,7 @@ lobpcg_solve_double(
 
 /* global height of the matrix (stored in fotran-style)  specified by previous argument */
 
-          int residualNormsHistory_gh
+          BlopexInt residualNormsHistory_gh
 
 );
 
@@ -128,12 +131,12 @@ lobpcg_solve_complex(
 
           komplex * lambda_values,
           komplex * lambdaHistory_values,
-          int lambdaHistory_gh,
+          BlopexInt lambdaHistory_gh,
 
           double * residualNorms_values,
           double * residualNormsHistory_values ,
 
-          int residualNormsHistory_gh
+          BlopexInt residualNormsHistory_gh
 );
 int
 lobpcg_solve(
@@ -154,11 +157,11 @@ lobpcg_solve(
 
           void * lambda_values,
           void * lambdaHistory_values,
-          int lambdaHistory_gh,
+          BlopexInt lambdaHistory_gh,
 
           double * residualNorms_values,
           double * residualNormsHistory_values ,
-          int residualNormsHistory_gh,
+          BlopexInt residualNormsHistory_gh,
 
           lobpcg_Interpreter *lobpcg,
           utilities_FortranInterpreter *util

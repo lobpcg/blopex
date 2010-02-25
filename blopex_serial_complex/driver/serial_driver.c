@@ -1,3 +1,7 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov, Don McCuan */
 /* test driver for complex implementation of lobpcg */
 
@@ -16,14 +20,14 @@
 #include <string.h>
 #include <time.h>
 
-   int zpotrf_ (char *uplo, int *n,
-                komplex *a, int *lda, int *info);
-   int zhegv_  (int *itype, char *jobz, char *uplo, int * n,
-                komplex *a, int *lda, komplex *b, int *ldb,
-                double *w, komplex *work, int *lwork,
-                double * rwork,int *info);
+   BlopexInt zpotrf_ (char *uplo, BlopexInt *n,
+                komplex *a, BlopexInt *lda, BlopexInt *info);
+   BlopexInt zhegv_  (BlopexInt *itype, char *jobz, char *uplo, BlopexInt * n,
+                komplex *a, BlopexInt *lda, komplex *b, BlopexInt *ldb,
+                double *w, komplex *work, BlopexInt *lwork,
+                double * rwork,BlopexInt *info);
 
-int main(int argc,char *argv[])
+BlopexInt main(BlopexInt argc,char *argv[])
 {
 
    serial_Multi_Vector * x;
@@ -36,7 +40,7 @@ int main(int argc,char *argv[])
    mv_InterfaceInterpreter ii;
    lobpcg_BLASLAPACKFunctions blap_fn;
 
-   int MV_HEIGHT, MV_WIDTH;
+   BlopexInt MV_HEIGHT, MV_WIDTH;
 
    if (argc != 4) {
      printf("Must have 3 arguments. Try:\n");
@@ -74,7 +78,7 @@ int main(int argc,char *argv[])
      komplex kzero = {0.0, 0.0};
      serial_Multi_VectorSetConstantValues( operatorA, kzero);
      komplex * pc;
-     int di;
+     BlopexInt di;
      pc = (komplex *)operatorA->data;
      for (di=0;di<MV_HEIGHT;di++) {
        pc->real = di+1;

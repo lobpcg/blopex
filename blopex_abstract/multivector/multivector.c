@@ -1,4 +1,7 @@
-/* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 
 #include <assert.h>
 #include <math.h>
@@ -12,7 +15,7 @@
 struct mv_MultiVector
 {
   void* data;      /* the pointer to the actual multivector */
-  int   ownsData;
+  BlopexInt   ownsData;
 
   mv_InterfaceInterpreter* interpreter; /* a structure that defines
                                            multivector operations */
@@ -23,19 +26,19 @@ struct mv_MultiVector
 void *
 mv_MultiVectorGetData (mv_MultiVectorPtr x)
 {
-  assert (x!=NULL);
+  BlopexAssert (x!=NULL);
   return x->data;
 }
 /* -------------------------------------------------------
    mv_MultiVectorWrap                             generic
    ------------------------------------------------------- */
 mv_MultiVectorPtr
-mv_MultiVectorWrap( mv_InterfaceInterpreter* ii, void * data, int ownsData )
+mv_MultiVectorWrap( mv_InterfaceInterpreter* ii, void * data, BlopexInt ownsData )
 {
   mv_MultiVectorPtr x;
 
   x = (mv_MultiVectorPtr) malloc(sizeof(struct mv_MultiVector));
-  assert( x != NULL );
+  BlopexAssert( x != NULL );
 
   x->interpreter = ii;
   x->data = data;
@@ -47,13 +50,13 @@ mv_MultiVectorWrap( mv_InterfaceInterpreter* ii, void * data, int ownsData )
    mv_MultiVectorCreateFromSampleVector      not used      generic
    --------------------------------------------------------------- */
 mv_MultiVectorPtr
-mv_MultiVectorCreateFromSampleVector( void* ii_, int n, void* sample ) {
+mv_MultiVectorCreateFromSampleVector( void* ii_, BlopexInt n, void* sample ) {
 
   mv_MultiVectorPtr x;
   mv_InterfaceInterpreter* ii = (mv_InterfaceInterpreter*)ii_;
 
   x = (mv_MultiVectorPtr) malloc(sizeof(struct mv_MultiVector));
-  assert( x != NULL );
+  BlopexAssert( x != NULL );
 
   x->interpreter = ii;
   x->data = (ii->CreateMultiVector)( ii, n, sample );
@@ -65,17 +68,17 @@ mv_MultiVectorCreateFromSampleVector( void* ii_, int n, void* sample ) {
    mv_MultiVectorCreateCopy                                   generic
    ------------------------------------------------------------------ */
 mv_MultiVectorPtr
-mv_MultiVectorCreateCopy( mv_MultiVectorPtr x, int copyValues ) {
+mv_MultiVectorCreateCopy( mv_MultiVectorPtr x, BlopexInt copyValues ) {
 
   mv_MultiVectorPtr y;
   void* data;
   mv_InterfaceInterpreter* ii;
 
-  assert( x != NULL );
+  BlopexAssert( x != NULL );
   ii = x->interpreter;
 
   y = (mv_MultiVectorPtr) malloc(sizeof(struct mv_MultiVector));
-  assert( y != NULL );
+  BlopexAssert( y != NULL );
 
   data = (ii->CopyCreateMultiVector)( x->data, copyValues );
 
@@ -102,15 +105,15 @@ mv_MultiVectorDestroy( mv_MultiVectorPtr v) {
    mv_MultiVectorSetMask                                      generic
    ------------------------------------------------------------------ */
 void
-mv_MultiVectorSetMask( mv_MultiVectorPtr v, int* mask ) {
+mv_MultiVectorSetMask( mv_MultiVectorPtr v, BlopexInt* mask ) {
 
-  assert( v != NULL );
+  BlopexAssert( v != NULL );
   (v->interpreter->SetMask)( v->data, mask );
 }
 /* ------------------------------------------------------------------
    mv_MultiVectorWidth                                        generic
    ------------------------------------------------------------------ */
-int
+BlopexInt
 mv_MultiVectorWidth( mv_MultiVectorPtr v ) {
 
   if ( v == NULL )
@@ -121,7 +124,7 @@ mv_MultiVectorWidth( mv_MultiVectorPtr v ) {
 /* ------------------------------------------------------------------
    mv_MultiVectorHeight                 not used              generic
    ------------------------------------------------------------------ */
-int
+BlopexInt
 mv_MultiVectorHeight( mv_MultiVectorPtr v ) {
 
   if ( v == NULL )
@@ -135,16 +138,16 @@ mv_MultiVectorHeight( mv_MultiVectorPtr v ) {
 void
 mv_MultiVectorClear( mv_MultiVectorPtr v ) {
 
-  assert( v != NULL );
+  BlopexAssert( v != NULL );
   (v->interpreter->ClearMultiVector)( v->data );
 }
 /* ------------------------------------------------------------------
    mv_MultiVectorSetRandom                                    generic
    ------------------------------------------------------------------ */
 void
-mv_MultiVectorSetRandom( mv_MultiVectorPtr v, int seed ) {
+mv_MultiVectorSetRandom( mv_MultiVectorPtr v, BlopexInt seed ) {
 
-  assert( v != NULL );
+  BlopexAssert( v != NULL );
   (v->interpreter->SetRandomVectors)( v->data, seed );
 }
 /* ------------------------------------------------------------------
@@ -153,7 +156,7 @@ mv_MultiVectorSetRandom( mv_MultiVectorPtr v, int seed ) {
 void
 mv_MultiVectorCopy( mv_MultiVectorPtr src, mv_MultiVectorPtr dest ) {
 
-  assert( src != NULL && dest != NULL );
+  BlopexAssert( src != NULL && dest != NULL );
   (src->interpreter->CopyMultiVector)( src->data, dest->data );
 }
 /* ------------------------------------------------------------------
@@ -162,7 +165,7 @@ mv_MultiVectorCopy( mv_MultiVectorPtr src, mv_MultiVectorPtr dest ) {
 void
 mv_MultiVectorAxpy( double a, mv_MultiVectorPtr x, mv_MultiVectorPtr y ) {
 
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
   (x->interpreter->MultiAxpy)( a, x->data, y->data );
 }
 /* ------------------------------------------------------------------
@@ -171,10 +174,10 @@ mv_MultiVectorAxpy( double a, mv_MultiVectorPtr x, mv_MultiVectorPtr y ) {
 void
 mv_MultiVectorByMultiVector( mv_MultiVectorPtr x,
                              mv_MultiVectorPtr y,
-                             int xyGHeight, int xyHeight,
-                             int xyWidth, void* xy ) {
+                             BlopexInt xyGHeight, BlopexInt xyHeight,
+                             BlopexInt xyWidth, void* xy ) {
 
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
   (x->interpreter->MultiInnerProd)
     ( x->data, y->data, xyGHeight, xyHeight, xyWidth, xy );
 }
@@ -184,9 +187,9 @@ mv_MultiVectorByMultiVector( mv_MultiVectorPtr x,
 void
 mv_MultiVectorByMultiVectorDiag( mv_MultiVectorPtr x,
                                  mv_MultiVectorPtr y,
-                                 int* mask, int n, void* d ) {
+                                 BlopexInt* mask, BlopexInt n, void* d ) {
 
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
   (x->interpreter->MultiInnerProdDiag)( x->data, y->data, mask, n, d );
 }
 /* ------------------------------------------------------------------
@@ -194,11 +197,11 @@ mv_MultiVectorByMultiVectorDiag( mv_MultiVectorPtr x,
    ------------------------------------------------------------------ */
 void
 mv_MultiVectorByMatrix( mv_MultiVectorPtr x,
-                        int rGHeight, int rHeight, int rWidth,
+                        BlopexInt rGHeight, BlopexInt rHeight, BlopexInt rWidth,
                         void* rVal,
                         mv_MultiVectorPtr y ) {
 
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
   (x->interpreter->MultiVecMat)
     ( x->data, rGHeight, rHeight, rWidth, rVal, y->data );
 }
@@ -207,11 +210,11 @@ mv_MultiVectorByMatrix( mv_MultiVectorPtr x,
    ------------------------------------------------------------------ */
 void
 mv_MultiVectorXapy( mv_MultiVectorPtr x,
-                    int rGHeight, int rHeight, int rWidth,
+                    BlopexInt rGHeight, BlopexInt rHeight, BlopexInt rWidth,
                     void* rVal,
                     mv_MultiVectorPtr y ) {
 
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
   (x->interpreter->MultiXapy)
     ( x->data, rGHeight, rHeight, rWidth, rVal, y->data );
 }
@@ -220,12 +223,12 @@ mv_MultiVectorXapy( mv_MultiVectorPtr x,
    ------------------------------------------------------------------ */
 void
 mv_MultiVectorByDiagonal( mv_MultiVectorPtr x,
-                          int* mask, int n, void* d,
+                          BlopexInt* mask, BlopexInt n, void* d,
                           mv_MultiVectorPtr y ) {
 
   /* y = x*d */
 
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
   (x->interpreter->MultiVecMatDiag)( x->data, mask, n, d, y->data );
 }
 /* ------------------------------------------------------------------
@@ -237,15 +240,15 @@ mv_MultiVectorEval( void (*f)( void*, void*, void* ), void* par,
 
   /* y = f(x) computed vector-wise */
 
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
   (x->interpreter->Eval)( f, par, x->data, y->data );
 }
 /* ------------------------------------------------------------------
    mv_MultiVectorPrint                                        generic
    ------------------------------------------------------------------ */
 void
-mv_MultiVectorPrint( mv_MultiVectorPtr x,char * tag,int limit ) {
+mv_MultiVectorPrint( mv_MultiVectorPtr x,char * tag,BlopexInt limit ) {
 
-  assert( x != NULL );
+  BlopexAssert( x != NULL );
   (x->interpreter->MultiPrint)( x->data, tag, limit );
 }

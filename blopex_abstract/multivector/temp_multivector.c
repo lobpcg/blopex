@@ -1,19 +1,21 @@
-/* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 
 #include "temp_multivector.h"
-#include "interpreter.h"
 
 /* ----------- complex definition ----------- */
 typedef struct {double real, imag;} komplex;
 
 static void
-mv_collectVectorPtr( int* mask, mv_TempMultiVector* x, void** px ) {
+mv_collectVectorPtr( BlopexInt* mask, mv_TempMultiVector* x, void** px ) {
 
-  int ix, jx;
+  BlopexInt ix, jx;
 
   if ( mask != NULL ) {
     for ( ix = 0, jx = 0; ix < x->numVectors; ix++ )
@@ -26,10 +28,10 @@ mv_collectVectorPtr( int* mask, mv_TempMultiVector* x, void** px ) {
 
 }
 
-static int
-aux_maskCount( int n, int* mask ) {
+static BlopexInt
+aux_maskCount( BlopexInt n, BlopexInt* mask ) {
 
-  int i, m;
+  BlopexInt i, m;
 
   if ( mask == NULL )
     return n;
@@ -42,7 +44,7 @@ aux_maskCount( int n, int* mask ) {
 }
 
 static void
-aux_indexFromMask( int n, int* mask, int* index ) {
+aux_indexFromMask( BlopexInt n, BlopexInt* mask, BlopexInt* index ) {
 
   long i, j;
 
@@ -62,7 +64,7 @@ aux_indexFromMask( int n, int* mask, int* index ) {
 static unsigned long next = 1;
 
 /* RAND_MAX assumed to be 32767 */
-static int myrand(void) {
+static BlopexInt myrand(void) {
    next = next * 1103515245 + 12345;
    return((unsigned)(next/65536) % 32768);
 }
@@ -73,20 +75,20 @@ static void mysrand(unsigned seed) {
 
 
 void*
-mv_TempMultiVectorCreateFromSampleVector( void* ii_, int n, void* sample ) {
+mv_TempMultiVectorCreateFromSampleVector( void* ii_, BlopexInt n, void* sample ) {
 
-  int i;
+  BlopexInt i;
   mv_TempMultiVector* x;
   mv_InterfaceInterpreter* ii = (mv_InterfaceInterpreter*)ii_;
 
   x = (mv_TempMultiVector*) malloc(sizeof(mv_TempMultiVector));
-  assert( x != NULL );
+  BlopexAssert( x != NULL );
 
   x->interpreter = ii;
   x->numVectors = n;
 
   x->vector = (void**) calloc( n, sizeof(void*) );
-  assert( x->vector != NULL );
+  BlopexAssert( x->vector != NULL );
 
   x->ownsVectors = 1;
   x->mask = NULL;
@@ -100,15 +102,15 @@ mv_TempMultiVectorCreateFromSampleVector( void* ii_, int n, void* sample ) {
 }
 
 void*
-mv_TempMultiVectorCreateCopy( void* src_, int copyValues ) {
+mv_TempMultiVectorCreateCopy( void* src_, BlopexInt copyValues ) {
 
-  int i, n;
+  BlopexInt i, n;
 
   mv_TempMultiVector* src;
   mv_TempMultiVector* dest;
 
   src = (mv_TempMultiVector*)src_;
-  assert( src != NULL );
+  BlopexAssert( src != NULL );
 
   n = src->numVectors;
 
@@ -125,7 +127,7 @@ mv_TempMultiVectorCreateCopy( void* src_, int copyValues ) {
 void
 mv_TempMultiVectorDestroy( void* x_ ) {
 
-  int i;
+  BlopexInt i;
   mv_TempMultiVector* x = (mv_TempMultiVector*)x_;
 
   if ( x == NULL )
@@ -141,7 +143,7 @@ mv_TempMultiVectorDestroy( void* x_ ) {
   free(x);
 }
 
-int
+BlopexInt
 mv_TempMultiVectorWidth( void* x_ ) {
 
   mv_TempMultiVector* x = (mv_TempMultiVector*)x_;
@@ -152,7 +154,7 @@ mv_TempMultiVectorWidth( void* x_ ) {
   return x->numVectors;
 }
 
-int
+BlopexInt
 mv_TempMultiVectorHeight( void* x_ ) {
 
   mv_TempMultiVector* x = (mv_TempMultiVector*)x_;
@@ -166,11 +168,11 @@ mv_TempMultiVectorHeight( void* x_ ) {
 /* this shallow copy of the mask is convenient but not safe;
    a proper copy should be considered */
 void
-mv_TempMultiVectorSetMask( void* x_, int* mask ) {
+mv_TempMultiVectorSetMask( void* x_, BlopexInt* mask ) {
 
   mv_TempMultiVector* x = (mv_TempMultiVector*)x_;
 
-  assert( x != NULL );
+  BlopexAssert( x != NULL );
   x->mask = mask;
   x->ownsMask = 0;
 }
@@ -178,10 +180,10 @@ mv_TempMultiVectorSetMask( void* x_, int* mask ) {
 void
 mv_TempMultiVectorClear( void* x_ ) {
 
-  int i;
+  BlopexInt i;
   mv_TempMultiVector* x = (mv_TempMultiVector*)x_;
 
-  assert( x != NULL );
+  BlopexAssert( x != NULL );
 
   for ( i = 0; i < x->numVectors; i++ )
     if ( x->mask == NULL || (x->mask)[i] )
@@ -189,12 +191,12 @@ mv_TempMultiVectorClear( void* x_ ) {
 }
 
 void
-mv_TempMultiVectorSetRandom( void* x_, int seed ) {
+mv_TempMultiVectorSetRandom( void* x_, BlopexInt seed ) {
 
-  int i;
+  BlopexInt i;
   mv_TempMultiVector* x = (mv_TempMultiVector*)x_;
 
-  assert( x != NULL );
+  BlopexAssert( x != NULL );
 
   mysrand(seed);
 
@@ -211,22 +213,22 @@ mv_TempMultiVectorSetRandom( void* x_, int seed ) {
 void
 mv_TempMultiVectorCopy( void* src_, void* dest_ ) {
 
-  int i, ms, md;
+  BlopexInt i, ms, md;
   void** ps;
   void** pd;
   mv_TempMultiVector* src = (mv_TempMultiVector*)src_;
   mv_TempMultiVector* dest = (mv_TempMultiVector*)dest_;
 
-  assert( src != NULL && dest != NULL );
+  BlopexAssert( src != NULL && dest != NULL );
 
   ms = aux_maskCount( src->numVectors, src->mask );
   md = aux_maskCount( dest->numVectors, dest->mask );
-  assert( ms == md );
+  BlopexAssert( ms == md );
 
   ps = (void**) calloc( ms, sizeof(void*) );
-  assert( ps != NULL );
+  BlopexAssert( ps != NULL );
   pd = (void**) calloc( md, sizeof(void*) );
-  assert( pd != NULL );
+  BlopexAssert( pd != NULL );
 
   mv_collectVectorPtr( src->mask, src, ps );
   mv_collectVectorPtr( dest->mask, dest, pd );
@@ -241,7 +243,7 @@ mv_TempMultiVectorCopy( void* src_, void* dest_ ) {
 void
 mv_TempMultiVectorAxpy( double a, void* x_, void* y_ ) {
 
-  int i, mx, my;
+  BlopexInt i, mx, my;
   void** px;
   void** py;
   mv_TempMultiVector* x;
@@ -249,16 +251,16 @@ mv_TempMultiVectorAxpy( double a, void* x_, void* y_ ) {
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
 
   mx = aux_maskCount( x->numVectors, x->mask );
   my = aux_maskCount( y->numVectors, y->mask );
-  assert( mx == my );
+  BlopexAssert( mx == my );
 
   px = (void**) calloc( mx, sizeof(void*) );
-  assert( px != NULL );
+  BlopexAssert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
-  assert( py != NULL );
+  BlopexAssert( py != NULL );
 
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
@@ -273,7 +275,7 @@ mv_TempMultiVectorAxpy( double a, void* x_, void* y_ ) {
 void
 mv_TempMultiVectorAxpy_complex( double a, void* x_, void* y_ ) {
 
-  int i, mx, my;
+  BlopexInt i, mx, my;
   void** px;
   void** py;
   mv_TempMultiVector* x;
@@ -281,16 +283,16 @@ mv_TempMultiVectorAxpy_complex( double a, void* x_, void* y_ ) {
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
 
   mx = aux_maskCount( x->numVectors, x->mask );
   my = aux_maskCount( y->numVectors, y->mask );
-  assert( mx == my );
+  BlopexAssert( mx == my );
 
   px = (void**) calloc( mx, sizeof(void*) );
-  assert( px != NULL );
+  BlopexAssert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
-  assert( py != NULL );
+  BlopexAssert( py != NULL );
 
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
@@ -308,11 +310,11 @@ mv_TempMultiVectorAxpy_complex( double a, void* x_, void* y_ ) {
 
 void
 mv_TempMultiVectorByMultiVector( void* x_, void* y_,
-                     int xyGHeight, int xyHeight,
-                     int xyWidth, void* xyVal ) {
+                     BlopexInt xyGHeight, BlopexInt xyHeight,
+                     BlopexInt xyWidth, void* xyVal ) {
 /* xy = x'*y */
 
-  int ix, iy, mx, my, jxy;
+  BlopexInt ix, iy, mx, my, jxy;
   double* p;
   void** px;
   void** py;
@@ -321,18 +323,18 @@ mv_TempMultiVectorByMultiVector( void* x_, void* y_,
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
 
   mx = aux_maskCount( x->numVectors, x->mask );
-  assert( mx == xyHeight );
+  BlopexAssert( mx == xyHeight );
 
   my = aux_maskCount( y->numVectors, y->mask );
-  assert( my == xyWidth );
+  BlopexAssert( my == xyWidth );
 
   px = (void**) calloc( mx, sizeof(void*) );
-  assert( px != NULL );
+  BlopexAssert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
-  assert( py != NULL );
+  BlopexAssert( py != NULL );
 
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
@@ -351,11 +353,11 @@ mv_TempMultiVectorByMultiVector( void* x_, void* y_,
 
 void
 mv_TempMultiVectorByMultiVector_complex( void* x_, void* y_,
-                     int xyGHeight, int xyHeight,
-                     int xyWidth, void* xyVal ) {
+                     BlopexInt xyGHeight, BlopexInt xyHeight,
+                     BlopexInt xyWidth, void* xyVal ) {
 /* xy = x'*y */
 
-  int ix, iy, mx, my, jxy;
+  BlopexInt ix, iy, mx, my, jxy;
   komplex* p;
   void** px;
   void** py;
@@ -364,18 +366,18 @@ mv_TempMultiVectorByMultiVector_complex( void* x_, void* y_,
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
 
   mx = aux_maskCount( x->numVectors, x->mask );
-  assert( mx == xyHeight );
+  BlopexAssert( mx == xyHeight );
 
   my = aux_maskCount( y->numVectors, y->mask );
-  assert( my == xyWidth );
+  BlopexAssert( my == xyWidth );
 
   px = (void**) calloc( mx, sizeof(void*) );
-  assert( px != NULL );
+  BlopexAssert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
-  assert( py != NULL );
+  BlopexAssert( py != NULL );
 
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
@@ -395,34 +397,34 @@ mv_TempMultiVectorByMultiVector_complex( void* x_, void* y_,
 
 void
 mv_TempMultiVectorByMultiVectorDiag( void* x_, void* y_,
-                    int* mask, int n, void* diag ) {
+                    BlopexInt* mask, BlopexInt n, void* diag ) {
 /* diag = diag(x'*y) */
 
-  int i, mx, my, m;
+  BlopexInt i, mx, my, m;
   void** px;
   void** py;
-  int* index;
+  BlopexInt* index;
   mv_TempMultiVector* x;
   mv_TempMultiVector* y;
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
 
   mx = aux_maskCount( x->numVectors, x->mask );
   my = aux_maskCount( y->numVectors, y->mask );
   m = aux_maskCount( n, mask );
-  assert( mx == my && mx == m );
+  BlopexAssert( mx == my && mx == m );
 
   px = (void**) calloc( mx, sizeof(void*) );
-  assert( px != NULL );
+  BlopexAssert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
-  assert( py != NULL );
+  BlopexAssert( py != NULL );
 
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
 
-  index = (int*)calloc( m, sizeof(int) );
+  index = (BlopexInt*)calloc( m, sizeof(BlopexInt) );
   aux_indexFromMask( n, mask, index );
 
   double * dp;
@@ -439,34 +441,34 @@ mv_TempMultiVectorByMultiVectorDiag( void* x_, void* y_,
 
 void
 mv_TempMultiVectorByMultiVectorDiag_complex( void* x_, void* y_,
-                    int* mask, int n, void* diag ) {
+                    BlopexInt* mask, BlopexInt n, void* diag ) {
 /* diag = diag(x'*y) */
 
-  int i, mx, my, m;
+  BlopexInt i, mx, my, m;
   void** px;
   void** py;
-  int* index;
+  BlopexInt* index;
   mv_TempMultiVector* x;
   mv_TempMultiVector* y;
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
 
   mx = aux_maskCount( x->numVectors, x->mask );
   my = aux_maskCount( y->numVectors, y->mask );
   m = aux_maskCount( n, mask );
-  assert( mx == my && mx == m );
+  BlopexAssert( mx == my && mx == m );
 
   px = (void**) calloc( mx, sizeof(void*) );
-  assert( px != NULL );
+  BlopexAssert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
-  assert( py != NULL );
+  BlopexAssert( py != NULL );
 
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
 
-  index = (int*)calloc( m, sizeof(int) );
+  index = (BlopexInt*)calloc( m, sizeof(BlopexInt) );
   aux_indexFromMask( n, mask, index );
 
   komplex * dp;
@@ -484,12 +486,12 @@ mv_TempMultiVectorByMultiVectorDiag_complex( void* x_, void* y_,
 
 void
 mv_TempMultiVectorByMatrix( void* x_,
-                   int rGHeight, int rHeight,
-                   int rWidth, void* rVal,
+                   BlopexInt rGHeight, BlopexInt rHeight,
+                   BlopexInt rWidth, void* rVal,
                    void* y_ ) {
 
-  int i, j, jump;
-  int mx, my;
+  BlopexInt i, j, jump;
+  BlopexInt mx, my;
   double* p;
   void** px;
   void** py;
@@ -498,17 +500,17 @@ mv_TempMultiVectorByMatrix( void* x_,
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
 
   mx = aux_maskCount( x->numVectors, x->mask );
   my = aux_maskCount( y->numVectors, y->mask );
 
-  assert( mx == rHeight && my == rWidth );
+  BlopexAssert( mx == rHeight && my == rWidth );
 
   px = (void**) calloc( mx, sizeof(void*) );
-  assert( px != NULL );
+  BlopexAssert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
-  assert( py != NULL );
+  BlopexAssert( py != NULL );
 
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
@@ -527,12 +529,12 @@ mv_TempMultiVectorByMatrix( void* x_,
 
 void
 mv_TempMultiVectorByMatrix_complex( void* x_,
-                   int rGHeight, int rHeight,
-                   int rWidth, void* rVal,
+                   BlopexInt rGHeight, BlopexInt rHeight,
+                   BlopexInt rWidth, void* rVal,
                    void* y_ ) {
 
-  int i, j, jump;
-  int mx, my;
+  BlopexInt i, j, jump;
+  BlopexInt mx, my;
   komplex* p;
   void** px;
   void** py;
@@ -541,17 +543,17 @@ mv_TempMultiVectorByMatrix_complex( void* x_,
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
 
   mx = aux_maskCount( x->numVectors, x->mask );
   my = aux_maskCount( y->numVectors, y->mask );
 
-  assert( mx == rHeight && my == rWidth );
+  BlopexAssert( mx == rHeight && my == rWidth );
 
   px = (void**) calloc( mx, sizeof(void*) );
-  assert( px != NULL );
+  BlopexAssert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
-  assert( py != NULL );
+  BlopexAssert( py != NULL );
 
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
@@ -570,12 +572,12 @@ mv_TempMultiVectorByMatrix_complex( void* x_,
 
 void
 mv_TempMultiVectorXapy( void* x_,
-               int rGHeight, int rHeight,
-               int rWidth, void* rVal,
+               BlopexInt rGHeight, BlopexInt rHeight,
+               BlopexInt rWidth, void* rVal,
                void* y_ ) {
 
-  int i, j, jump;
-  int mx, my;
+  BlopexInt i, j, jump;
+  BlopexInt mx, my;
   double* p;
   void** px;
   void** py;
@@ -584,17 +586,17 @@ mv_TempMultiVectorXapy( void* x_,
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
 
   mx = aux_maskCount( x->numVectors, x->mask );
   my = aux_maskCount( y->numVectors, y->mask );
 
-  assert( mx == rHeight && my == rWidth );
+  BlopexAssert( mx == rHeight && my == rWidth );
 
   px = (void**) calloc( mx, sizeof(void*) );
-  assert( px != NULL );
+  BlopexAssert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
-  assert( py != NULL );
+  BlopexAssert( py != NULL );
 
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
@@ -612,12 +614,12 @@ mv_TempMultiVectorXapy( void* x_,
 
 void
 mv_TempMultiVectorXapy_complex( void* x_,
-               int rGHeight, int rHeight,
-               int rWidth, void* rVal,
+               BlopexInt rGHeight, BlopexInt rHeight,
+               BlopexInt rWidth, void* rVal,
                void* y_ ) {
 
-  int i, j, jump;
-  int mx, my;
+  BlopexInt i, j, jump;
+  BlopexInt mx, my;
   komplex* p;
   void** px;
   void** py;
@@ -626,17 +628,17 @@ mv_TempMultiVectorXapy_complex( void* x_,
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
 
   mx = aux_maskCount( x->numVectors, x->mask );
   my = aux_maskCount( y->numVectors, y->mask );
 
-  assert( mx == rHeight && my == rWidth );
+  BlopexAssert( mx == rHeight && my == rWidth );
 
   px = (void**) calloc( mx, sizeof(void*) );
-  assert( px != NULL );
+  BlopexAssert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
-  assert( py != NULL );
+  BlopexAssert( py != NULL );
 
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
@@ -654,36 +656,36 @@ mv_TempMultiVectorXapy_complex( void* x_,
 
 void
 mv_TempMultiVectorByDiagonal( void* x_,
-                int* mask, int n, void* diag,
+                BlopexInt* mask, BlopexInt n, void* diag,
                 void* y_ ) {
 
-  int j;
-  int mx, my, m;
+  BlopexInt j;
+  BlopexInt mx, my, m;
   void** px;
   void** py;
-  int* index;
+  BlopexInt* index;
   mv_TempMultiVector* x;
   mv_TempMultiVector* y;
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
 
   mx = aux_maskCount( x->numVectors, x->mask );
   my = aux_maskCount( y->numVectors, y->mask );
   m = aux_maskCount( n, mask );
 
-  assert( mx == m && my == m );
+  BlopexAssert( mx == m && my == m );
 
   if ( m < 1 )
     return;
 
   px = (void**) calloc( mx, sizeof(void*) );
-  assert( px != NULL );
+  BlopexAssert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
-  assert( py != NULL );
+  BlopexAssert( py != NULL );
 
-  index = (int*)calloc( m, sizeof(int) );
+  index = (BlopexInt*)calloc( m, sizeof(BlopexInt) );
   aux_indexFromMask( n, mask, index );
 
   mv_collectVectorPtr( x->mask, x, px );
@@ -704,36 +706,36 @@ mv_TempMultiVectorByDiagonal( void* x_,
 
 void
 mv_TempMultiVectorByDiagonal_complex( void* x_,
-                int* mask, int n, void* diag,
+                BlopexInt* mask, BlopexInt n, void* diag,
                 void* y_ ) {
 
-  int j;
-  int mx, my, m;
+  BlopexInt j;
+  BlopexInt mx, my, m;
   void** px;
   void** py;
-  int* index;
+  BlopexInt* index;
   mv_TempMultiVector* x;
   mv_TempMultiVector* y;
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
 
   mx = aux_maskCount( x->numVectors, x->mask );
   my = aux_maskCount( y->numVectors, y->mask );
   m = aux_maskCount( n, mask );
 
-  assert( mx == m && my == m );
+  BlopexAssert( mx == m && my == m );
 
   if ( m < 1 )
     return;
 
   px = (void**) calloc( mx, sizeof(void*) );
-  assert( px != NULL );
+  BlopexAssert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
-  assert( py != NULL );
+  BlopexAssert( py != NULL );
 
-  index = (int*)calloc( m, sizeof(int) );
+  index = (BlopexInt*)calloc( m, sizeof(BlopexInt) );
   aux_indexFromMask( n, mask, index );
 
   mv_collectVectorPtr( x->mask, x, px );
@@ -764,7 +766,7 @@ mv_TempMultiVectorEval( void (*f)( void*, void*, void* ), void* par,
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
-  assert( x != NULL && y != NULL );
+  BlopexAssert( x != NULL && y != NULL );
 
   if ( f == NULL ) {
     mv_TempMultiVectorCopy( x, y );
@@ -773,12 +775,12 @@ mv_TempMultiVectorEval( void (*f)( void*, void*, void* ), void* par,
 
   mx = aux_maskCount( x->numVectors, x->mask );
   my = aux_maskCount( y->numVectors, y->mask );
-  assert( mx == my );
+  BlopexAssert( mx == my );
 
   px = (void**) calloc( mx, sizeof(void*) );
-  assert( px != NULL );
+  BlopexAssert( px != NULL );
   py = (void**) calloc( my, sizeof(void*) );
-  assert( py != NULL );
+  BlopexAssert( py != NULL );
 
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
