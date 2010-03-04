@@ -5,5 +5,5 @@
 AR = ar -rvcu
 RANLIB = ranlib
 
-# cc = gcc
- cc = mex 
+cc = gcc
+# cc = mex 

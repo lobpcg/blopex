@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-CFLAGS = -I../petsc-interface -I$(LOBPCG_ROOT_DIR)/include
+CFLAGS = -DBLOPEX_DIR  -I../petsc-interface -I$(LOBPCG_ROOT_DIR)/include
 # CFLAGS           =
 FFLAGS           =
 CPPFLAGS         =

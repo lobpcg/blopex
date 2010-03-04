@@ -1,8 +1,7 @@
 /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
-/* @@@ BLOPEX (version 2.0) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ BLOPEX (version 1.1) LGPL Version 3 or above.  See www.gnu.org. */
 /* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
 /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
-/* This code was developed by Merico Argentati, Andrew Knyazev, Ilya Lashuk and Evgueni Ovtchinnikov */
 
 /* Program usage:  mpirun -np <procs> driver [-help] [all PETSc options] */
 
@@ -35,7 +34,12 @@ mpirun -np 2 driver -n_eigs 3 -tol 1e-6 -itr 20\n";
 #include "fortran_interpreter.h"
 #include "lobpcg.h"
 
+#ifdef BLOPEX_DIR
 #include "petsc-interface.h"
+#else
+#include "../src/contrib/blopex/petsc-interface/petsc-interface.h"
+#endif
+
 #include "interpreter.h"
 #include "multivector.h"
 #include "temp_multivector.h"
