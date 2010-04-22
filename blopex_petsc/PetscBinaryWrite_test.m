@@ -1,7 +1,8 @@
 
-% n=40;
-% e = ones(n,1);
-% A = spdiags([i*e -2*e -i*e], -1:1, n, n);
+
+n=40;
+e = ones(n,1);
+A = spdiags([i*e -2*e -i*e], -1:1, n, n);
 name='C:/test_complex1';
 
 % n=10;
@@ -13,6 +14,7 @@ name='C:/test_complex1';
 % A=sparse(A);
 % name='C:/test_complex3';
 
-PetscBinaryWrite(name,A)
-A1=PetscBinaryRead(name,'complex');
-% norm(A2-A,1)
+precision='int64';
+PetscBinaryWrite(name,precision,A);
+A1=PetscBinaryRead(name,precision,'complex');
+norm(A1-A,1)

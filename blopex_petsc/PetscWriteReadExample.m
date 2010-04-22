@@ -15,8 +15,9 @@ nz=nnz(A);
 B=sparse(i,j,complex(v,0),m,n,nz);
 
 % Write it to file, then read back in and compare
+precision='int32';
 name='C:/test_complex4'; 
-PetscBinaryWrite(name,B);
-C=PetscBinaryRead(name,'complex');
+PetscBinaryWrite(name,precision,B);
+C=PetscBinaryRead(name,precision,'complex');
 norm(B-C,1)
  

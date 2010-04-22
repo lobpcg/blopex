@@ -144,14 +144,18 @@ int main(int argc,char **args)
    lobpcg_BLASLAPACKFunctions blap_fn;
    aux_data_struct            aux_data;
    PetscViewer                viewer;
+   PetscInt                   tmp_int;
 
    PetscInitialize(&argc,&args,(char *)0,help);
-   ierr = PetscOptionsGetInt(PETSC_NULL,"-n_eigs",&n_eigs,PETSC_NULL);CHKERRQ(ierr);
+   ierr = PetscOptionsGetInt(PETSC_NULL,"-n_eigs",&tmp_int,PETSC_NULL);CHKERRQ(ierr);
+   n_eigs = tmp_int;
    ierr = PetscOptionsGetReal(PETSC_NULL,"-tol", &tol,PETSC_NULL); CHKERRQ(ierr);
    ierr = PetscOptionsHasName(PETSC_NULL,"-freepart",&freepart); CHKERRQ(ierr);
    ierr = PetscOptionsHasName(PETSC_NULL,"-full_out",&full_output); CHKERRQ(ierr);
-   ierr = PetscOptionsGetInt(PETSC_NULL,"-seed",&seed,PETSC_NULL);CHKERRQ(ierr);
-   ierr = PetscOptionsGetInt(PETSC_NULL,"-itr",&maxIt,PETSC_NULL);CHKERRQ(ierr);
+   ierr = PetscOptionsGetInt(PETSC_NULL,"-seed",&tmp_int,PETSC_NULL);CHKERRQ(ierr);
+   seed = tmp_int;
+   ierr = PetscOptionsGetInt(PETSC_NULL,"-itr",&tmp_int,PETSC_NULL);CHKERRQ(ierr);
+   maxIt = tmp_int;
 
    if (seed<1)
     seed=1;

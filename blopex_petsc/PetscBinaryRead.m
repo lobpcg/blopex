@@ -1,13 +1,16 @@
-function [varargout] = PetscBinaryRead(inarg,comp,cnt)
+function [varargout] = PetscBinaryRead(inarg,precision,comp,cnt)
 %
 %   [varargout] = PetscBinaryRead(inarg[,comp[,cnt]])
 %
 %  Reads in PETSc binary file matrices or vectors
 %  emits as Matlab sparse matrice or vectors.
 %
-%  Argument may be file name (string), socket number (integer)
+%  Argument (inarg) may be file name (string), socket number (integer)
 %  or any Matlab class that provides the read() and close() methods
 %  [We provide freader() and sreader() for binary files and sockets]
+%
+%  precision = 'int32' or 'int64' 
+%              use 'int64' if Petsc configured --with-64-bit-indices
 %
 %  comp = 'complex' means the input file is complex
 %  comp = 'cell' means return a Matlab cell array 
@@ -31,7 +34,7 @@ end
 end
 
 if strcmp(comp,'cell')
-  if nargin == 3
+  if nargin == 4
     narg = cnt;
   else
     narg   = 1000;  
@@ -42,7 +45,7 @@ else
 end
 
 for l=1:narg
-  header = read(fd,1,'int32');
+  header = read(fd,1,precision);
   if isempty(header)
     if strcmp(comp,'cell')
       varargout(1) = {result};
@@ -53,17 +56,17 @@ for l=1:narg
     return
   end
   if header == 1211216 % Petsc Mat Object 
-    header = read(fd,3,'int32');
+    header = read(fd,3,precision);
     m      = header(1);
     n      = header(2);
     nz     = header(3);
-    nnz = read(fd,m,'int32');  %nonzeros per row
+    nnz = read(fd,m,precision);  %nonzeros per row
     sum_nz = sum(nnz);
     if(sum_nz ~=nz)
       str = sprintf('No-Nonzeros sum-rowlengths do not match %d %d',nz,sum_nz);
       error(str);
     end
-    j   = read(fd,nz,'int32') + 1;
+    j   = read(fd,nz,precision) + 1;
     if strcmp(comp,'complex')
       s   = read(fd,2*nz,'double');
     else 
@@ -88,7 +91,7 @@ for l=1:narg
     end
   
   elseif  header == 1211214 % Petsc Vec Object
-    m = read(fd,1,'int32');
+    m = read(fd,1,precision);
     if comp == 'complex'
       v = read(fd,2*m,'double');
       v = complex(v(1:2:2*m),v(2:2:2*m));

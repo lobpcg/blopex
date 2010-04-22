@@ -128,11 +128,13 @@ int main(int argc,char **args)
    char                       output_filename[PETSC_MAX_PATH_LEN];
    PetscTruth                 output_filename_present;
    char                       tmp_str[PETSC_MAX_PATH_LEN];
+   PetscInt                   tmp_int;
 
    PetscInitialize(&argc,&args,(char *)0,help);
 
    /* read command-line parameters */
-   ierr = PetscOptionsGetInt(PETSC_NULL,"-n_eigs",&n_eigs,PETSC_NULL);CHKERRQ(ierr);
+   ierr = PetscOptionsGetInt(PETSC_NULL,"-n_eigs",&tmp_int,PETSC_NULL);CHKERRQ(ierr);
+   n_eigs = tmp_int;
    ierr = PetscOptionsGetReal(PETSC_NULL,"-tol", &tol,PETSC_NULL); CHKERRQ(ierr);
    ierr = PetscOptionsGetString(PETSC_NULL,"-matrix",filename,PETSC_MAX_PATH_LEN-1,
            &matrix_present);
@@ -144,10 +146,12 @@ int main(int argc,char **args)
            PETSC_MAX_PATH_LEN-1,&mass_matrix_present);
    CHKERRQ(ierr);
    ierr = PetscOptionsHasName(PETSC_NULL,"-full_out",&full_output); CHKERRQ(ierr);
-   ierr = PetscOptionsGetInt(PETSC_NULL,"-seed",&seed,PETSC_NULL);CHKERRQ(ierr);
+   ierr = PetscOptionsGetInt(PETSC_NULL,"-seed",&tmp_int,PETSC_NULL);CHKERRQ(ierr);
+   seed = tmp_int;
    if (seed<1)
     seed=1;
-   ierr = PetscOptionsGetInt(PETSC_NULL,"-itr",&maxIt,PETSC_NULL);CHKERRQ(ierr);
+   ierr = PetscOptionsGetInt(PETSC_NULL,"-itr",&tmp_int,PETSC_NULL);CHKERRQ(ierr);
+   maxIt = tmp_int;
    ierr = PetscOptionsGetReal(PETSC_NULL,"-shift",&shift,&shift_present);
    ierr = PetscOptionsGetString(PETSC_NULL,"-output_file",output_filename,
             PETSC_MAX_PATH_LEN-1, &output_filename_present);
