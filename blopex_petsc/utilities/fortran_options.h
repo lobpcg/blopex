@@ -1,5 +1,5 @@
 /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
-/* @@@ BLOPEX (version 1.1) LGPL Version 3 or above.  See www.gnu.org. */
+/* @@@ BLOPEX (version 1.1) LGPL Version 2.1 or above.See www.gnu.org. */
 /* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
 /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* This header added to the top of multivector.h, interpreter.h, 
