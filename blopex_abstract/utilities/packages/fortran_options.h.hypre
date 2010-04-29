@@ -15,25 +15,13 @@
 #define BlopexInt int
 #endif
 
-/* When compiling for Petsc remove comment from following
- * #include "petsc.h".  This contains definition of PetscInt.
- * In the Petsc environment we will always default 
- * BlopexInt to PetscInt.
- */
-#include "petsc.h"
-#ifdef PetscInt
-#define BlopexInt PetscInt
-#endif
-
-/* When compiling for HYPRE remove comment from following  
- * #include "_hypre_utilities.h".  This contains a 
+/* When compiling for HYPRE include hypre header  
+ *  "_hypre_utilities.h".  This contains a 
  * macro definition of hypre_assert.  This macro does
  * an fprintf followed by call to hypre_error(1) to
  * terminate execution.
  */
-/*
 #include "_hypre_utilities.h"
-*/
 
 /* Define BlopexAssert 
  * except for HYPRE this is just the normal assert command 
