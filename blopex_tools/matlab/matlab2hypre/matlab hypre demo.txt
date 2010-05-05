@@ -1,0 +1,93 @@
+Demo of Matlab - Hypre conversion software
+
+matlab2hypreIJ.m
+matlab2hypreParVectors.m
+hypreIJ2matlab.m
+hypreParVectors2matlab.m
+
+License: BSD
+Copyright 2010 Bryan C. Smith, Diana Zakaryan, Andrew V. Knyazev
+$Revision: 2.0 $ $Date: 21-Apr-2010
+Tested in MATLAB 7.9.0.529 (R2009b) and Octave 3.2.3 and Hypre 2.6.0b.
+
+
+
+Demo 1: Reading in the matrix.
+
+In Matlab, if A is a sparse square matrix stored in memory,
+
+% convert the matrix A to Hypre format.
+>> matlab2hypreIJ(A,4,'matrixA','16.15e');
+Generating file: matrixA.00000
+Generating file: matrixA.00001
+Generating file: matrixA.00002
+Generating file: matrixA.00003
+
+The input argument equal to 4 specifies the number of processors. 
+The '16.15e' input will write the matrix files in exponential format with 16 digits
+of accuracy, and 15 digits after the decimal place. (This is the default precision).
+
+Now, go into your local Matlab directory and copy the files "matrixA.*" to 
+$HYPREDIR/src/test. You can also save the files directly to that directory by code 
+similar to the following:
+
+>> matlab2hypreIJ(A,4,'/home/hypre/src/test/matrixA','16.15e');
+
+Go to that directory and execute the following to compute the 20 smallest 
+eigenvalues:
+
+$ mpirun -np 4 ./ij -lobpcg -fromfile matrixA -vrand 20
+
+Computes the 20 smallest eigenvalues of matrixA using random initial vectors.
+
+
+
+Demo 2: Outputing Eigenvectors from Hypre and reading into Matlab.
+
+In Matlab, with A stored as a sparse square matrix,
+
+>> matlab2hypreIJ(A,4,'matrixA','16.15e');
+
+Go into your local Matlab directory and copy the files "matrixA.*" to 
+$HYPREDIR/src/test. Go to that directory and execute:
+
+$ mpirun -np 4 ./ij -lobpcg -fromfile matrixA -vrand 20 -vout 1
+
+The "-vout 1" command will output the eigenvectors into files called "vectors.*". 
+Then copy "vectors.*" to the local MATLAB directory, and in Matlab, 
+
+>> V = hypreParVectors2matlab('vectors');
+
+You could also do this without copying the vectors files if you replace the input 
+"vectors" with the Hypre IJ directory. For example,
+
+>> V = hypreParVectors2matlab('/home/hypre/src/test/vectors');
+
+
+
+Demo 3: Inputing Initial Vectors generated in Matlab into Hypre:
+
+You can also generate initial vectors in Matlab and read them in the Hypre IJ 
+driver. In Matlab, if A is a sparse square matrix, and V is a multivector with 
+row length equal to the row length of A,
+
+>> matlab2hypreIJ(A,4,'/home/hypre/src/test/matrixA','16.15e');
+>> matlab2hypreParVectors(V,4,'/home/hypre/src/test/vectors','16.15e');
+
+Hypre can only input initial vectors with the filename prefix "vectors".
+
+In the Hypre directory, type the following:
+
+$ mpirun -np 4 ./ij -lobpcg -fromfile matrixA -vfromfile
+
+The -vfromfile argument will read initial vectors with filename prefix "vectors" 
+contained in the local directory.
+
+
+
+Demo 4: Inputing a Hypre matrix into MATLAB:
+
+If you have a Hypre formated matrix with filename prefix "matrixA", you can input 
+it into Matlab with code similar to the following:
+
+>> A = hypreIJ2matlab('/home/hypre/src/test/matrixA')

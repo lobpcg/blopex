@@ -134,6 +134,7 @@ int main(int argc,char **args)
    PetscLogDouble              t1,t2,elapsed_time;
    DA                          da;
    double                      tol=1e-08;
+   PetscTruth                  option_present;
    PetscTruth                  freepart=PETSC_FALSE;
    PetscTruth                  full_output=PETSC_FALSE;
    PetscInt                    m,n,p;
@@ -143,19 +144,24 @@ int main(int argc,char **args)
    mv_InterfaceInterpreter    ii;
    lobpcg_BLASLAPACKFunctions blap_fn;
    aux_data_struct            aux_data;
+/*
    PetscViewer                viewer;
+*/
    PetscInt                   tmp_int;
 
    PetscInitialize(&argc,&args,(char *)0,help);
-   ierr = PetscOptionsGetInt(PETSC_NULL,"-n_eigs",&tmp_int,PETSC_NULL);CHKERRQ(ierr);
-   n_eigs = tmp_int;
+   ierr = PetscOptionsGetInt(PETSC_NULL,"-n_eigs",&tmp_int,&option_present);CHKERRQ(ierr);
+   if (option_present)
+      n_eigs = tmp_int;
    ierr = PetscOptionsGetReal(PETSC_NULL,"-tol", &tol,PETSC_NULL); CHKERRQ(ierr);
    ierr = PetscOptionsHasName(PETSC_NULL,"-freepart",&freepart); CHKERRQ(ierr);
    ierr = PetscOptionsHasName(PETSC_NULL,"-full_out",&full_output); CHKERRQ(ierr);
-   ierr = PetscOptionsGetInt(PETSC_NULL,"-seed",&tmp_int,PETSC_NULL);CHKERRQ(ierr);
-   seed = tmp_int;
-   ierr = PetscOptionsGetInt(PETSC_NULL,"-itr",&tmp_int,PETSC_NULL);CHKERRQ(ierr);
-   maxIt = tmp_int;
+   ierr = PetscOptionsGetInt(PETSC_NULL,"-seed",&tmp_int,&option_present);CHKERRQ(ierr);
+   if (option_present)
+      seed = tmp_int;
+   ierr = PetscOptionsGetInt(PETSC_NULL,"-itr",&tmp_int,&option_present);CHKERRQ(ierr);
+   if (option_present)
+      maxIt = tmp_int;
 
    if (seed<1)
     seed=1;
