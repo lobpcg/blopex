@@ -12,6 +12,13 @@
 #include "interpreter.h"
 #include "temp_multivector.h"
 
+#ifdef PETSC_USE_COMPLEX
+#ifdef PETSC_CLANGUAGE_CXX
+#include <complex>
+using namespace std;
+#endif
+#endif
+
 static PetscRandom LOBPCG_RandomContext = PETSC_NULL;
 
 typedef struct {double real, imag;} komplex;
@@ -190,7 +197,11 @@ LOBPCG_InitRandomContext(void)
   ierr = PetscRandomSetFromOptions(LOBPCG_RandomContext);CHKERRQ(ierr);
 
 #ifdef PETSC_USE_COMPLEX
+#ifdef PETSC_CLANGUAGE_CXX
+  ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar) complex<double>(-1,-1),(PetscScalar)complex<double>(1,1));
+#else
   ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0-1.0*I,(PetscScalar)1.0+1.0*I);
+#endif
 #else
   ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0,(PetscScalar)1.0);
 #endif
