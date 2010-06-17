@@ -22,6 +22,9 @@ Contains C routines for the interface with BLOPEX compiled with PETSc.
 
 #include "petscvec.h"
 #include "petscksp.h"
+#include <assert.h>
+#include "fortran_matrix.h"
+#include "fortran_interpreter.h"
 #include "petscda.h"
 #include "lobpcg.h"
 
@@ -144,8 +147,8 @@ void petsc_lobpcg_solve_c_(
 
    PetscErrorCode             ierr;         /* for PETSc return code        */
    mv_MultiVectorPtr          eigenvectors; /* the eigenvectors             */
-   double *                   eigs;         /* the eigenvalues              */
-   double *                   eigs_hist;    /* history of eigenvalues       */
+   PetscScalar *              eigs;         /* the eigenvalues              */
+   PetscScalar *              eigs_hist;    /* history of eigenvalues       */
    double *                   resid;        /* the residuals                */
    double *                   resid_hist;   /* history of residuals         */
    int                        iterations;   /* number of iterations         */
@@ -171,8 +174,8 @@ void petsc_lobpcg_solve_c_(
 
 /* allocate memory for the eigenvalues, residuals and histories */
 
-   ierr = PetscMalloc(sizeof(double)*n_eigs,&eigs);
-   ierr = PetscMalloc(sizeof(double)*n_eigs*(*maxit+1),&eigs_hist);
+   ierr = PetscMalloc(sizeof(PetscScalar)*n_eigs,&eigs);
+   ierr = PetscMalloc(sizeof(PetscScalar)*n_eigs*(*maxit+1),&eigs_hist);
    ierr = PetscMalloc(sizeof(double)*n_eigs,&resid);
    ierr = PetscMalloc(sizeof(double)*n_eigs*(*maxit+1),&resid_hist);
 
@@ -186,9 +189,13 @@ void petsc_lobpcg_solve_c_(
    lobpcg_tol.absolute = *atol;
    lobpcg_tol.relative = *rtol;
 
-   blap_fn.dpotrf = PETSC_dpotrf_interface;
-   blap_fn.dsygv = PETSC_dsygv_interface;
-
+   #ifdef PETSC_USE_COMPLEX
+      blap_fn.zpotrf = PETSC_zpotrf_interface;
+      blap_fn.zhegv = PETSC_zsygv_interface;
+   #else
+      blap_fn.dpotrf = PETSC_dpotrf_interface;
+      blap_fn.dsygv = PETSC_dsygv_interface;
+   #endif
 /* create the multivector for eigenvectors */
 
    eigenvectors = mv_MultiVectorCreateFromSampleVector(&ii, n_eigs,*u);
@@ -201,7 +208,28 @@ void petsc_lobpcg_solve_c_(
                                           mv_MultiVectorGetData(eigenvectors));
 
 /* call the lobpcg solver from BLOPEX */
-
+   #ifdef PETSC_USE_COMPLEX
+   ierr = lobpcg_solve_complex( eigenvectors,
+                        &aux_data,
+                        OperatorAMultiVector,
+                        &aux_data,
+                        OperatorBMultiVector,
+                        &aux_data,
+                        OperatorTMultiVector,
+                        NULL,
+                        blap_fn,
+                        lobpcg_tol,
+                        *maxit,
+                        0, /* verbosity, use 2 for debugging */
+                        &iterations,
+                        (komplex *) eigs,
+                        (komplex *) eigs_hist,
+                        n_eigs,
+                        resid,
+                        resid_hist,
+                        n_eigs
+   );
+   #else
    ierr = lobpcg_solve_double( eigenvectors,
                         &aux_data,
                         OperatorAMultiVector,
@@ -222,6 +250,7 @@ void petsc_lobpcg_solve_c_(
                         resid_hist,
                         n_eigs
    );
+   #endif
 
 /* set the return error code to lobpcg's error code */
 
@@ -233,7 +262,11 @@ void petsc_lobpcg_solve_c_(
 
 /* copy the eigenvalues to the return variable */
 
-   for (i=0;i<n_eigs;i++) eigenvalues[i] = eigs[i];
+   #ifdef PETSC_USE_COMPLEX
+      for (i=0;i<n_eigs;i++) eigenvalues[i] = PetscRealPart(eigs[i]);
+   #else
+      for (i=0;i<n_eigs;i++) eigenvalues[i] = eigs[i];
+   #endif
 
 /* return the eigenvectors.  The second instance of eigenvectors isn't used
    here either */
