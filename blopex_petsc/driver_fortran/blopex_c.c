@@ -1,9 +1,3 @@
-/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
-/* @@@ BLOPEX (version 1.1) LGPL Version 2.1 or above.See www.gnu.org. */
-/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
-/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
-
-
 /*****************************************************************************
 
 Example of using BLOPEX with PETSc from Fortran.
@@ -143,11 +137,11 @@ void petsc_lobpcg_solve_c_(
    double* atol,                     /* absolute error tolerance          */
    double* rtol,                     /* relative error tolerance          */
    double* eigenvalues,              /* computed eigenvalues              */
-   void *matmult_opA,                /* Fortran routine for operator A    */
-   void *matmult_opB,                /* Fortran routine for operator B    */
-   void *matmult_opT,                /* Fortran routine for operator T    */
-   void *petsc_lobpcg_return_evec,   /* Fortran routine gets eigenvectors */
-   void *petsc_lobpcg_initial_guess, /* Fortran routine for initial guess */
+   void (*matmult_opA)(void *,void *,void *), /* Fortran routine for operator A    */
+   void (*matmult_opB)(void *,void *,void *), /* Fortran routine for operator B    */
+   void (*matmult_opT)(void *,void *,void *), /* Fortran routine for operator T    */
+   void (*petsc_lobpcg_return_evec)(void *),  /* Fortran routine gets eigenvectors */
+   void (*petsc_lobpcg_initial_guess)(void *), /* Fortran routine for initial guess */
    int* info)                        /* error code                        */
 {
 
@@ -159,7 +153,7 @@ void petsc_lobpcg_solve_c_(
    double *                   resid_hist;   /* history of residuals         */
    int                        iterations;   /* number of iterations         */
    int                        n_eigs;       /* number of eigenvalues        */
-   int                        i,j;
+   int                        i;
    PetscTruth                 outpt=PETSC_FALSE; /* print evals and resids  */
    lobpcg_Tolerance           lobpcg_tol;   /* residual tolerance           */
    mv_InterfaceInterpreter    ii;           /* Interface Interpreter        */
@@ -290,7 +284,7 @@ void petsc_lobpcg_solve_c_(
       PetscPrintf(PETSC_COMM_WORLD,"   eigenvalues and residuals:\n");
       for (i=0;i<n_eigs;i++)
         {
-                ierr = PetscPrintf(PETSC_COMM_WORLD,"%e %e\n",eigs[i],resid[i]);
+                ierr = PetscPrintf(PETSC_COMM_WORLD,"%e %e\n",PetscRealPart(eigs[i]),resid[i]);
         }
 
 /*
