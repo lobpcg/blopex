@@ -129,6 +129,10 @@ void petsc_lobpcg_return_evec_MultiVector(void * data, void * x, void * y)
 
 /* the main routine called from Fortran to solve the eigenvalue problem */
 
+#ifdef PETSC_CLANGUAGE_CXX
+extern "C"
+{
+#endif
 void petsc_lobpcg_solve_c_(
    Vec* u,                           /* prototype of a vector, not used   */
    int* num_eval,                    /* number of eigenvalues to compute  */
@@ -137,11 +141,11 @@ void petsc_lobpcg_solve_c_(
    double* atol,                     /* absolute error tolerance          */
    double* rtol,                     /* relative error tolerance          */
    double* eigenvalues,              /* computed eigenvalues              */
-   void (*matmult_opA)(void *,void *,void *), /* Fortran routine for operator A    */
-   void (*matmult_opB)(void *,void *,void *), /* Fortran routine for operator B    */
-   void (*matmult_opT)(void *,void *,void *), /* Fortran routine for operator T    */
-   void (*petsc_lobpcg_return_evec)(void *),  /* Fortran routine gets eigenvectors */
-   void (*petsc_lobpcg_initial_guess)(void *), /* Fortran routine for initial guess */
+   void *matmult_opA,                /* Fortran Routine for operator A    */
+   void *matmult_opB,                /* Fortran routine for operator B    */
+   void *matmult_opT,                /* Fortran routine for operator T    */
+   void *petsc_lobpcg_return_evec,  /* Fortran routine gets eigenvectors */
+   void *petsc_lobpcg_initial_guess, /* Fortran routine for initial guess */
    int* info)                        /* error code                        */
 {
 
@@ -166,11 +170,11 @@ void petsc_lobpcg_solve_c_(
 
 /* set pointers to the Fortran callback functions */
 
-   hold_matmult_opA = matmult_opA;
-   hold_matmult_opB = matmult_opB;
-   hold_matmult_opT = matmult_opT;
-   hold_petsc_lobpcg_initial_guess = petsc_lobpcg_initial_guess;
-   hold_petsc_lobpcg_return_evec = petsc_lobpcg_return_evec;
+   hold_matmult_opA =(void (*)(void *,void *,void *))  matmult_opA;
+   hold_matmult_opB =(void (*)(void *,void *,void *))  matmult_opB;
+   hold_matmult_opT =(void (*)(void *,void *,void *))  matmult_opT;
+   hold_petsc_lobpcg_initial_guess =(void (*)(void *)) petsc_lobpcg_initial_guess;
+   hold_petsc_lobpcg_return_evec = (void (*)(void *)) petsc_lobpcg_return_evec;
 
 /* allocate memory for the eigenvalues, residuals and histories */
 
@@ -318,3 +322,7 @@ void petsc_lobpcg_solve_c_(
    ierr = PetscFree(resid);
    ierr = PetscFree(resid_hist);
 }
+#ifdef PETSC_CLANGUAGE_CXX
+}
+#endif
+
