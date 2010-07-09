@@ -1,3 +1,9 @@
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+/* @@@ BLOPEX (version 1.1) LGPL Version 2.1 or above.See www.gnu.org. */
+/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+
+
 /*****************************************************************************
 
 Example of using BLOPEX with PETSc from Fortran.
@@ -12,6 +18,14 @@ Author: William F. Mitchell
 This software was produced as part of work done by the U.S. Government, and is
 not subject to copyright in the United States.
 
+Changes for Version 1.1:
+
+1. Add checks for PETSC_USE_COMPLEX to call correct function for lobpcg_solve
+2. Add type casting when moving void parameter points
+3. Surround petsc_lobpcg_solve_c_ with  extern "C" { .... }.
+   This is to enforce compatibility of object names between fortran and C++. 
+
+These changes are tagged in the code with the commentis ".... for Ver 1.1"
 *****************************************************************************/
 
 /*
@@ -129,7 +143,7 @@ void petsc_lobpcg_return_evec_MultiVector(void * data, void * x, void * y)
 
 /* the main routine called from Fortran to solve the eigenvalue problem */
 
-#ifdef PETSC_CLANGUAGE_CXX
+#ifdef PETSC_CLANGUAGE_CXX  /* Language check added For Ver 1.1 */
 extern "C"
 {
 #endif
@@ -169,7 +183,7 @@ void petsc_lobpcg_solve_c_(
    n_eigs = *num_eval;
 
 /* set pointers to the Fortran callback functions */
-
+/* type casting added  For Ver 1.1 */
    hold_matmult_opA =(void (*)(void *,void *,void *))  matmult_opA;
    hold_matmult_opB =(void (*)(void *,void *,void *))  matmult_opB;
    hold_matmult_opT =(void (*)(void *,void *,void *))  matmult_opT;
@@ -193,7 +207,7 @@ void petsc_lobpcg_solve_c_(
    lobpcg_tol.absolute = *atol;
    lobpcg_tol.relative = *rtol;
 
-   #ifdef PETSC_USE_COMPLEX
+   #ifdef PETSC_USE_COMPLEX  /* complex check added for Ver 1.1 */
       blap_fn.zpotrf = PETSC_zpotrf_interface;
       blap_fn.zhegv = PETSC_zsygv_interface;
    #else
@@ -212,7 +226,7 @@ void petsc_lobpcg_solve_c_(
                                           mv_MultiVectorGetData(eigenvectors));
 
 /* call the lobpcg solver from BLOPEX */
-   #ifdef PETSC_USE_COMPLEX
+   #ifdef PETSC_USE_COMPLEX   /* complex check added for Ver 1.1 */
    ierr = lobpcg_solve_complex( eigenvectors,
                         &aux_data,
                         OperatorAMultiVector,
@@ -266,7 +280,7 @@ void petsc_lobpcg_solve_c_(
 
 /* copy the eigenvalues to the return variable */
 
-   #ifdef PETSC_USE_COMPLEX
+   #ifdef PETSC_USE_COMPLEX  /* complex check added for Ver 1.1 */
       for (i=0;i<n_eigs;i++) eigenvalues[i] = PetscRealPart(eigs[i]);
    #else
       for (i=0;i<n_eigs;i++) eigenvalues[i] = eigs[i];
