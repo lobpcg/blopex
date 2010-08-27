@@ -1,0 +1,9 @@
+# create list of files for tar assuming base dir for tar is petsc-base/ 
+# run as ./cr_interface_tar_list > interface_tar_list
+for file in `cat interface_list`
+do
+  echo src/contrib/blopex/$file
+done
+echo config/PETSc/packages/blopex.py
+# echo blopex.patch
+echo config/BuildSystem/config/packages/BlasLapack.py

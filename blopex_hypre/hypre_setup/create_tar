@@ -1,0 +1,9 @@
+# first run abstract_update, this moves blopex files into hypre-2.6.0b
+# then run diff_chk to check updates
+# then run this script create_tar 
+cd $HOME/hypre-2.6.0b/src
+tar -cvf hypre_lobpcg_modifications.tar -T $HOME/hypre_setup/list
+tar -tvf hypre_lobpcg_modifications.tar
+gzip hypre_lobpcg_modifications.tar
+ls -l hypre_lobpcg_mod*
+cp hypre_lobpcg_modifications.tar.gz $HOME/hypre_setup/

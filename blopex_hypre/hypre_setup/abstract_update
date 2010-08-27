@@ -1,0 +1,20 @@
+HY=$HOME/hypre-2.6.0b/src
+BA=$HOME/work/trunk/blopex_abstract
+BH=$HOME/work/trunk/blopex_hypre
+cp $BA/krylov/lobpcg.c $HY/krylov/
+cp $BA/krylov/lobpcg.h $HY/krylov/
+cp $BA/multivector/multivector.c $HY/multivector/
+cp $BA/multivector/multivector.h $HY/multivector/
+cp $BA/multivector/temp_multivector.c $HY/multivector/
+cp $BA/multivector/temp_multivector.h $HY/multivector/
+cp $BA/multivector/interpreter.h $HY/multivector/
+cp $BA/utilities/fortran_matrix.c $HY/utilities/
+cp $BA/utilities/fortran_matrix.h $HY/utilities/ 
+cp $BA/utilities/fortran_interpreter.h $HY/utilities/
+cp $BA/utilities/packages/fortran_options.h.hypre $HY/utilities/fortran_options.h
+cp $BH/krylov/HYPRE_lobpcg.c $HY/krylov
+cp $BH/parcsr_ls/HYPRE_parcsr_int.c $HY/parcsr_ls/
+cp $BH/parcsr_ls/ame.c $HY/parcsr_ls/
+cp $BH/struct_ls/HYPRE_struct_int.c $HY/struct_ls/
+cp $BH/sstruct_ls/HYPRE_sstruct_int.c $HY/sstruct_ls/
+cp $BH/examples/Makefile $HY/examples/

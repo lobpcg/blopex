@@ -1,0 +1,8 @@
+# cd $HOME/work/trunk/blopex_petsc
+cd $HOME/petsc-base
+TNAME=blopex_petsc_interface.tar
+tar -cvf $TNAME  -T $HOME/petsc_setup/interface_tar_list
+tar -tvf $TNAME
+gzip $TNAME
+ls -l $TNAME.*
+cp $TNAME.gz $HOME/petsc_setup/

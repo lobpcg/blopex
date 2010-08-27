@@ -1,0 +1,6 @@
+# create list of files for tar assuming base dir for tar is petsc-base/ 
+# run as ./cr_test_tar_list > test_tar_list
+for file in `cat test_list`
+do
+  echo src/contrib/blopex/$file
+done
