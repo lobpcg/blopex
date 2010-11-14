@@ -11,12 +11,13 @@ utilities/fortran_matrix.h \
 utilities/fortran_interpreter.h \
 utilities/fortran_options.h
 
+LIB = libBLOPEX.${AR_LIB_SUFFIX}
 
 ##################################################################
 # Targets
 ##################################################################
 
-all: libBLOPEX.a
+all: $(LIB) 
 	mkdir -p include
 	cp -fp  ${HEADERS} include
 
@@ -48,7 +49,7 @@ clean:
 # Rules
 ##################################################################
 
-libBLOPEX.a: objects 
+$(LIB) : objects 
 	@echo  "Building $@ ... "
 	cd lib && ${AR} $@ ./*.o 
 	cd lib && ${RANLIB} $@

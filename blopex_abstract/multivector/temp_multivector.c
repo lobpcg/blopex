@@ -280,6 +280,7 @@ mv_TempMultiVectorAxpy_complex( double a, void* x_, void* y_ ) {
   void** py;
   mv_TempMultiVector* x;
   mv_TempMultiVector* y;
+  komplex alpha;
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
@@ -297,7 +298,6 @@ mv_TempMultiVectorAxpy_complex( double a, void* x_, void* y_ ) {
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
 
-  komplex alpha;
   alpha.real = a;
   alpha.imag = 0;
 
@@ -406,6 +406,7 @@ mv_TempMultiVectorByMultiVectorDiag( void* x_, void* y_,
   BlopexInt* index;
   mv_TempMultiVector* x;
   mv_TempMultiVector* y;
+  double * dp;
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
@@ -427,7 +428,6 @@ mv_TempMultiVectorByMultiVectorDiag( void* x_, void* y_,
   index = (BlopexInt*)calloc( m, sizeof(BlopexInt) );
   aux_indexFromMask( n, mask, index );
 
-  double * dp;
   dp = (double *)diag;
 
   for ( i = 0; i < m; i++ )
@@ -450,6 +450,7 @@ mv_TempMultiVectorByMultiVectorDiag_complex( void* x_, void* y_,
   BlopexInt* index;
   mv_TempMultiVector* x;
   mv_TempMultiVector* y;
+  komplex * dp;
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
@@ -471,7 +472,6 @@ mv_TempMultiVectorByMultiVectorDiag_complex( void* x_, void* y_,
   index = (BlopexInt*)calloc( m, sizeof(BlopexInt) );
   aux_indexFromMask( n, mask, index );
 
-  komplex * dp;
   dp = (komplex *)diag;
 
   for ( i = 0; i < m; i++ )
@@ -666,6 +666,7 @@ mv_TempMultiVectorByDiagonal( void* x_,
   BlopexInt* index;
   mv_TempMultiVector* x;
   mv_TempMultiVector* y;
+  double * dp;
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
@@ -691,7 +692,6 @@ mv_TempMultiVectorByDiagonal( void* x_,
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
 
-  double * dp;
   dp = (double *)diag;
 
   for ( j = 0; j < my; j++ ) {
@@ -716,6 +716,7 @@ mv_TempMultiVectorByDiagonal_complex( void* x_,
   BlopexInt* index;
   mv_TempMultiVector* x;
   mv_TempMultiVector* y;
+  komplex * dp;
 
   x = (mv_TempMultiVector*)x_;
   y = (mv_TempMultiVector*)y_;
@@ -741,7 +742,6 @@ mv_TempMultiVectorByDiagonal_complex( void* x_,
   mv_collectVectorPtr( x->mask, x, px );
   mv_collectVectorPtr( y->mask, y, py );
 
-  komplex * dp;
   dp = (komplex *)diag;
 
   for ( j = 0; j < my; j++ ) {

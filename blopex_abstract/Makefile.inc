@@ -6,4 +6,6 @@ AR = ar -rvcu
 RANLIB = ranlib
 
 cc = gcc
-# cc = mex 
+# cc = mex  
+
+AR_LIB_SUFFIX = a

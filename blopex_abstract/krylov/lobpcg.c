@@ -240,6 +240,9 @@ lobpcg_ComputeResidualNorms( mv_MultiVectorPtr blockVectorR,
                              BlopexInt* mask, BlopexInt sizeX,
                              utilities_FortranInterpreter* util )
 {
+  BlopexInt i;
+  double *rp;
+
   /* take inner product of blockVectorR with mask and
      return results in resDiag */
 
@@ -247,9 +250,6 @@ lobpcg_ComputeResidualNorms( mv_MultiVectorPtr blockVectorR,
                                  mask, sizeX, resDiag->value);
 
   /* take sqrt of resDiag and place in resNorms */
-
-  BlopexInt i;
-  double *rp;
 
   rp = (double *)resNorms->value;
 
