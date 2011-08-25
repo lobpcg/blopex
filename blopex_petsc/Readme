@@ -1,5 +1,0 @@
-Usage:
-Have petsc-2.3.0 and abstract lobpcg core installed. Setup PETSC environment variables. 
-(PETSC_DIR, PETSC_ARCH)
-Edit Makefile.inc (specify abstract lobpcg root directory)
-Type "make". This should create a test executable "driver/driver" 

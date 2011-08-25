@@ -1,7 +1,0 @@
-driver/driver.c
-driver_fiedler/driver_fiedler.c
-driver_diag/driver_diag.c
-driver_diag/makefile
-driver_fortran/blopex_c.c
-petsc-interface/petsc-interface.c
-petsc-interface/petsc-interface.h
