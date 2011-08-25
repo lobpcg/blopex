@@ -11,7 +11,7 @@ objfiles = ../multivector/multi_vector.o\
 lobpcglibLDFLAGS = -L$(LOBPCG_ROOT_DIR)/lib -lBLOPEX 
 
 serial_driver: serial_driver.o $(objfiles)
-	$(CC) -o $@ $^ $(LAPACKLIB) $(lobpcglibLDFLAGS)
+	$(CC) -o $@ $^ $(LAPACKLIB) $(lobpcglibLDFLAGS) -lm
         
 serial_driver.o: serial_driver.c $(headers)
 

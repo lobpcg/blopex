@@ -153,6 +153,7 @@ zlobpcg_solveGEVP( utilities_FortranMatrix* mtxA,
 
   free( work );
   free( w );
+  free( rwork );
   return info;
 
 }
@@ -676,6 +677,11 @@ lobpcg_solve( mv_MultiVectorPtr blockVectorX,
     exitFlag = PROBLEM_SIZE_TOO_SMALL;
     lobpcg_errorMessage( verbosityLevel,
                         "Problem size too small compared to block size\n" );
+    (util->FortranMatrixDestroy)( lambda );
+    (util->FortranMatrixDestroy)( lambdaHistory );
+    utilities_FortranMatrixDestroy( residualNorms );
+    utilities_FortranMatrixDestroy( residualNormsHistory );
+    (util->FortranMatrixDestroy)( residualDiag );
     return exitFlag;
   }
 #endif
@@ -683,6 +689,11 @@ lobpcg_solve( mv_MultiVectorPtr blockVectorX,
   if ( sizeX < 1 ) {
     exitFlag = WRONG_BLOCK_SIZE;
     lobpcg_errorMessage( verbosityLevel, "The bloc size is wrong.\n" );
+    (util->FortranMatrixDestroy)( lambda );
+    (util->FortranMatrixDestroy)( lambdaHistory );
+    utilities_FortranMatrixDestroy( residualNorms );
+    utilities_FortranMatrixDestroy( residualNormsHistory );
+    (util->FortranMatrixDestroy)( residualDiag );
     return exitFlag;
   }
 
@@ -719,6 +730,11 @@ lobpcg_solve( mv_MultiVectorPtr blockVectorX,
       if ( !noBFlag )
         mv_MultiVectorDestroy( blockVectorBY );
       mv_MultiVectorDestroy( blockVectorW );
+      (util->FortranMatrixDestroy)( lambda );
+      (util->FortranMatrixDestroy)( lambdaHistory );
+      utilities_FortranMatrixDestroy( residualNorms );
+      utilities_FortranMatrixDestroy( residualNormsHistory );
+      (util->FortranMatrixDestroy)( residualDiag );
       return WRONG_CONSTRAINTS;
     }
 
@@ -1361,6 +1377,8 @@ lobpcg_solve( mv_MultiVectorPtr blockVectorX,
   (util->FortranMatrixDestroy)( lambda );
   (util->FortranMatrixDestroy)( lambdaHistory );
   (util->FortranMatrixDestroy)( lambdaColumn );
+  (util->FortranMatrixDestroy)( residualNormsColumn );
+  (util->FortranMatrixDestroy)( residualDiag );
   utilities_FortranMatrixDestroy( residualNorms );
   utilities_FortranMatrixDestroy( residualNormsHistory );
 
