@@ -9,7 +9,7 @@ General
 
 Block Locally Optimal Preconditioned Eigenvalue Xolvers (BLOPEX) is a package, written in C and MATLAB/OCTAVE, that includes an eigensolver implemented with the Locally Optimal Block Preconditioned Conjugate Gradient Method (LOBPCG). Its main features are: a matrix-free iterative method for computing several extreme eigenpairs of symmetric positive generalized eigenproblems; a user-defined symmetric positive preconditioner; robustness with respect to random initial approximations, variable preconditioners, and ill-conditioning of the stiffness matrix; and apparently optimal convergence speed.
 
-BLOPEX supports parallel MPI-based computations. BLOPEX is incorporated in the HYPRE package and is available as an external block to the SLEPc package. PHAML has an interface to call BLOPEX eigensolvers, as well as DevTools by Visual Kinematics.
+BLOPEX supports parallel MPI-based computations. BLOPEX is incorporated in the HYPRE package and is available as an external block to the SLEPc package. [PHAML](http://math.nist.gov/~WMitchell/phaml/phaml.html) has an interface to call BLOPEX eigensolvers, as well as DevTools by [Visual Kinematics](http://vki.com).
 
 BLOPEX relies on volunteers in its support and development. If you want to volunteer, which would be extremely appreciated, please drop a line to 2AndrewKnyazev@gmail.com. 
 
@@ -87,6 +87,11 @@ References
 1. A. V. Knyazev, I. Lashuk, M. E. Argentati, and E. Ovchinnikov, *Block Locally Optimal Preconditioned Eigenvalue Xolvers (BLOPEX) in hypre and PETSc*, SIAM Journal on Scientific Computing 25(5): 2224-2239 (2007) [DOI](http://dx.doi.org/10.1137/060661624)
 
 2. A. V. Knyazev, *Toward the Optimal Preconditioned Eigensolver: Locally Optimal Block Preconditioned Conjugate Gradient Method*, SIAM Journal on Scientific Computing 23(2): 517-541 (2001) [DOI](http://dx.doi.org/10.1137/S1064827500366124)
+
+
+Code license
+------------
+[GNU Lesser GPL](http://www.gnu.org/licenses/lgpl.html)
 
 -----------------
 
