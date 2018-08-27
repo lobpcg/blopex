@@ -11,8 +11,6 @@ Block Locally Optimal Preconditioned Eigenvalue Xolvers (BLOPEX) is a package, w
 
 BLOPEX supports parallel MPI-based computations. BLOPEX is incorporated in the HYPRE package and is available as an external block to the SLEPc package. [PHAML](http://math.nist.gov/~WMitchell/phaml/phaml.html) has an interface to call BLOPEX eigensolvers, as well as DevTools by [Visual Kinematics](http://vki.com).
 
-BLOPEX relies on volunteers in its support and development. If you want to volunteer, which would be extremely appreciated, please drop a line to 2AndrewKnyazev@gmail.com. 
-
 How to use it
 -------------
 
