@@ -89,7 +89,7 @@ References
 
 Code license
 ------------
-[GNU Lesser GPL](http://www.gnu.org/licenses/lgpl.html)
+Change to MIT / Apache-2.0 License
 
 -----------------
 
