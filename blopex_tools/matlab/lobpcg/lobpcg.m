@@ -163,8 +163,8 @@ function [blockVectorX,lambda,varargout] = ...
 % package and is directly available, e.g., in PETSc and HYPRE.  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%   License: GNU LGPL ver 2.1 or above 
-%   Copyright (c) 2000-2010 A.V. Knyazev, BLOPEX team
+%   License:  MIT / Apache-2.0
+%   Copyright (c) 2000-2019 A.V. Knyazev, BLOPEX team
 %   $Revision: 4.12 $  $Date: 14-Mar-2010
 %   Tested in MATLAB 6.5-7.9.0.529 and Octave 3.2.3.  
 
