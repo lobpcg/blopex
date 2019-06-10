@@ -86,7 +86,6 @@ References
 
 2. A. V. Knyazev, *Toward the Optimal Preconditioned Eigensolver: Locally Optimal Block Preconditioned Conjugate Gradient Method*, SIAM Journal on Scientific Computing 23(2): 517-541 (2001) [DOI](http://dx.doi.org/10.1137/S1064827500366124)
 
-
 Code license
 ------------
 MIT / Apache-2.0 License
@@ -94,6 +93,10 @@ MIT / Apache-2.0 License
 Contributors
 ------------
 Prashanth Nadukandi, Jose E. Roman
+
+History
+-------
+Originally hosted at https://code.google.com/archive/p/blopex/ then moved to https://bitbucket.org/joseroman/blopex finally landing here https://github.com/lobpcg/blopex
 
 -----------------
 
