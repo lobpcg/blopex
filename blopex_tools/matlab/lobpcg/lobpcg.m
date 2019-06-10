@@ -43,36 +43,36 @@ function [blockVectorX,lambda,varargout] = ...
 % residualNormsHistory are matrices of the history of 2-norms of residuals
 %
 % Required input: 
-%   blockVectorX - initial approximation to eigenvectors, full or sparse
-%   matrix n-by-blockSize. blockVectorX must be full rank. 
-%   operatorA - the operator of the problem, can be given as a matrix or as
-%   an M-file 
+%  * blockVectorX (class numeric) - initial approximation to eigenvectors, 
+%    full or sparse matrix n-by-blockSize. blockVectorX must be full rank. 
+%  * operatorA (class numeric, char, or function_handle) - the main operator 
+%    of the eigenproblem, can be a matrix, a function name, or handle
 %
 % Optional function input:
-%   operatorB - the second operator, if solving a generalized eigenproblem, 
-%       can be given as a matrix or as an M-file; by default, or if empty,
-%       operatorB=I.
-%   operatorT - preconditioner, must be given by an M-file; by default,
-%   operatorT=I.
+%   * operatorB (class numeric, char, or function_handle) - the second 
+%     operator, if solving a generalized eigenproblem, can be a matrix,
+%      a function name, or handle; by default if empty, operatorB=I.
+%   * operatorT  (class char or function_handle) - the preconditioner, 
+%     by default operatorT(blockVectorX)=blockVectorX.
 %
 % Optional constraints input: 
-%   blockVectorY - a full or sparse n-by-sizeY matrix of constraints, where
-%   sizeY < n. The iterations will be performed in the (operatorB-)
-%   orthogonal complement of the column-space of blockVectorY. blockVectorY
-%   must be full rank. 
+%   blockVectorY (class numeric) - a full or sparse n-by-sizeY matrix of 
+%   constraints, where sizeY < n. blockVectorY must be full rank. 
+%   The iterations will be performed in the (operatorB-)
+%   orthogonal complement of the column-space of blockVectorY. 
 %
 % Optional scalar input parameters:
-%   residualTolerance - tolerance, by default,
+%   residualTolerance (class numeric) - tolerance, by default,
 %   residualTolerance=n*sqrt(eps) maxIterations - max number of iterations,
 %   by default, maxIterations = min(n,20) verbosityLevel - either 0 (no
 %   info), 1, or 2 (with pictures); by default, verbosityLevel = 0.
 %
-% Required output: blockVectorX and lambda are computed blockSize
-% eigenpairs, where blockSize=size(blockVectorX,2) for the initial guess
-% blockVectorX if it is full rank.  
+% Required output: blockVectorX and lambda (both class numeric) are 
+% computed blockSize eigenpairs, where blockSize=size(blockVectorX,2) 
+% for the initial guess blockVectorX if it is full rank.  
 %
-% Optional output: failureFlag, lambdaHistory and residualNormsHistory are
-% described above.
+% Optional output: failureFlag (class integer), lambdaHistory (class numeric)
+% and residualNormsHistory (class numeric) are described above.
 %
 % Functions operatorA(blockVectorX), operatorB(blockVectorX) and
 % operatorT(blockVectorX) must support blockVectorX being a matrix, not
@@ -85,51 +85,74 @@ function [blockVectorX,lambda,varargout] = ...
 % same size as blockVectorX, 2 matrices of the same size as blockVectorY
 % (if present), and two square matrices of the size 3*blockSize. 
 %
-% The following
-% Example:
+% In all examples below, we use the Laplacian operator in a 20x20 square 
+% with the mesh size 1 which can be generated in MATLAB by running  
+% A = delsq(numgrid('S',21)); n=size(A,1);
+% or in MATLAB and Octave by 
+% [~,~,A] = laplacian([19,19]); n=size(A,1);
+% see http://www.mathworks.com/matlabcentral/fileexchange/27279
 %
-% operatorA = 100.*delsq(numgrid('S',21)); [n,n]=size(operatorA);
-% [blockVectorX,lambda,failureFlag]=lobpcg(randn(n,10),operatorA,1e-5,50,2);
+% The following Example:
 %
-% attempts to compute 10 first eigenpairs of the Poisson operator 
-% in a 2x2 square with the mesh size 1/10 without preconditioning,
+% [blockVectorX,lambda,failureFlag]=lobpcg(randn(n,8),A,1e-5,50,2);
+%
+% attempts to compute 8 first eigenpairs without preconditioning,
 % but not all eigenpairs converge after 50 steps, so failureFlag=1.  
 %
-% The next 
-% Example:
+% The next Example:
 %
-% operatorA = 100.*delsq(numgrid('S',21)); [n,n]=size(operatorA);
 % blockVectorY=[];lambda_all=[];
-% for j=1:5
+% for j=1:4
 %   [blockVectorX,lambda]=...
-%                    lobpcg(randn(n,2),operatorA,blockVectorY,1e-5,200,2);
+%                    lobpcg(randn(n,2),A,blockVectorY,1e-5,200,2);
 %   blockVectorY=[blockVectorY,blockVectorX];
-%   lambda_all=[lambda_all' lambda']';
+%   lambda_all=[lambda_all' lambda']'; pause; 
 % end
 %
-% attemps to compute the same eigenpairs by calling the code 5 times 
+% attemps to compute the same 8 eigenpairs by calling the code 4 times 
 % with blockSize=2 using orthogonalization to the previously founded
 % eigenvectors.  
 %
-%The following M-script:
+% The following Example:
 %
-% global R_cholinc
-% operatorA = 100.*delsq(numgrid('S',21)); [n,n]=size(operatorA);
-% R_cholinc=cholinc(operatorA,1e-3);
-% [blockVectorX,lambda,failureFlag]=...
-%                   lobpcg(randn(n,10),operatorA,[],'precsol',1e-5,50,2);
+% R=ichol(A,struct('michol','on')); precfun = @(x)R\(R'\x); 
+% [blockVectorX,lambda,failureFlag]=lobpcg(randn(n,8),A,[],@(x)precfun(x),1e-5,60,2);
 % 
 % computes the same eigenpairs in less then 25 steps, so that failureFlag=0
-% using the preconditioner function precsol:
+% using the preconditioner function "precfun", defined inline. If "precfun"
+% is defined as a MATLAB function in a file, the function handle
+% @(x)precfun(x) can be equivalently replaced by the function name 'precfun'
+% Running 
 %
-% function blockVectorX=precsol(V)
-% global R_cholinc 
-% blockVectorX=R_cholinc\(R_cholinc'\V);
-% In this example, operatorB=[] must be present in the input parameters. 
 % [blockVectorX,lambda,failureFlag]=...
-%              lobpcg(randn(n,10),operatorA,speye(n),'precsol',1e-5,50,2);
+%          lobpcg(randn(n,8),A,speye(n),@(x)precfun(x),1e-5,50,2);
 %
-%produces similar answers, but is somewhat slower and needs more memory.  
+% produces similar answers, but is somewhat slower and needs more memory as
+% technically a generalized eigenproblem with B=I is solved here. 
+%
+% The following Example for a mostly diagonally dominant sparse matrix A
+% demonstrates different types of preconditioning, compared to the standard
+% use of the main diagonal of A:
+%
+% clear all; close all;
+% n = 1000; M = spdiags([1:n]',0,n,n); precfun=@(x)M\x;
+% A=M+sprandsym(n,.1); Xini=randn(n,5); maxiter=15; tol=1e-5;
+% [~,~,~,~,rnp]=lobpcg(Xini,A,tol,maxiter,1);
+% [~,~,~,~,r]=lobpcg(Xini,A,[],@(x)precfun(x),tol,maxiter,1);
+% subplot(2,2,1), semilogy(r'); hold on; semilogy(rnp',':>');
+% title('No preconditioning (top)'); axis tight;
+% M(1,2) = 2; precfun=@(x)M\x; % M is no longer symmetric
+% [~,~,~,~,rns]=lobpcg(Xini,A,[],@(x)precfun(x),tol,maxiter,1);
+% subplot(2,2,2),  semilogy(r'); hold on; semilogy(rns','--s');
+% title('Nonsymmetric preconditioning (square)'); axis tight;
+% M(1,2) = 0; precfun=@(x)M\(x+10*sin(x)); % nonlinear preconditioning
+% [~,~,~,~,rnl]=lobpcg(Xini,A,[],@(x)precfun(x),tol,maxiter,1);
+% subplot(2,2,3),  semilogy(r'); hold on; semilogy(rnl','-.*');
+% title('Nonlinear preconditioning (star)'); axis tight;
+% M=abs(M-3.5*speye(n,n)); precfun=@(x)M\x;
+% [~,~,~,~,rs]=lobpcg(Xini,A,[],@(x)precfun(x),tol,maxiter,1);
+% subplot(2,2,4),  semilogy(r'); hold on; semilogy(rs','-d');
+% title('Selective preconditioning (diamond)'); axis tight;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -162,31 +185,15 @@ function [blockVectorX,lambda,varargout] = ...
 % http://code.google.com/p/blopex/
 % package and is directly available, e.g., in PETSc and HYPRE.  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %   License:  MIT / Apache-2.0
-%   Copyright (c) 2000-2019 A.V. Knyazev, BLOPEX team
-%   $Revision: 4.12 $  $Date: 14-Mar-2010
-%   Tested in MATLAB 6.5-7.9.0.529 and Octave 3.2.3.  
-
-
+%   Copyright (c) 2000-2019 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
+%   $Revision: 4.13 $  $Date: 16-Oct-2011
+%   Tested in MATLAB 6.5-7.13 and Octave 3.2.3-3.4.2.  
 %Begin
-
-% Check if we are in MATLAB or Octave.  ver('MATLAB') will return an empty
-% struct if we are in Octave. Used below to suppress the graphics. 
-version=ver('MATLAB');
-if all(size(version)==0)
-    matlabFlag=0;
-else
-    matlabFlag=1;
-end
-
 % constants
-
 CONVENTIONAL_CONSTRAINTS = 1;
 SYMMETRIC_CONSTRAINTS = 2;
-
 %Initial settings
-
 failureFlag = 1;
 if nargin < 2
     error('BLOPEX:lobpcg:NotEnoughInputs',...
@@ -198,10 +205,9 @@ if nargin > 8
         strcat('There must be at most 8 input agruments ',...
         'unless arguments are passed to a function'));
 end
-
-if ischar(blockVectorX)
-    error('BLOPEX:lobpcg:FirstInputString',...
-        'The first input argument blockVectorX cannot be a string');
+if ~isnumeric(blockVectorX)
+    error('BLOPEX:lobpcg:FirstInputNotNumeric',...
+        'The first input argument blockVectorX must be numeric');
 end
 [n,blockSize]=size(blockVectorX);
 if blockSize > n
@@ -212,8 +218,7 @@ if n < 6
     error('BLOPEX:lobpcg:MatrixTooSmall',...
         'The code does not work for matrices of small sizes');
 end
-
-if ~ischar(operatorA)
+if isa(operatorA,'numeric')
     nA = size(operatorA,1);
     if any(size(operatorA) ~= nA)
         error('BLOPEX:lobpcg:MatrixNotSquare',...
@@ -226,9 +231,7 @@ if ~ischar(operatorA)
             ' - the number of rows of blockVectorX']);
     end
 end
-
 count_string = 0;
-
 operatorT = [];
 operatorB = [];
 residualTolerance = [];
@@ -252,7 +255,7 @@ for j = 1:nargin-2
             error('BLOPEX:lobpcg:WrongConstraintsFormat',...
             'Something wrong with blockVectorY input argument');
         end
-    elseif ischar(varargin{j})
+    elseif ischar(varargin{j}) || isa(varargin{j},'function_handle')
         if count_string == 0
             if isempty(operatorB)
                 operatorB = varargin{j};
@@ -263,8 +266,8 @@ for j = 1:nargin-2
         elseif count_string == 1
             operatorT = varargin{j};
         else
-            error('BLOPEX:lobpcg:TooManyStringInputs',...
-                'Too many string input arguments');
+            warning('BLOPEX:lobpcg:TooManyStringFunctionHandleInputs',...
+                'Too many string or FunctionHandle input arguments');
         end
     elseif isequal(size(varargin{j}),[n,n])
         error('BLOPEX:lobpcg:WrongPreconditionerFormat',...
@@ -277,7 +280,7 @@ for j = 1:nargin-2
         elseif isempty(verbosityLevel)
             verbosityLevel = varargin{j};
         else
-            error('BLOPEX:lobpcg:TooManyScalarInputs',...
+            warning('BLOPEX:lobpcg:TooManyScalarInputs',...
                 'Too many scalar parameters, need only three');
         end
     elseif isempty(varargin{j})
@@ -294,7 +297,6 @@ for j = 1:nargin-2
             ['Input argument number ' int2str(j+2) ' not recognized.']);
     end
 end
-
 if verbosityLevel
     if issparse(blockVectorX)
         fprintf(['The sparse initial guess with %i colunms '...
@@ -303,9 +305,12 @@ if verbosityLevel
         fprintf(['The full initial guess with %i colunms '...
             'and %i raws is detected  \n'],n,blockSize);
     end
-    if ischar(operatorA)
+    if ischar(operatorA) 
         fprintf('The main operator is detected as an M-function %s \n',...
             operatorA);
+    elseif isa(operatorA,'function_handle')
+        fprintf('The main operator is detected as an M-function %s \n',...
+            func2str(operatorA));
     elseif issparse(operatorA)
         fprintf('The main operator is detected as a sparse matrix \n');
     else
@@ -313,9 +318,12 @@ if verbosityLevel
     end
     if isempty(operatorB)
         fprintf('Solving standard eigenvalue problem, not generalized \n');
-    elseif ischar(operatorB)
+    elseif ischar(operatorB) 
         fprintf(['The second operator of the generalized eigenproblem \n'...
         'is detected as an M-function %s \n'],operatorB);
+    elseif isa(operatorB,'function_handle')
+        fprintf(['The second operator of the generalized eigenproblem \n'...
+        'is detected as an M-function %s \n'],func2str(operatorB));
     elseif issparse(operatorB)
         fprintf(strcat('The second operator of the generalized',... 
             'eigenproblem \n is detected as a sparse matrix \n'));
@@ -325,9 +333,12 @@ if verbosityLevel
     end
     if isempty(operatorT)
         fprintf('No preconditioner is detected \n');
-    else
+    elseif ischar(operatorT) 
         fprintf('The preconditioner is detected as an M-function %s \n',...
             operatorT);
+    elseif isa(operatorT,'function_handle')
+        fprintf('The preconditioner is detected as an M-function %s \n',...
+            func2str(operatorT));
     end
     if isempty(blockVectorY)
         fprintf('No matrix of constraints is detected \n')
@@ -342,9 +353,7 @@ if verbosityLevel
             'the constraints are inconsistent'));
     end
 end
-
 % Set defaults
-
 if isempty(residualTolerance)
     residualTolerance = sqrt(eps)*n;
 end
@@ -354,12 +363,10 @@ end
 if isempty(verbosityLevel)
     verbosityLevel = 0;
 end
-
 if verbosityLevel
     fprintf('Tolerance %e and maximum number of iterations %i \n',...
         residualTolerance,maxIterations)
 end
-
 %constraints preprocessing
 if isempty(blockVectorY)
     constraintStyle = 0;
@@ -367,13 +374,12 @@ else
     %    constraintStyle = SYMMETRIC_CONSTRAINTS; % more accurate?
     constraintStyle = CONVENTIONAL_CONSTRAINTS;
 end
-
 if constraintStyle == CONVENTIONAL_CONSTRAINTS
     
     if isempty(operatorB)
         gramY = blockVectorY'*blockVectorY;
     else
-        if ~ischar(operatorB)
+        if isnumeric(operatorB)
             blockVectorBY = operatorB*blockVectorY;
         else
             blockVectorBY = feval(operatorB,blockVectorY);
@@ -392,7 +398,7 @@ if constraintStyle == CONVENTIONAL_CONSTRAINTS
 elseif constraintStyle == SYMMETRIC_CONSTRAINTS
     
     if ~isempty(operatorB)
-        if ~ischar(operatorB)
+        if isnumeric(operatorB)
             blockVectorY = operatorB*blockVectorY;
         else
             blockVectorY = feval(operatorB,blockVectorY);
@@ -414,7 +420,6 @@ elseif constraintStyle == SYMMETRIC_CONSTRAINTS
     end
     
 end
-
 %Making the initial vectors (operatorB-) orthonormal
 if isempty(operatorB)
     %[blockVectorX,gramXBX] = qr(blockVectorX,0);
@@ -430,7 +435,7 @@ if isempty(operatorB)
     blockVectorX = blockVectorX/gramXBX;
 else
     %[blockVectorX,blockVectorBX] = orth(operatorB,blockVectorX);
-    if ~ischar(operatorB)
+    if isnumeric(operatorB)
         blockVectorBX = operatorB*blockVectorX;
     else
         blockVectorBX = feval(operatorB,blockVectorX);
@@ -449,66 +454,53 @@ else
     blockVectorX = blockVectorX/gramXBX;
     blockVectorBX = blockVectorBX/gramXBX;
 end
-
 % Checking if the problem is big enough for the algorithm, 
 % i.e. n-sizeY > 5*blockSize
 % Theoretically, the algorithm should be able to run if 
 % n-sizeY > 3*blockSize,
 % but the extreme cases might be unstable, so we use 5 instead of 3 here.
 if n-sizeY < 5*blockSize
-    error('BLOPEX:lobpcg:MatrixTooSmall',...
-        sprintf('%s\n%s', ...
+    error('BLOPEX:lobpcg:MatrixTooSmall','%s\n%s', ...
     'The problem size is too small, relative to the block size.',... 
-    'Try using eig() or eigs() instead.'));
+    'Try using eig() or eigs() instead.');
 end
-
 % Preallocation
 residualNormsHistory=zeros(blockSize,maxIterations);
 lambdaHistory=zeros(blockSize,maxIterations+1);
 condestGhistory=zeros(1,maxIterations+1);
-
 blockVectorBR=zeros(n,blockSize);
 blockVectorAR=zeros(n,blockSize);
 blockVectorP=zeros(n,blockSize);
 blockVectorAP=zeros(n,blockSize);
 blockVectorBP=zeros(n,blockSize);
-
 %Initial settings for the loop
-if ~ischar(operatorA)
+if isnumeric(operatorA)
     blockVectorAX = operatorA*blockVectorX;
 else
     blockVectorAX = feval(operatorA,blockVectorX);
 end
-
 gramXAX = full(blockVectorX'*blockVectorAX);
 gramXAX = (gramXAX + gramXAX')*0.5;
 % eig(...,'chol') uses only the diagonal and upper triangle - 
 % not true in MATLAB
-% Octave v3.2.3, eig() does not support inputting 'chol'
+% Octave v3.2.3-4, eig() does not support inputting 'chol'
 [coordX,gramXAX]=eig(gramXAX,eye(blockSize));
-
-lambda=diag(gramXAX); %eig returms eigenvalues on the diagonal
-
+lambda=diag(gramXAX); %eig returns non-ordered eigenvalues on the diagonal
 if issparse(blockVectorX)
     coordX=sparse(coordX);
 end
-
 blockVectorX  =  blockVectorX*coordX;
 blockVectorAX = blockVectorAX*coordX;
 if ~isempty(operatorB)
     blockVectorBX = blockVectorBX*coordX;
 end
 clear coordX
-
 condestGhistory(1)=-log10(eps)/2;  %if too small cause unnecessary restarts
-
 lambdaHistory(1:blockSize,1)=lambda;
-
 activeMask = true(blockSize,1);
 % currentBlockSize = blockSize; %iterate all
 %
 % restart=1;%steepest descent
-
 %The main part of the method is the loop of the CG method: begin
 for iterationNumber=1:maxIterations
     
@@ -624,7 +616,7 @@ for iterationNumber=1:maxIterations
             break
         end
     else
-        if ~ischar(operatorB)
+        if isnumeric(operatorB)
             blockVectorBR(:,activeMask) = ...
                 operatorB*blockVectorR(:,activeMask);
         else
@@ -651,7 +643,7 @@ for iterationNumber=1:maxIterations
     end
     clear gramRBR;
     
-    if ~ischar(operatorA)
+    if isnumeric(operatorA)
         blockVectorAR(:,activeMask) = operatorA*blockVectorR(:,activeMask);
     else
         blockVectorAR(:,activeMask) = ...
@@ -894,16 +886,13 @@ for iterationNumber=1:maxIterations
     end
 end
 %The main step of the method was the CG cycle: end
-
 %Postprocessing
-
 %Making sure blockVectorX's "exactly" satisfy the blockVectorY constrains??
-
 %Making sure blockVectorX's are "exactly" othonormalized by final "exact" RR
 if isempty(operatorB)
     gramXBX=full(blockVectorX'*blockVectorX);
 else
-    if ~ischar(operatorB)
+    if isnumeric(operatorB)
         blockVectorBX = operatorB*blockVectorX;
     else
         blockVectorBX = feval(operatorB,blockVectorX);
@@ -911,29 +900,24 @@ else
     gramXBX=full(blockVectorX'*blockVectorBX);
 end
 gramXBX=(gramXBX'+gramXBX)*0.5;
-
-if ~ischar(operatorA)
+if isnumeric(operatorA)
     blockVectorAX = operatorA*blockVectorX;
 else
     blockVectorAX = feval(operatorA,blockVectorX);
 end
 gramXAX = full(blockVectorX'*blockVectorAX);
 gramXAX = (gramXAX + gramXAX')*0.5;
-
 %Raileigh-Ritz for blockVectorX, which is already operatorB-orthonormal
 [coordX,gramXBX] = eig(gramXAX,gramXBX);
 lambda=diag(gramXBX);
-
 if issparse(blockVectorX)
     coordX=sparse(coordX);
 end
-
 blockVectorX  =   blockVectorX*coordX;
 blockVectorAX  =  blockVectorAX*coordX;
 if ~isempty(operatorB)
     blockVectorBX  =  blockVectorBX*coordX;
 end
-
 %Computing all residuals
 if isempty(operatorB)
     if blockSize > 1
@@ -952,40 +936,34 @@ else
         %to make blockVectorR full when lambda is just a scalar
     end
 end
-
 residualNorms=full(sqrt(sum(conj(blockVectorR).*blockVectorR)'));
 residualNormsHistory(1:blockSize,iterationNumber)=residualNorms;
-
 if verbosityLevel
     fprintf('Final Eigenvalues lambda %17.16e \n',lambda);
     fprintf('Final Residual Norms %e \n',residualNorms');
 end
-
 if verbosityLevel == 2
     whos
-    if matlabFlag==1;
-        figure(491)
-        semilogy((residualNormsHistory(1:blockSize,1:iterationNumber-1))');
-        title('Residuals for Different Eigenpairs','fontsize',16);
-        ylabel('Eucledian norm of residuals','fontsize',16);
-        xlabel('Iteration number','fontsize',16);
-        axis tight;
-        %axis([0 maxIterations+1 1e-15 1e3])
-        set(gca,'FontSize',14);
-        figure(492);
-        semilogy((lambdaHistory(1:blockSize,1:iterationNumber)-...
-            repmat(lambda,1,iterationNumber))');
-        title('Eigenvalue errors for Different Eigenpairs','fontsize',16);
-        ylabel('Estimated eigenvalue errors','fontsize',16);
-        xlabel('Iteration number','fontsize',16);
-        axis tight;
-        %axis([0 maxIterations+1 1e-15 1e3])
-        set(gca,'FontSize',14);
-        drawnow;
-    end
+    figure(491)
+    semilogy((abs(residualNormsHistory(1:blockSize,1:iterationNumber-1)))');
+    title('Residuals for Different Eigenpairs','fontsize',16);
+    ylabel('Eucledian norm of residuals','fontsize',16);
+    xlabel('Iteration number','fontsize',16);
+    %axis tight;
+    %axis([0 maxIterations+1 1e-15 1e3])
+    set(gca,'FontSize',14);
+    figure(492);
+    semilogy(abs((lambdaHistory(1:blockSize,1:iterationNumber)-...
+        repmat(lambda,1,iterationNumber)))');
+    title('Eigenvalue errors for Different Eigenpairs','fontsize',16);
+    ylabel('Estimated eigenvalue errors','fontsize',16);
+    xlabel('Iteration number','fontsize',16);
+    %axis tight;
+    %axis([0 maxIterations+1 1e-15 1e3])
+    set(gca,'FontSize',14);
+    drawnow;
 end
-
 varargout(1)={failureFlag};
 varargout(2)={lambdaHistory(1:blockSize,1:iterationNumber)};
 varargout(3)={residualNormsHistory(1:blockSize,1:iterationNumber-1)};
-return
+end
