@@ -69,7 +69,7 @@ We currently (2019) do not have resources and thus plans to implement the "true 
 
 HYPRE has an incomplete (as of 2019) implementation of the "true multivector," with some key functions still missing, and apparently no plans to complete it.
 
-PETSc developers plan (Nov. 2019) to implement the "true multivector" in the next PETSc release in the format of `TAIJ` matrix that will allow `MatMult`, `MatSolve`, etc., using aggregated communication for distribution of the multivector between the processors and contiguous local structure suitable for high level BLAS. Please contact `petsc-maint@mcs.anl.gov` for questions/comments. 
+As of 2019, we are not aware of plans from PETSc developers to implement the "true multivector" in PETSc that allows `MatMult`, `MatSolve`, etc., using aggregated communication for distribution of the multivector between the processors and contiguous local structure suitable for high level BLAS. However, this is indeed implemented in SLEPc.
 
 Related Projects
 ----------------
