@@ -60,16 +60,16 @@ SLEPc has lots of examples. Use the option `--download-blopex=1` in the SLEPc co
 
 Please contact HYPRE and SLEPc developers directly if you have any questions about their examples of using LOBPCG-BLOPEX. 
 
-Can BLOPEX be made to ran faster?
+Can BLOPEX be made to run faster?
 ---------------------------------
 
-Yes, BLOPEX can be made to ran much faster. None of current BLOPEX implementations, including those in HYPRE and SLEPc, uses a "true multivector". A "multivector" is the main structure in BLOPEX, representing blocks of vectors. LOBPCG code requires performing basic algebraic operations, e.g., sums, scalar products, and application of functions, with multivectors. However, to our knowledge, in all current (2013) implementations of BLOPEX, the multivector is faked, i.e., is simply substituted by a collection of individual vectors. Thus, e.g., a sum of fake multivectors is a loop of sums of vectors, which is only Level 1 BLAS. A "true multivector" would likely accelerate the code by orders of magnitude in parallel runs.
+Yes, BLOPEX can be made to run much faster. None of current BLOPEX implementations, including those in HYPRE and SLEPc, uses a "true multivector". A "multivector" is the main structure in BLOPEX, representing blocks of vectors. LOBPCG code requires performing basic algebraic operations, e.g., sums, scalar products, and application of functions, with multivectors. However, to our knowledge, in all current (2019) implementations of BLOPEX, the multivector is faked, i.e., is simply substituted by a collection of individual vectors. Thus, e.g., a sum of fake multivectors is a loop of sums of vectors, which is only Level 1 BLAS. A "true multivector" would likely accelerate the code by orders of magnitude in parallel runs.
 
-We currently (2013) do not have resources and thus plans to implement the "true multivector" in serial versions of BLOPEX, even though that would make the code ran faster several times due to the use of Level 3 BLAS. If you volunteer to do it, we can help with advice, and would be glad to add you to the team of developers. It is not that difficult, but is surely time consuming and requires proper qualifications. That could be a fun project, e.g., for INTEL and AMD developers, to implement a true multivector library, make a BLOPEX interface to it, and test it on important applications.
+We currently (2019) do not have resources and thus plans to implement the "true multivector" in serial versions of BLOPEX, even though that would make the code run faster several times due to the use of Level 3 BLAS. If you volunteer to do it, we can help with advice, and would be glad to add you to the team of developers. It is not that difficult, but is surely time consuming and requires proper qualifications. That could be a fun project, e.g., for INTEL and AMD developers, to implement a true multivector library, make a BLOPEX interface to it, and test it on important applications.
 
-HYPRE has an incomplete (as of 2013) implementation of the "true multivector," with some key functions still missing, and apparently no plans to complete it.
+HYPRE has an incomplete (as of 2019) implementation of the "true multivector," with some key functions still missing, and apparently no plans to complete it.
 
-PETSc developers plan (Nov. 2013) to implement the "true multivector" in the next PETSc release in the format of `TAIJ` matrix that will allow `MatMult`, `MatSolve`, etc., using aggregated communication for distribution of the multivector between the processors and contiguous local structure suitable for high level BLAS. Please contact `petsc-maint@mcs.anl.gov` for questions/comments. 
+PETSc developers plan (Nov. 2019) to implement the "true multivector" in the next PETSc release in the format of `TAIJ` matrix that will allow `MatMult`, `MatSolve`, etc., using aggregated communication for distribution of the multivector between the processors and contiguous local structure suitable for high level BLAS. Please contact `petsc-maint@mcs.anl.gov` for questions/comments. 
 
 Related Projects
 ----------------
@@ -89,7 +89,7 @@ References
 
 Code license
 ------------
-Change to MIT / Apache-2.0 License
+MIT / Apache-2.0 License
 
 Contributors
 ------------
