@@ -154,6 +154,12 @@ function [blockVectorX,lambda,varargout] = ...
 % subplot(2,2,4),  semilogy(r'); hold on; semilogy(rs','-d');
 % title('Selective preconditioning (diamond)'); axis tight;
 %
+% Revision 4.16 adds support for distributed or codistributed arrays
+% available in MATLAB BigData toolbox, e.g.,:
+%
+% A = codistributed(diag(1:100)); B = codistributed(diag(101:200));
+% [blockVectorX,lambda]=lobpcg(randn(100,2),A,1e-5,5,2)
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % This main function LOBPCG is a version of
@@ -177,19 +183,33 @@ function [blockVectorX,lambda,varargout] = ...
 % [blockVectorX,lambda]=lobpcg(randn(100,2),operatorA,1e-10,80,2);
 % [blockVectorX,lambda]=lobpcg(randn(100,3),operatorA,1e-10,80,2);
 %
+% - using a nonsymmetric preconditioner is possible, but may be unstable
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The main distribution site:
-% http://math.ucdenver.edu/~aknyazev/
+% https://github.com/lobpcg/blopex
 %
 % A C-version of this code is a part of the
-% http://code.google.com/p/blopex/
-% package and is directly available, e.g., in PETSc and HYPRE.
+% https://github.com/lobpcg/blopex
+% package and is directly available, e.g., in SLEPc and HYPRE.
+% 
+% A python version of this code is in 
+% https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.lobpcg.html
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   License:  MIT / Apache-2.0
 %   Copyright (c) 2000-2019 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
-%   $Revision: 4.15 $  $Date: 11-June-2019
-%   Tested in MATLAB 6.5-9.6.0.1114505 (R2019a) Update 2 and Octave 3.2.3-3.4.2.
+%   $Revision: 4.16 $  $Date: 12-June-2019
+%   Tested in MATLAB 6.5-9.6.0.1114505 (R2019a) Update 2. 
+%   Revision 4.13 tested and available in Octave 3.2.3-3.4.2, see
+%   https://octave.sourceforge.io/linear-algebra/function/lobpcg.html
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Begin
+% Function gather defined to be identity if nonexistent, before 2016a 
+if exist("gather", "file") == 2
+    mygather=@(x)gather(x);
+else
+    mygather=@(x)x;
+end
 % constants
 CONVENTIONAL_CONSTRAINTS = 1;
 SYMMETRIC_CONSTRAINTS = 2;
@@ -423,7 +443,7 @@ end
 %Making the initial vectors (operatorB-) orthonormal
 if isempty(operatorB)
     %[blockVectorX,gramXBX] = qr(blockVectorX,0);
-    gramXBX=blockVectorX'*blockVectorX;
+    gramXBX=mygather(blockVectorX'*blockVectorX);
     if ~isreal(gramXBX)
         gramXBX=(gramXBX+gramXBX')*0.5;
     end
@@ -447,9 +467,9 @@ else
     [gramXBX,cholFlag]=chol(gramXBX);
     if  cholFlag ~= 0
         error('BLOPEX:lobpcg:InitialNotFullRank',...
-            sprintf('%s\n%s', ...
-            'The initial approximation after constraints is not full rank',...
-            'or/and operatorB is not positive definite'));
+            '%s\n%s', ...
+            'The initial approximation after constraints is not ',...
+            'full rank or/and operatorB is not positive definite');
     end
     blockVectorX = blockVectorX/gramXBX;
     blockVectorBX = blockVectorBX/gramXBX;
@@ -496,7 +516,7 @@ if ~isempty(operatorB)
 end
 clear coordX
 condestGhistory(1)=-log10(eps)/2;  %if too small cause unnecessary restarts
-lambdaHistory(1:blockSize,1)=lambda;
+lambdaHistory(1:blockSize,1) = mygather(lambda);
 activeMask = true(blockSize,1);
 % currentBlockSize = blockSize; %iterate all
 %
@@ -536,7 +556,7 @@ for iterationNumber=1:maxIterations
         end
     else
         if blockSize > 1
-            blockVectorR=blockVectorAX - ...
+            blockVectorR = blockVectorAX - ...
                 blockVectorBX*spdiags(lambda,0,blockSize,blockSize);
         else
             blockVectorR = blockVectorAX - blockVectorBX*lambda;
@@ -557,8 +577,9 @@ for iterationNumber=1:maxIterations
         end
     end
     
-    residualNorms=full(sqrt(sum(conj(blockVectorR).*blockVectorR)'));
-    residualNormsHistory(1:blockSize,iterationNumber)=residualNorms;
+    residualNorms = full(sqrt(sum(conj(blockVectorR).*blockVectorR)'));
+    residualNormsHistory(1:blockSize,iterationNumber) = ...
+        mygather(residualNorms);
     
     %index antifreeze
     activeMask = full(residualNorms > residualTolerance) & activeMask;
@@ -566,7 +587,7 @@ for iterationNumber=1:maxIterations
     %above allows vectors back into active, which causes problems with frosen Ps
     %activeMask = full(residualNorms > 0);      %iterate all, ignore freeze
     
-    currentBlockSize = sum(activeMask);
+    currentBlockSize = mygather(sum(activeMask));
     if  currentBlockSize == 0
         failureFlag=0; %all eigenpairs converged
         break
@@ -644,12 +665,13 @@ for iterationNumber=1:maxIterations
     clear gramRBR;
     
     if isnumeric(operatorA)
-        blockVectorAR(:,activeMask) = operatorA*blockVectorR(:,activeMask);
+        blockVectorAR(:,activeMask) = ...
+            mygather(operatorA*blockVectorR(:,activeMask));
     else
         blockVectorAR(:,activeMask) = ...
             feval(operatorA,blockVectorR(:,activeMask));
     end
-
+    
     condestGmean = mean(condestGhistory(max(1,iterationNumber-10-...
         round(log(currentBlockSize))):iterationNumber));
     
@@ -657,7 +679,7 @@ for iterationNumber=1:maxIterations
     
     % The Raileight-Ritz method for [blockVectorX blockVectorR blockVectorP]
     
-    if  residualNorms > eps^0.6
+    if  mygather(residualNorms) > eps^0.6
         explicitGramFlag = 0;
     else
         explicitGramFlag = 1;  %suggested by Garrett Moran, private
@@ -694,14 +716,14 @@ for iterationNumber=1:maxIterations
         gramRBR=(gramRBR'+gramRBR)*0.5;
         
     end
-
-    if iterationNumber > 1    
+    
+    if iterationNumber > 1
         %Making active conjugate directions orthonormal
         if isempty(operatorB)
             %[blockVectorP(:,activeMask),gramPBP] = qr(blockVectorP(:,activeMask),0);
             gramPBP=blockVectorP(:,activeMask)'*blockVectorP(:,activeMask);
             if ~isreal(gramPBP)
-                gramPBP=(gramPBP+gramPBP')*0.5; 
+                gramPBP=(gramPBP+gramPBP')*0.5;
             end
             [gramPBP,cholFlag]=chol(gramPBP);
             if  cholFlag == 0
@@ -718,7 +740,7 @@ for iterationNumber=1:maxIterations
         else
             gramPBP=blockVectorP(:,activeMask)'*blockVectorBP(:,activeMask);
             if ~isreal(gramPBP)
-                gramPBP=(gramPBP+gramPBP')*0.5; 
+                gramPBP=(gramPBP+gramPBP')*0.5;
             end
             [gramPBP,cholFlag]=chol(gramPBP);
             if  cholFlag == 0
@@ -731,14 +753,14 @@ for iterationNumber=1:maxIterations
                 restart = 0;
             else
                 warning('BLOPEX:lobpcg:DirectionNotFullRank',...
-               strcat('The direction matrix is not full rank ',...
-            'or/and operatorB is not positive definite.'));
+                    strcat('The direction matrix is not full rank ',...
+                    'or/and operatorB is not positive definite.'));
                 restart = 1;
             end
         end
         clear gramPBP
     end
-
+    
     for cond_try=1:2           %cond_try == 2 when restart
         
         if ~restart
@@ -869,21 +891,21 @@ for iterationNumber=1:maxIterations
     end
     
     blockVectorX = blockVectorX*coordX(1:blockSize,:) + blockVectorP;
-    blockVectorAX=blockVectorAX*coordX(1:blockSize,:) + blockVectorAP;
+    blockVectorAX = blockVectorAX*coordX(1:blockSize,:) + blockVectorAP;
     if ~isempty(operatorB)
-        blockVectorBX=blockVectorBX*coordX(1:blockSize,:) + blockVectorBP;
+        blockVectorBX = blockVectorBX*coordX(1:blockSize,:) + blockVectorBP;
     end
     clear coordX
     %%end RR
     
-    lambdaHistory(1:blockSize,iterationNumber+1)=lambda;
-    condestGhistory(iterationNumber+1)=condestG;
+    lambdaHistory(1:blockSize,iterationNumber+1) = mygather(lambda);
+    condestGhistory(iterationNumber+1) = mygather(condestG);
     
     if verbosityLevel
         fprintf('Iteration %i current block size %i \n',...
             iterationNumber,currentBlockSize);
-        fprintf('Eigenvalues lambda %17.16e \n',lambda);
-        fprintf('Residual Norms %e \n',residualNorms');
+        fprintf('Eigenvalues lambda %17.16e \n',mygather(lambda));
+        fprintf('Residual Norms %e \n',mygather(residualNorms'));
     end
 end
 %The main step of the method was the CG cycle: end
@@ -898,7 +920,7 @@ else
     else
         blockVectorBX = feval(operatorB,blockVectorX);
     end
-    gramXBX=full(blockVectorX'*blockVectorBX);
+    gramXBX = full(blockVectorX'*blockVectorBX);
 end
 gramXBX=(gramXBX'+gramXBX)*0.5;
 if isnumeric(operatorA)
@@ -938,10 +960,11 @@ else
     end
 end
 residualNorms=full(sqrt(sum(conj(blockVectorR).*blockVectorR)'));
-residualNormsHistory(1:blockSize,iterationNumber)=residualNorms;
+residualNormsHistory(1:blockSize,iterationNumber) = ...
+    mygather(residualNorms);
 if verbosityLevel
-    fprintf('Final Eigenvalues lambda %17.16e \n',lambda);
-    fprintf('Final Residual Norms %e \n',residualNorms');
+    fprintf('Final Eigenvalues lambda %17.16e \n',mygather(lambda));
+    fprintf('Final Residual Norms %e \n',mygather(residualNorms'));
 end
 if verbosityLevel == 2
     whos
@@ -955,7 +978,7 @@ if verbosityLevel == 2
     set(gca,'FontSize',14);
     figure(492);
     semilogy(abs((lambdaHistory(1:blockSize,1:iterationNumber)-...
-        repmat(lambda,1,iterationNumber)))');
+        repmat(mygather(lambda),1,iterationNumber)))');
     title('Eigenvalue errors for Different Eigenpairs','fontsize',16);
     ylabel('Estimated eigenvalue errors','fontsize',16);
     xlabel('Iteration number','fontsize',16);
