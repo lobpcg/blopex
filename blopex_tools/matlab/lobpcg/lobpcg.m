@@ -187,7 +187,7 @@ function [blockVectorX,lambda,varargout] = ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   License:  MIT / Apache-2.0
 %   Copyright (c) 2000-2019 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
-%   $Revision: 4.14 $  $Date: 11-June-2019
+%   $Revision: 4.15 $  $Date: 11-June-2019
 %   Tested in MATLAB 6.5-9.6.0.1114505 (R2019a) Update 2 and Octave 3.2.3-3.4.2.
 %Begin
 % constants
