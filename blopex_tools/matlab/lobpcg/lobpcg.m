@@ -187,8 +187,8 @@ function [blockVectorX,lambda,varargout] = ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   License:  MIT / Apache-2.0
 %   Copyright (c) 2000-2019 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
-%   $Revision: 4.13 $  $Date: 16-Oct-2011
-%   Tested in MATLAB 6.5-7.13 and Octave 3.2.3-3.4.2.
+%   $Revision: 4.14 $  $Date: 11-June-2019
+%   Tested in MATLAB 6.5-9.6.0.1114505 (R2019a) Update 2 and Octave 3.2.3-3.4.2.
 %Begin
 % constants
 CONVENTIONAL_CONSTRAINTS = 1;
@@ -649,50 +649,7 @@ for iterationNumber=1:maxIterations
         blockVectorAR(:,activeMask) = ...
             feval(operatorA,blockVectorR(:,activeMask));
     end
-    
-    if iterationNumber > 1
-        
-        %Making active conjugate directions orthonormal
-        if isempty(operatorB)
-            %[blockVectorP(:,activeMask),gramPBP] = qr(blockVectorP(:,activeMask),0);
-            gramPBP=blockVectorP(:,activeMask)'*blockVectorP(:,activeMask);
-            if ~isreal(gramPBP)
-                gramPBP=(gramPBP+gramPBP')*0.5;
-            end
-            [gramPBP,cholFlag]=chol(gramPBP);
-            if  cholFlag == 0
-                blockVectorP(:,activeMask) = ...
-                    blockVectorP(:,activeMask)/gramPBP;
-                blockVectorAP(:,activeMask) = ...
-                    blockVectorAP(:,activeMask)/gramPBP;
-            else
-                warning('BLOPEX:lobpcg:DirectionNotFullRank',...
-                    'The direction matrix is not full rank.');
-                break
-            end
-        else
-            gramPBP=blockVectorP(:,activeMask)'*blockVectorBP(:,activeMask);
-            if ~isreal(gramPBP)
-                gramPBP=(gramPBP+gramPBP')*0.5;
-            end
-            [gramPBP,cholFlag]=chol(gramPBP);
-            if  cholFlag == 0
-                blockVectorP(:,activeMask) = ...
-                    blockVectorP(:,activeMask)/gramPBP;
-                blockVectorAP(:,activeMask) = ...
-                    blockVectorAP(:,activeMask)/gramPBP;
-                blockVectorBP(:,activeMask) = ...
-                    blockVectorBP(:,activeMask)/gramPBP;
-            else
-                warning('BLOPEX:lobpcg:DirectionNotFullRank',...
-                    strcat('The direction matrix is not full rank ',...
-                    'or/and operatorB is not positive definite.'));
-                break
-            end
-        end
-        clear gramPBP
-    end
-    
+
     condestGmean = mean(condestGhistory(max(1,iterationNumber-10-...
         round(log(currentBlockSize))):iterationNumber));
     
@@ -737,7 +694,51 @@ for iterationNumber=1:maxIterations
         gramRBR=(gramRBR'+gramRBR)*0.5;
         
     end
-    
+
+    if iterationNumber > 1    
+        %Making active conjugate directions orthonormal
+        if isempty(operatorB)
+            %[blockVectorP(:,activeMask),gramPBP] = qr(blockVectorP(:,activeMask),0);
+            gramPBP=blockVectorP(:,activeMask)'*blockVectorP(:,activeMask);
+            if ~isreal(gramPBP)
+                gramPBP=(gramPBP+gramPBP')*0.5; 
+            end
+            [gramPBP,cholFlag]=chol(gramPBP);
+            if  cholFlag == 0
+                blockVectorP(:,activeMask) = ...
+                    blockVectorP(:,activeMask)/gramPBP;
+                blockVectorAP(:,activeMask) = ...
+                    blockVectorAP(:,activeMask)/gramPBP;
+                restart = 0;
+            else
+                warning('BLOPEX:lobpcg:DirectionNotFullRank',...
+                    'The direction matrix is not full rank.');
+                restart = 1;
+            end
+        else
+            gramPBP=blockVectorP(:,activeMask)'*blockVectorBP(:,activeMask);
+            if ~isreal(gramPBP)
+                gramPBP=(gramPBP+gramPBP')*0.5; 
+            end
+            [gramPBP,cholFlag]=chol(gramPBP);
+            if  cholFlag == 0
+                blockVectorP(:,activeMask) = ...
+                    blockVectorP(:,activeMask)/gramPBP;
+                blockVectorAP(:,activeMask) = ...
+                    blockVectorAP(:,activeMask)/gramPBP;
+                blockVectorBP(:,activeMask) = ...
+                    blockVectorBP(:,activeMask)/gramPBP;
+                restart = 0;
+            else
+                warning('BLOPEX:lobpcg:DirectionNotFullRank',...
+               strcat('The direction matrix is not full rank ',...
+            'or/and operatorB is not positive definite.'));
+                restart = 1;
+            end
+        end
+        clear gramPBP
+    end
+
     for cond_try=1:2           %cond_try == 2 when restart
         
         if ~restart
