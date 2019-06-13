@@ -155,10 +155,16 @@ function [blockVectorX,lambda,varargout] = ...
 % title('Selective preconditioning (diamond)'); axis tight;
 %
 % Revision 4.16 adds support for distributed or codistributed arrays
-% available in MATLAB BigData toolbox, e.g.,:
+% available in MATLAB BigData toolbox, e.g.,
 %
 % A = codistributed(diag(1:100)); B = codistributed(diag(101:200));
 % [blockVectorX,lambda]=lobpcg(randn(100,2),A,1e-5,5,2)
+%
+% Revision 4.17 adds support for single precision, e.g.,
+% A = diag(1:100); B = single(diag(101:200));
+% [blockVectorX,lambda]=lobpcg(randn(100,2),A,1e-5,15,2);
+% A = diag(1:100); B = diag(101:200);
+% [blockVectorX,lambda]=lobpcg(randn(100,2,'single'),A,1e-5,15,2);
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -192,19 +198,21 @@ function [blockVectorX,lambda,varargout] = ...
 % A C-version of this code is a part of the
 % https://github.com/lobpcg/blopex
 % package and is directly available, e.g., in SLEPc and HYPRE.
-% 
-% A python version of this code is in 
+%
+% A python version of this code is in
 % https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.lobpcg.html
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   License:  MIT / Apache-2.0
 %   Copyright (c) 2000-2019 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
-%   $Revision: 4.16 $  $Date: 12-June-2019
-%   Tested in MATLAB 6.5-9.6.0.1114505 (R2019a) Update 2. 
+%   $Revision: 4.17 $  $Date: 13-June-2019
+%   This revision is tested in 9.6.0.1114505 (R2019a) Update 2, but is
+%   expected to work on any >R2007b MATLAB.
+%   Revision 4.13 tested in MATLAB 6.5-7.13.
 %   Revision 4.13 tested and available in Octave 3.2.3-3.4.2, see
 %   https://octave.sourceforge.io/linear-algebra/function/lobpcg.html
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Begin
-% Function gather defined to be identity if nonexistent, before 2016a 
+% Function gather defined to be identity if nonexistent, before 2016a
 if exist("gather", "file") == 2
     mygather=@(x)gather(x);
 else
@@ -488,11 +496,13 @@ end
 residualNormsHistory=zeros(blockSize,maxIterations);
 lambdaHistory=zeros(blockSize,maxIterations+1);
 condestGhistory=zeros(1,maxIterations+1);
-blockVectorBR=zeros(n,blockSize);
-blockVectorAR=zeros(n,blockSize);
-blockVectorP=zeros(n,blockSize);
-blockVectorAP=zeros(n,blockSize);
-blockVectorBP=zeros(n,blockSize);
+blockVectorAR=zeros(n,blockSize, 'like', blockVectorX);
+blockVectorP=zeros(n,blockSize, 'like', blockVectorX);
+blockVectorAP=zeros(n,blockSize, 'like', blockVectorX);
+if ~isempty(operatorB)
+    blockVectorBR=zeros(n,blockSize, 'like', blockVectorX);
+    blockVectorBP=zeros(n,blockSize, 'like', blockVectorX);
+end
 %Initial settings for the loop
 if isnumeric(operatorA)
     blockVectorAX = operatorA*blockVectorX;
@@ -526,42 +536,47 @@ for iterationNumber=1:maxIterations
     
     %     %Computing the active residuals
     %     if isempty(operatorB)
-    %         if currentBlockSize > 1
-    %             blockVectorR(:,activeMask)=blockVectorAX(:,activeMask) - ...
-    %                 blockVectorX(:,activeMask)*spdiags(lambda(activeMask),0,currentBlockSize,currentBlockSize);
-    %         else
-    %             blockVectorR(:,activeMask)=blockVectorAX(:,activeMask) - ...
-    %                 blockVectorX(:,activeMask)*lambda(activeMask);
-    %                   %to make blockVectorR full when lambda is just a scalar
-    %         end
+    %%         if currentBlockSize > 1
+    %%             blockVectorR(:,activeMask)=blockVectorAX(:,activeMask) - ...
+    %%                 blockVectorX(:,activeMask)*spdiags(lambda(activeMask),0,currentBlockSize,currentBlockSize);
+    %%         else
+    %%             blockVectorR(:,activeMask)=blockVectorAX(:,activeMask) - ...
+    %%                 blockVectorX(:,activeMask)*lambda(activeMask);
+    %%         end
+    %         blockVectorR(:,activeMask)=blockVectorAX(:,activeMask) - ...
+    %         bsxfun(@times,blockVectorX(:,activeMask),lambda(activeMask)');
     %     else
-    %         if currentBlockSize > 1
-    %             blockVectorR(:,activeMask)=blockVectorAX(:,activeMask) - ...
-    %                 blockVectorBX(:,activeMask)*spdiags(lambda(activeMask),0,currentBlockSize,currentBlockSize);
-    %         else
-    %             blockVectorR(:,activeMask)=blockVectorAX(:,activeMask) - ...
-    %                 blockVectorBX(:,activeMask)*lambda(activeMask);
-    %                       %to make blockVectorR full when lambda is just a scalar
-    %         end
+    %%         if currentBlockSize > 1
+    %%             blockVectorR(:,activeMask)=blockVectorAX(:,activeMask) - ...
+    %%                 blockVectorBX(:,activeMask)*spdiags(lambda(activeMask),0,currentBlockSize,currentBlockSize);
+    %%         else
+    %%             blockVectorR(:,activeMask)=blockVectorAX(:,activeMask) - ...
+    %%                 blockVectorBX(:,activeMask)*lambda(activeMask);
+    %%         end
+    %         blockVectorR(:,activeMask)=blockVectorAX(:,activeMask) - ...
+    %         bsxfun(@times,blockVectorBX(:,activeMask),lambda(activeMask)');
     %     end
     
     %Computing all residuals
     if isempty(operatorB)
-        if blockSize > 1
-            blockVectorR = blockVectorAX - ...
-                blockVectorX*spdiags(lambda,0,blockSize,blockSize);
-        else
-            blockVectorR = blockVectorAX - blockVectorX*lambda;
-            %to make blockVectorR full when lambda is just a scalar
-        end
+        %         if blockSize > 1
+        %             blockVectorR = blockVectorAX - ...
+        %                 blockVectorX*spdiags(lambda,0,blockSize,blockSize);
+        %         else
+        %             blockVectorR = blockVectorAX - blockVectorX*lambda;
+        %             %to make blockVectorR full when lambda is just a scalar
+        %         end
+        blockVectorR = blockVectorAX - ...
+            bsxfun(@times,blockVectorX,lambda');
     else
-        if blockSize > 1
-            blockVectorR = blockVectorAX - ...
-                blockVectorBX*spdiags(lambda,0,blockSize,blockSize);
-        else
-            blockVectorR = blockVectorAX - blockVectorBX*lambda;
-            %to make blockVectorR full when lambda is just a scalar
-        end
+        %        if blockSize > 1
+        %             blockVectorR = blockVectorAX - ...
+        %                 blockVectorBX*spdiags(lambda,0,blockSize,blockSize);
+        %        else
+        %             blockVectorR = blockVectorAX - blockVectorBX*lambda;
+        %        end
+        blockVectorR = blockVectorAX - ...
+            bsxfun(@times,blockVectorBX,lambda');
     end
     
     %Satisfying the constraints for the active residulas
@@ -660,7 +675,6 @@ for iterationNumber=1:maxIterations
                 'is not positive definite.'));
             break
         end
-        
     end
     clear gramRBR;
     
@@ -678,8 +692,14 @@ for iterationNumber=1:maxIterations
     %  restart=1;
     
     % The Raileight-Ritz method for [blockVectorX blockVectorR blockVectorP]
-    
-    if  mygather(residualNorms) > eps^0.6
+    if isa(blockVectorAR, 'single')    % single initial
+        myeps = 1; % play safe
+    elseif isa(blockVectorR, 'single') %single somethings else
+        myeps = eps(single(1));
+    else                               % double everything
+        myeps = eps;
+    end
+    if  mygather(residualNorms) > myeps^0.6
         explicitGramFlag = 0;
     else
         explicitGramFlag = 1;  %suggested by Garrett Moran, private
@@ -943,21 +963,23 @@ if ~isempty(operatorB)
 end
 %Computing all residuals
 if isempty(operatorB)
-    if blockSize > 1
-        blockVectorR = blockVectorAX - ...
-            blockVectorX*spdiags(lambda,0,blockSize,blockSize);
-    else
-        blockVectorR = blockVectorAX - blockVectorX*lambda;
-        %to make blockVectorR full when lambda is just a scalar
-    end
+    %     if blockSize > 1
+    %         blockVectorR = blockVectorAX - ...
+    %             blockVectorX*spdiags(lambda,0,blockSize,blockSize);
+    %     else
+    %         blockVectorR = blockVectorAX - blockVectorX*lambda;
+    %     end
+    blockVectorR = blockVectorAX - ...
+        bsxfun(@times,blockVectorX,lambda');
 else
-    if blockSize > 1
-        blockVectorR=blockVectorAX - ...
-            blockVectorBX*spdiags(lambda,0,blockSize,blockSize);
-    else
-        blockVectorR = blockVectorAX - blockVectorBX*lambda;
-        %to make blockVectorR full when lambda is just a scalar
-    end
+    %     if blockSize > 1
+    %         blockVectorR=blockVectorAX - ...
+    %             blockVectorBX*spdiags(lambda,0,blockSize,blockSize);
+    %     else
+    %         blockVectorR = blockVectorAX - blockVectorBX*lambda;
+    %     end
+    blockVectorR = blockVectorAX - ...
+        bsxfun(@times,blockVectorBX,lambda');
 end
 residualNorms=full(sqrt(sum(conj(blockVectorR).*blockVectorR)'));
 residualNormsHistory(1:blockSize,iterationNumber) = ...
