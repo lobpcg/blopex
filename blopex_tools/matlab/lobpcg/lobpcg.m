@@ -166,6 +166,9 @@ function [blockVectorX,lambda,varargout] = ...
 % A = diag(1:100); B = diag(101:200);
 % [blockVectorX,lambda]=lobpcg(randn(100,2,'single'),A,1e-5,15,2);
 %
+% Revision 4.18 removes the check for the size of operatorA apparently
+% not working for function handles
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % This main function LOBPCG is a version of
@@ -203,8 +206,8 @@ function [blockVectorX,lambda,varargout] = ...
 % https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.lobpcg.html
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   License:  MIT / Apache-2.0
-%   Copyright (c) 2000-2019 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
-%   $Revision: 4.17 $  $Date: 13-June-2019
+%   Copyright (c) 2000-2021 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
+%   $Revision: 4.18 $  $Date: 26-April-2021
 %   This revision is tested in 9.6.0.1114505 (R2019a) Update 2, but is
 %   expected to work on any >R2007b MATLAB.
 %   Revision 4.13 tested in MATLAB 6.5-7.13.
@@ -245,19 +248,6 @@ end
 if n < 6
     error('BLOPEX:lobpcg:MatrixTooSmall',...
         'The code does not work for matrices of small sizes');
-end
-if isa(operatorA,'numeric')
-    nA = size(operatorA,1);
-    if any(size(operatorA) ~= nA)
-        error('BLOPEX:lobpcg:MatrixNotSquare',...
-            'operatorA must be a square matrix or a string');
-    end
-    if size(operatorA) ~= n
-        error('BLOPEX:lobpcg:MatrixWrongSize',...
-            ['The size ' int2str(size(operatorA))...
-            ' of operatorA is not the same as ' int2str(n)...
-            ' - the number of rows of blockVectorX']);
-    end
 end
 count_string = 0;
 operatorT = [];
