@@ -69,7 +69,7 @@ We currently (2019) do not have resources and thus plans to implement the "true 
 
 HYPRE has an incomplete (as of 2019) implementation of the "true multivector," with some key functions still missing, and apparently no plans to complete it.
 
-PETSc developers implemented the "true multivector" in PETSc that allows `MatMult`, `MatSolve`, etc., using aggregated communication for distribution of the multivector between the processors and contiguous local structure suitable for high level BLAS; see see section 2.3.4 Blocking inside SLEPc, of the paper KSPHPDDM and PCHPDDM: Extending PETSc with advanced Krylov methods and robust multilevel overlapping Schwarz preconditioners. This is independently also implemented in SLEPc.
+PETSc developers implemented the "true multivector" in PETSc that allows `MatMult`, `MatSolve`, etc., using aggregated communication for distribution of the multivector between the processors and contiguous local structure suitable for high level BLAS; see see section 2.3.4 Blocking inside SLEPc, of the paper [KSPHPDDM and PCHPDDM: Extending PETSc with advanced Krylov methods and robust multilevel overlapping Schwarz preconditioners](https://www.sciencedirect.com/science/article/pii/S0898122121000055). This is independently also implemented in SLEPc.
 
 Related Projects
 ----------------
