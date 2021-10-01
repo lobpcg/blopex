@@ -26,13 +26,22 @@ How to use it
 
 - To build a stand-alone version, one needs the core of BLOPEX, which is `blopex_abstract`, which contains the eigensolver codes and can be compiled into the BLOPEX library, using the sample makefiles provided. One also needs `blopex_serial_double` and/or `blopex_serial_complex`. The current stand-alone version is for serial computations only. For parallel computations, one must use SLEPc or HYPRE. 
 
-- A native MATLAB/Octave code is available at `blopex_tool/matlab/lobpcg`, see also [Matlab Central][matlabcentral1]. 
-
-- A native Java code is available from a [sister project][sparse-eigensolvers-java].
-
 - An interface of our C `blopex_abstract` code to MATLAB (both 32 and 64 bit) is available at `blopex_matlab`. This interface is mainly designed for testing of our C `blopex_abstract` code. For actual computations in MATLAB/OCTAVE, is it instead recommended to use the native MATLAB/OCTAVE code above. 
 
-- `blopex_petsc` and `blopex_hypre` are provided for reference only. 
+- `blopex_petsc` and `blopex_hypre` are provided for reference only.
+
+Alternative MATLAB Implementaion of LOBPCG in BLOPEX
+----------------------------------------------------
+
+- A native MATLAB/Octave code is available at `blopex_tool/matlab/lobpcg`, see also [Matlab Central][matlabcentral1].
+
+Alternative Implementaions of LOBPCG outside of BLOPEX
+------------------------------------------------------
+
+See https://en.wikipedia.org/wiki/LOBPCG#General_software_implementations
+
+Useful tools in BLOPEX
+----------------------
 
 We also provide some useful testing tools in `blopex_tools/matlab`:
 
@@ -40,9 +49,8 @@ We also provide some useful testing tools in `blopex_tools/matlab`:
 
 - `matlab2hypre` converts matrices between HYPRE and MATLAB/OCTAVE. The same code is also available [here][matlabcentral3].
 
-[SLEPc]:     http://slepc.upv.es
-[PETSc]:     http://www.mcs.anl.gov/petsc
-[sparse-eigensolvers-java]:  http://code.google.com/p/sparse-eigensolvers-java/ 
+References for the tools:
+
 [wikipedia1]: http://en.wikipedia.org/wiki/Kronecker_sum_of_discrete_Laplacians
 [wikipedia2]: http://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors_of_the_second_derivative
 [matlabcentral1]:  http://www.mathworks.com/matlabcentral/fileexchange/48-lobpcg-m
