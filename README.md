@@ -79,13 +79,13 @@ HYPRE has an incomplete (as of 2019) implementation of the "true multivector," w
 
 PETSc developers implemented the "true multivector" in PETSc that allows `MatMult`, `MatSolve`, etc., using aggregated communication for distribution of the multivector between the processors and contiguous local structure suitable for high level BLAS; see see section 2.3.4 Blocking inside SLEPc, of the paper [KSPHPDDM and PCHPDDM: Extending PETSc with advanced Krylov methods and robust multilevel overlapping Schwarz preconditioners](https://www.sciencedirect.com/science/article/pii/S0898122121000055). This is independently also implemented in SLEPc.
 
+Finally, for light-weight embedded applications, consider trying https://docs.rs/ndarray-linalg/0.14.1/ndarray_linalg/lobpcg/fn.lobpcg.html in Rust; see https://github.com/rust-ndarray/ndarray-linalg/pull/184 that outperforms BLOPEX 3-7x https://github.com/rust-ndarray/ndarray-linalg/pull/184#issuecomment-606666812 since ndarray-linalg uses optimized matrix multiplication from openblas.
+
 Related Projects
 ----------------
 
 - [HYPRE](http://www.llnl.gov/CASC/hypre).
 - [SLEPc](http://slepc.upv.es) and [PETSc](http://www.mcs.anl.gov/petsc).
-- [sparse-eigensolvers-java](http://code.google.com/p/sparse-eigensolvers-java).
-
 
 References
 ----------
