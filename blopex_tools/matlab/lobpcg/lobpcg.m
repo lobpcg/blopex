@@ -115,7 +115,7 @@ function [blockVectorX,lambda,varargout] = ...
 %
 % The following Example:
 %
-% R=ichol(A,struct('michol','on')); precfun = @(x)R\(R'\x);
+% L=ichol(A,struct('michol','on')); precfun = @(x)L'\(L\x);
 % [blockVectorX,lambda,failureFlag]=lobpcg(randn(n,8),A,[],@(x)precfun(x),1e-5,60,2);
 %
 % computes the same eigenpairs in less then 25 steps, so that failureFlag=0
