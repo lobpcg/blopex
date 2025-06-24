@@ -6,11 +6,11 @@ function [A, lambda, V] = laplacian(varargin)
 %    Dirichlet boundary conditions, from a rectangular cuboid regular grid
 %    with j x k x l interior grid points where N = [j k l], using the
 %    standard 7-point finite-difference scheme,  The grid size is always
-%    one in all directions. 
+%    one in all directions.
 %
-%    A = LAPLACIAN(N,B) specifies boundary conditions with a cell array B. 
+%    A = LAPLACIAN(N,B) specifies boundary conditions with a cell array B.
 %    For example, B = {'DD' 'DN' 'P'} will Dirichlet boundary conditions
-%    ('DD') in the x-direction, Dirichlet-Neumann conditions ('DN') in 
+%    ('DD') in the x-direction, Dirichlet-Neumann conditions ('DN') in
 %    the y-direction and period conditions ('P') in the z-direction.
 %    Possible values for the elements of B are 'DD', 'DN', 'ND', 'NN' and
 %    'P'.
@@ -18,7 +18,7 @@ function [A, lambda, V] = laplacian(varargin)
 %    [A,LAMBDA] = LAPLACIAN(N,B,M) or LAPLACIAN(N,M) in addition outputs
 %    the m smallest eigenvalues of the matrix, computed by an exact known
 %    formula. It will produce a warning if the mth eigenvalue is equal to
-%    the (m+1)th eigenvalue. 
+%    the (m+1)th eigenvalue.
 %
 %    [A,LAMBDA,V] = LAPLACIAN(N,B,M) also outputs orthonormal eigenvectors
 %    associated with the corresponding m smallest eigenvalues.
@@ -28,12 +28,12 @@ function [A, lambda, V] = laplacian(varargin)
 %    It uses the standard 5-point scheme for 2D, and 3-point scheme for 1D.
 %
 %    % Examples:
-%    [A,lambda,V] = laplacian([100,45,55],{'DD' 'NN' 'P'}, 20); 
 %    % 3D negative Laplacian with mixed boundary conditions.
-%    [A,lambda,V] = laplacian([200 200],{'DD' 'DN'},30);
+%    [A,lambda,V] = laplacian([100,45,55],{'DD' 'NN' 'P'}, 20);
 %    % 2D negative Laplacian with mixed boundary conditions.
-%    [A,lambda,V] = laplacian(200,{'DN'},30);
+%    [A,lambda,V] = laplacian([200 200],{'DD' 'DN'},30);
 %    % 1D negative Laplacian with mixed boundary conditions.
+%    [A,lambda,V] = laplacian(200,{'DN'},30);
 %
 %    % Example to test if outputs correct eigenvalues and vectors:
 %    [A,lambda,V] = laplacian([13,10,6],{'DD' 'DN' 'P'},30);
@@ -41,42 +41,43 @@ function [A, lambda, V] = laplacian(varargin)
 %    max(abs(lambda-lambdaeig))  %checking eigenvalues
 %    subspace(V,Veig(:,1:30))    %checking the invariant subspace
 %    subspace(V(:,1),Veig(:,1))  %checking selected eigenvectors
-%    subspace(V(:,29:30),Veig(:,29:30)) %a multiple eigenvalue 
-%    
+%    subspace(V(:,29:30),Veig(:,29:30)) %and for a multiple eigenvalue
+%    norm(V'*V - eye(size(V, 2))) %checking orhonormality of eigenvectors
+%
 %    % Example showing equivalence between laplacian.m and built-in MATLAB
 %    % DELSQ for the 2D case. The output of the last command shall be 0.
 %    A1 = delsq(numgrid('S',32)); % input 'S' specifies square grid.
 %    A2 = laplacian([30,30]);
 %    norm(A1-A2,inf)
-%    
+%
 %    Class support for inputs:
-%    N - row vector float double  
+%    N - row vector float double
 %    B - cell array
-%    M - scalar float double 
+%    M - scalar float double
 %
 %    Class support for outputs:
 %    A - sparse float double,
 %    lambda and V  - full float double.
 %
 %    Note: the actual numerical entries of A fit int8 format, but only
-%    double data class is currently (2010) supported for sparse matrices. 
+%    double data class is yet supported for sparse matrices in MATLAB.
 %
-%    This program is designed to efficiently compute the (1-3)D negative 
-%    Laplacian on a rectangular grid for Dirichlet, Neumann, and Periodic 
+%    This program is designed to efficiently compute the (1-3)D negative
+%    Laplacian on a rectangular grid for Dirichlet, Neumann, and Periodic
 %    boundary conditions using tensor sums of 1D Laplacians. For more
-%    information on tensor products, see 
+%    information on tensor products, see
 %    http://en.wikipedia.org/wiki/Kronecker_sum_of_discrete_Laplacians
-%    For 2D case in MATLAB, see 
+%    For 2D case in MATLAB, see
 %    http://www.mathworks.com/access/helpdesk/help/techdoc/ref/kron.html.
 %
-%    This code is a part of the BLOPEX package: 
-%    http://en.wikipedia.org/wiki/BLOPEX or directly 
-%    http://code.google.com/p/blopex/
+%    This code is a part of the BLOPEX package:
+%    http://en.wikipedia.org/wiki/BLOPEX or directly
+%    https://github.com/lobpcg/blopex/blob/master/blopex_tools/matlab/laplacian/laplacian.m
 
 %    License: BSD
-%    Copyright 2010 Bryan C. Smith, Andrew V. Knyazev
-%    $Revision: 1.0 $ $Date: 17-Apr-2010
-%    Tested in MATLAB 7.10.0.499 (R2010a) and Octave 3.2.3.
+%    Copyright 2025 Bryan C. Smith, Andrew V. Knyazev
+%    $Revision: 1.3 $ $Date: 25-June-2025
+%    Tested in MATLAB 7.10.0.499 (R2010a) and above and Octave 3.2.3.
 
 tic
 
@@ -106,16 +107,16 @@ if dim2(2) > 3
 end
 dim=dim2(2); clear dim2;
 
-uint = round(u); 
-if max(uint~=u)  
-         warning('BLOPEX:laplacian:NonIntegerGridSize',...
-            '%s','Grid sizes must be integers. Rounding...');
-        u = uint; clear uint
-end       
-if max(u<=0 )  
-         error('BLOPEX:laplacian:NonIntegerGridSize',...
-            '%s','Grid sizes must be positive.');
-end 
+uint = round(u);
+if any(uint~=u)
+    warning('BLOPEX:laplacian:NonIntegerGridSize',...
+        '%s','Grid sizes must be integers. Rounding...');
+    u = uint; clear uint
+end
+if any(u<=0 )
+    error('BLOPEX:laplacian:NonIntegerGridSize',...
+        '%s','Grid sizes must be positive.');
+end
 
 if nargin == 3
     m = varargin{3};
@@ -137,7 +138,7 @@ elseif nargin == 2
         m = f;
     else
         error('BLOPEX:laplacian:InvalidClass',...
-        '%s','Second input must be either class double or a cell array.');
+            '%s','Second input must be either class double or a cell array.');
     end
 else
     if dim == 1
@@ -150,24 +151,24 @@ else
     m = 0;
 end
 
-if max(size(m) - [1 1]) ~= 0   
-         error('BLOPEX:laplacian:WrongNumberOfEigenvalues',...
-            '%s','The requested number of eigenvalues must be a scalar.');
-end 
+if max(size(m) - [1 1]) ~= 0
+    error('BLOPEX:laplacian:WrongNumberOfEigenvalues',...
+        '%s','The requested number of eigenvalues must be a scalar.');
+end
 
-maxeigs = prod(u); 
-mint = round(m); 
-if mint ~= m || mint > maxeigs 
+maxeigs = prod(u);
+mint = round(m);
+if mint ~= m || mint > maxeigs
     error('BLOPEX:laplacian:InvalidNumberOfEigs',...
         '%s','Number of eigenvalues output must be a nonnegative ',...
         'integer no bigger than number of grid points.');
-end 
-m = mint; 
+end
+m = mint;
 
 bdryerr = 0;
 a = whos('regep','B');
 if sum(a.class(1:4)=='cell') ~= 4 || sum(a.size == [1 dim]) ~= 2
-        bdryerr = 1;
+    bdryerr = 1;
 else
     BB = zeros(1, 2*dim);
     for i = 1:dim
@@ -208,14 +209,14 @@ end
 
 % Set the component matrices. SPDIAGS converts int8 into double anyway.
 e1 = ones(u(1),1); %e1 = ones(u(1),1,'int8');
-D1x = spdiags([-e1 2*e1 -e1], [-1 0 1], u(1),u(1));  
+D1x = spdiags([-e1 2*e1 -e1], [-1 0 1], u(1),u(1));
 if dim > 1
     e2 = ones(u(2),1);
-    D1y = spdiags([-e2 2*e2 -e2], [-1 0 1], u(2),u(2)); 
+    D1y = spdiags([-e2 2*e2 -e2], [-1 0 1], u(2),u(2));
 end
 if dim > 2
     e3 = ones(u(3),1);
-    D1z = spdiags([-e3 2*e3 -e3], [-1 0 1], u(3),u(3)); 
+    D1z = spdiags([-e3 2*e3 -e3], [-1 0 1], u(3),u(3));
 end
 
 
@@ -227,9 +228,9 @@ for i = 1:dim
         eval(['D1' char(119 + i) '(1,' num2str(u(i)) ') = D1'...
             char(119 + i) '(1,' num2str(u(i)) ') -1;']);
         eval(['D1' char(119 + i) '(' num2str(u(i)) ',1) = D1'...
-             char(119 + i) '(' num2str(u(i)) ',1) -1;']);
+            char(119 + i) '(' num2str(u(i)) ',1) -1;']);
     end
-    
+
     if BB(i+dim) == 2
         eval(['D1' char(119 + i)...
             '(',num2str(u(i)),',',num2str(u(i)),') = 1;'])
@@ -266,7 +267,7 @@ if m > 0
         a1 = pi/u(1);
         N = floor((1:u(1))/2)';
     end
-    
+
     lambda1 = 4*sin(a1*N).^2;
 
     if dim > 1
@@ -277,7 +278,7 @@ if m > 0
             a2 = pi/2/u(2);
             N = (0:(u(2)-1))';
         elseif ((BB(2) == 1) && (BB(2+dim) == 2)) || ((BB(2) == 2)...
-            && (BB(2+dim) == 1))
+                && (BB(2+dim) == 1))
             a2 = pi/4/(u(2)+0.5);
             N = 2*(1:u(2))' - 1;
         else
@@ -308,7 +309,7 @@ if m > 0
     else
         lambda3 = 0;
     end
-    
+
     if dim == 1
         lambda = lambda1;
     elseif dim == 2
@@ -326,7 +327,7 @@ if m > 0
     lambda = lambda(1:m);
     p = p(1:m)';
 else
-   lambda = [];
+    lambda = [];
 end
 
 % Calculate eigenvectors if specified in output.
@@ -336,13 +337,13 @@ elseif nargout == 3
     p1 = mod(p-1,u(1))+1;
 
     if (BB(1) == 1) && (BB(1+dim) == 1)
-        V1 = sin(kron((1:u(1))'*(pi/(u(1)+1)),p1))*(2/(u(1)+1))^0.5;        
+        V1 = sin(kron((1:u(1))'*(pi/(u(1)+1)),p1))*(2/(u(1)+1))^0.5;
     elseif (BB(1) == 2) && (BB(1+dim) == 2)
         V1 = cos(kron((0.5:1:u(1)-0.5)'*(pi/u(1)),p1-1))*(2/u(1))^0.5;
         V1(:,p1==1) = 1/u(1)^0.5;
     elseif ((BB(1) == 1) && (BB(1+dim) == 2))
         V1 = sin(kron((1:u(1))'*(pi/2/(u(1)+0.5)),2*p1 - 1))...
-            *(2/(u(1)+0.5))^0.5; 
+            *(2/(u(1)+0.5))^0.5;
     elseif ((BB(1) == 2) && (BB(1+dim) == 1))
         V1 = cos(kron((0.5:1:u(1)-0.5)'*(pi/2/(u(1)+0.5)),2*p1 - 1))...
             *(2/(u(1)+0.5))^0.5;
@@ -361,8 +362,8 @@ elseif nargout == 3
             V1(:,p1==u(1)) = V1(:,p1==u(1))/2^0.5;
         end
     end
-    
-    
+
+
     if dim > 1
         p2 = mod(p-p1,u(1)*u(2));
         p3 = (p - p2 - p1)/(u(1)*u(2)) + 1;
@@ -423,27 +424,27 @@ elseif nargout == 3
             if mod(u(3),2) == 0
                 V3(:,p3==u(3)) = V3(:,p3==u(3))/2^0.5;
             end
-            
+
         end
     else
         V3 = ones(1,m);
     end
-    
+
     if dim == 1
         V = V1;
     elseif dim == 2
         V = kron(e2,V1).*kron(V2,e1);
     else
         V = kron(e3, kron(e2, V1)).*kron(e3, kron(V2, e1))...
-        .*kron(kron(V3,e2),e1);
+            .*kron(kron(V3,e2),e1);
     end
 end
-        
+
 if m ~= 0
     if abs(lambda(m) - w) < maxeigs*eps('double')
         sprintf('\n%s','Warning: (m+1)th eigenvalue is  nearly equal',...
             ' to mth.')
-        
+
     end
 end
 
@@ -457,3 +458,4 @@ if nargout == 3
 end
 disp('  ')
 
+end
