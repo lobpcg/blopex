@@ -14,6 +14,8 @@ operatorT = @(vectors) preconditioner \ (preconditioner' \ vectors);
 
 rng(0);
 initialVectors = randn(size(operatorA, 1), blockSize);
+fprintf('Solving a %d-by-%d grid for the %d smallest eigenpairs.\n', ...
+    gridSize, gridSize, blockSize);
 [eigenvectors, eigenvalues, failureFlag, ~, residualNormsHistory] = ...
     lobpcg(initialVectors, operatorA, [], operatorT, 1e-8, 100, 0);
 
