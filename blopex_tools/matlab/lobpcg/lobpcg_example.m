@@ -2,7 +2,7 @@
 %
 % Run this script from this folder, or add this folder to the MATLAB path.
 
-gridSize = 20;
+gridSize = 50;
 blockSize = 4;
 oneDimensionalLaplacian = spdiags(...
     [-ones(gridSize, 1), 2 * ones(gridSize, 1), -ones(gridSize, 1)], ...
