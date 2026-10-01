@@ -62,6 +62,11 @@ function [A, lambda, V] = laplacian_nd(varargin)
 %   Unlike LAPLACIAN, this implementation accepts N and B of any positive
 %   length.  Its one-, two-, and three-dimensional results are tested for
 %   equality with LAPLACIAN.
+%
+%   A similar nD Python implementation can be found in
+%   https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.LaplacianNd.html
+%   but is limited to pure Dirichlet, Neumann or Periodic boundary conditions
+%   at both ends of each dimension.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   License:  MIT / Apache-2.0
 %   Copyright (c) 2026 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
