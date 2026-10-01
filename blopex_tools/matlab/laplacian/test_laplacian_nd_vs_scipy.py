@@ -1,35 +1,27 @@
 #!/usr/bin/env python3
-"""
-Test suite comparing MATLAB/Octave laplacian_nd.m with scipy.sparse.linalg.LaplacianNd.
+"""Compare MATLAB/Octave ``laplacian_nd.m`` with SciPy ``LaplacianNd``.
 
-This script tests:
-1. Exact matrix equality:
-   MATLAB: A = laplacian_nd(N, B)
-   SciPy:  lap = LaplacianNd(tuple(reversed(N)), boundary_conditions=bc)
-   Relationship: A == -lap.toarray()
-   (Reversing N accounts for MATLAB column-major vs NumPy row-major grid flattening).
+The dynamic tests invoke ``laplacian_nd`` through GNU Octave or MATLAB and
+compare it with ``scipy.sparse.linalg.LaplacianNd`` for uniform Dirichlet,
+Neumann, and periodic boundaries. They cover:
 
-2. Eigenvalue matching:
-   MATLAB returns M smallest eigenvalues of -Δ (ascending, >= 0).
-   SciPy returns m largest eigenvalues of Δ (ascending, <= 0).
-   Relationship: lambda_matlab == -lap.eigenvalues(M)[::-1]
+* 1D grids of several sizes for each supported boundary condition.
+* 2D grids with distinct axis sizes for each supported boundary condition.
+* Two 3D grids and 4D/5D tensor-product grids.
+* Dense and sparse matrix equality, plus matrix-free ``matvec`` and ``matmat``
+  actions. The SciPy grid shape is reversed to align its C-order indexing with
+  MATLAB/Octave's column-major indexing, and its matrix is negated because the
+  two implementations use opposite Laplacian signs.
+* Smallest eigenvalue equality, eigenvector orthonormality, and eigenpair
+  residuals for both implementations.
+* Permutation similarity when SciPy receives the unreversed grid shape.
+* Pure-boundary entries in ``laplacian_reference.json`` and two SciPy edge
+  cases: one-point periodic grids and anisotropic partial-spectrum requests.
 
-3. Eigenvector residual & orthonormality:
-   Residual: ||A * V - V * diag(lambda)||_F < tol
-   Orthonormality: ||V.T * V - I||_F < tol
-   Eigenspace consistency between SciPy and laplacian_nd.
-
-4. Matrix-free linear operator action:
-   -lap.matvec(x) == A @ x
-   -lap.matmat(X) == A @ X
-
-5. Precomputed reference comparison:
-   Validates against laplacian_reference.json cases with pure boundary conditions.
-
-Can be run directly:
-    python test_laplacian_nd_vs_scipy.py
-or with pytest:
-    pytest test_laplacian_nd_vs_scipy.py
+Set ``OCTAVE_EXECUTABLE`` or ``MATLAB_EXECUTABLE`` to choose a runner; otherwise
+the script searches the PATH and common Windows install locations. Run with
+``python test_laplacian_nd_vs_scipy.py`` or
+``pytest test_laplacian_nd_vs_scipy.py``.
 """
 
 import json
