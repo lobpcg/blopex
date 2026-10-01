@@ -20,6 +20,12 @@ function test_laplacian_reference()
 %
 %   Rebuild the fixture only with GENERATE_LAPLACIAN_REFERENCE when an
 %   intentional behavior change requires new reference values.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   License:  MIT / Apache-2.0
+%   Copyright (c) 2026 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
+%   $Revision: 1.0 $  $Date: 1-November-2026
+%   Tested in GNU Octave Version: 11.3.0 and
+%   MATLAB 26.2 (R2026b)
 testDirectory = fileparts(mfilename('fullpath'));
 fixturePath = fullfile(testDirectory, 'laplacian_reference.json');
 assert(exist(fixturePath, 'file') == 2, ...

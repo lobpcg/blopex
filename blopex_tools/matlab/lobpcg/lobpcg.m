@@ -206,13 +206,11 @@ function [blockVectorX,lambda,varargout] = ...
 % https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.lobpcg.html
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   License:  MIT / Apache-2.0
-%   Copyright (c) 2000-2021 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
-%   $Revision: 4.18 $  $Date: 26-April-2021
-%   This revision is tested in 9.6.0.1114505 (R2019a) Update 2, but is
-%   expected to work on any >R2007b MATLAB.
-%   Revision 4.13 tested in MATLAB 6.5-7.13.
-%   Revision 4.13 tested and available in Octave 3.2.3-3.4.2, see
-%   https://octave.sourceforge.io/linear-algebra/function/lobpcg.html
+%   Copyright (c) 2000-2026 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
+%   $Revision: 4.19 $  $Date: 1-November-2026
+%   This bug-fixing revision is tested in GNU Octave Version: 11.3.0 and
+%   MATLAB with Paralel Computing Toolbx 26.2 (R2026b), but is
+%   expected to work on any post 2008 MATLAB and Octave.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Begin
 % Function gather defined to be identity if nonexistent, before 2016a

@@ -40,6 +40,11 @@
 % The function temporarily prioritizes the sibling lobpcg.m on the MATLAB
 % path and reports the resolved implementation path. It removes only the
 % path entries it adds and leaves caller variables and figures untouched.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   License:  MIT / Apache-2.0
+%   Copyright (c) 2026 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
+%   $Revision: 1.0 $  $Date: 1-November-2026
+%   Tested in MATLAB Paralel Computing Toolbx 26.2 (R2026b)
 function test_lobpcg_input_formats
 parameters = struct('matrixSize', 30, 'blockSize', 2, ...
     'constraintCount', 1, 'generalizedScale', 2, ...

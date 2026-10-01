@@ -4,6 +4,13 @@
 % The codistributed example runs only when Parallel Computing Toolbox is
 % installed and licensed. Examples that intentionally use difficult
 % preconditioners or clustered spectra may not fully converge.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   License:  MIT / Apache-2.0
+%   Copyright (c) 2026 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
+%   $Revision: 1.0 $  $Date: 1-November-2026
+%   Tested in GNU Octave Version: 11.3.0 and
+%   MATLAB with Paralel Computing Toolbx 26.2 (R2026b), but is
+%   expected to work on any post 2008 MATLAB and Octave.
 function lobpcg_examples
 
 previousRngState = rng;

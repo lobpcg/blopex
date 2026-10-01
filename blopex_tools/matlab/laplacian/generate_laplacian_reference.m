@@ -20,6 +20,12 @@ function generate_laplacian_reference()
 %   values.  It requires JSONENCODE support and write permission for this
 %   directory.  Validate a generated fixture with
 %   TEST_LAPLACIAN_REFERENCE.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   License:  MIT / Apache-2.0
+%   Copyright (c) 2026 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
+%   $Revision: 1.0 $  $Date: 1-November-2026
+%   Tested in GNU Octave Version: 11.3.0 and
+%   MATLAB 26.2 (R2026b)
 fixturePath = fullfile(fileparts(mfilename('fullpath')), ...
     'laplacian_reference.json');
 boundaryValues = {'DD', 'DN', 'ND', 'NN', 'P'};
