@@ -62,7 +62,12 @@ function [A, lambda, V] = laplacian_nd(varargin)
 %   Unlike LAPLACIAN, this implementation accepts N and B of any positive
 %   length.  Its one-, two-, and three-dimensional results are tested for
 %   equality with LAPLACIAN.
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   License:  MIT / Apache-2.0
+%   Copyright (c) 2026 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
+%   $Revision: 1.0 $  $Date: 1-November-2026
+%   Tested in GNU Octave Version: 11.3.0 and
+%   MATLAB 26.2 (R2026b)
 if nargin > 3
     error('BLOPEX:laplacian_nd:TooManyInputs', ...
         '%s', 'Too many input arguments.');
