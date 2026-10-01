@@ -287,9 +287,6 @@ for j = 1:nargin-2
             warning('BLOPEX:lobpcg:TooManyStringFunctionHandleInputs',...
                 'Too many string or FunctionHandle input arguments');
         end
-    elseif isequal(size(varargin{j}),[n,n])
-        error('BLOPEX:lobpcg:WrongPreconditionerFormat',...
-            'Preconditioner operatorT must be an M-function');
     elseif max(size(varargin{j})) == 1
         if isempty(residualTolerance)
             residualTolerance = varargin{j};
