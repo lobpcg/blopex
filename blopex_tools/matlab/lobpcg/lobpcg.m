@@ -216,7 +216,7 @@ function [blockVectorX,lambda,varargout] = ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Begin
 % Function gather defined to be identity if nonexistent, before 2016a
-if exist("gather", "file") == 2
+if exist("gather", "file") == 2 || exist("gather", "builtin") == 5
     mygather=@(x)gather(x);
 else
     mygather=@(x)x;
@@ -315,6 +315,8 @@ for j = 1:nargin-2
             ['Input argument number ' int2str(j+2) ' not recognized.']);
     end
 end
+blockVectorX = mygather(blockVectorX);
+blockVectorY = mygather(blockVectorY);
 if verbosityLevel
     if issparse(blockVectorX)
         fprintf(['The sparse initial guess with %i colunms '...
@@ -395,46 +397,46 @@ end
 if constraintStyle == CONVENTIONAL_CONSTRAINTS
     
     if isempty(operatorB)
-        gramY = blockVectorY'*blockVectorY;
+        gramY = mygather(blockVectorY'*blockVectorY);
     else
         if isnumeric(operatorB)
-            blockVectorBY = operatorB*blockVectorY;
+            blockVectorBY = mygather(operatorB*blockVectorY);
         else
-            blockVectorBY = feval(operatorB,blockVectorY);
+            blockVectorBY = mygather(feval(operatorB,blockVectorY));
         end
-        gramY=blockVectorY'*blockVectorBY;
+        gramY=mygather(blockVectorY'*blockVectorBY);
     end
     gramY=(gramY'+gramY)*0.5;
     if isempty(operatorB)
         blockVectorX = blockVectorX - ...
-            blockVectorY*(gramY\(blockVectorY'*blockVectorX));
+            blockVectorY*(gramY\mygather(blockVectorY'*blockVectorX));
     else
         blockVectorX =blockVectorX - ...
-            blockVectorY*(gramY\(blockVectorBY'*blockVectorX));
+            blockVectorY*(gramY\mygather(blockVectorBY'*blockVectorX));
     end
     
 elseif constraintStyle == SYMMETRIC_CONSTRAINTS
     
     if ~isempty(operatorB)
         if isnumeric(operatorB)
-            blockVectorY = operatorB*blockVectorY;
+            blockVectorY = mygather(operatorB*blockVectorY);
         else
-            blockVectorY = feval(operatorB,blockVectorY);
+            blockVectorY = mygather(feval(operatorB,blockVectorY));
         end
     end
     if isempty(operatorT)
-        gramY = blockVectorY'*blockVectorY;
+        gramY = mygather(blockVectorY'*blockVectorY);
     else
         blockVectorTY = feval(operatorT,blockVectorY);
-        gramY = blockVectorY'*blockVectorTY;
+        gramY = mygather(blockVectorY'*blockVectorTY);
     end
     gramY=(gramY'+gramY)*0.5;
     if isempty(operatorT)
         blockVectorX = blockVectorX - ...
-            blockVectorY*(gramY\(blockVectorY'*blockVectorX));
+            blockVectorY*(gramY\mygather(blockVectorY'*blockVectorX));
     else
         blockVectorX = blockVectorX - ...
-            blockVectorTY*(gramY\(blockVectorY'*blockVectorX));
+            blockVectorTY*(gramY\mygather(blockVectorY'*blockVectorX));
     end
     
 end
@@ -454,11 +456,11 @@ if isempty(operatorB)
 else
     %[blockVectorX,blockVectorBX] = orth(operatorB,blockVectorX);
     if isnumeric(operatorB)
-        blockVectorBX = operatorB*blockVectorX;
+        blockVectorBX = mygather(operatorB*blockVectorX);
     else
-        blockVectorBX = feval(operatorB,blockVectorX);
+        blockVectorBX = mygather(feval(operatorB,blockVectorX));
     end
-    gramXBX=blockVectorX'*blockVectorBX;
+    gramXBX=mygather(blockVectorX'*blockVectorBX);
     if ~isreal(gramXBX)
         gramXBX=(gramXBX+gramXBX')*0.5;
     end
@@ -495,11 +497,11 @@ if ~isempty(operatorB)
 end
 %Initial settings for the loop
 if isnumeric(operatorA)
-    blockVectorAX = operatorA*blockVectorX;
+    blockVectorAX = mygather(operatorA*blockVectorX);
 else
-    blockVectorAX = feval(operatorA,blockVectorX);
+    blockVectorAX = mygather(feval(operatorA,blockVectorX));
 end
-gramXAX = full(blockVectorX'*blockVectorAX);
+gramXAX = mygather(full(blockVectorX'*blockVectorAX));
 gramXAX = (gramXAX + gramXAX')*0.5;
 % eig(...,'chol') uses only the diagonal and upper triangle -
 % not true in MATLAB
@@ -573,16 +575,16 @@ for iterationNumber=1:maxIterations
     if constraintStyle == SYMMETRIC_CONSTRAINTS
         if isempty(operatorT)
             blockVectorR(:,activeMask) = blockVectorR(:,activeMask) - ...
-                blockVectorY*(gramY\(blockVectorY'*...
+                blockVectorY*(gramY\mygather(blockVectorY'*...
                 blockVectorR(:,activeMask)));
         else
             blockVectorR(:,activeMask) = blockVectorR(:,activeMask) - ...
-                blockVectorY*(gramY\(blockVectorTY'*...
+                blockVectorY*(gramY\mygather(blockVectorTY'*...
                 blockVectorR(:,activeMask)));
         end
     end
     
-    residualNorms = full(sqrt(sum(conj(blockVectorR).*blockVectorR)'));
+    residualNorms = mygather(full(sqrt(sum(conj(blockVectorR).*blockVectorR)')));
     residualNormsHistory(1:blockSize,iterationNumber) = ...
         mygather(residualNorms);
     
@@ -607,11 +609,11 @@ for iterationNumber=1:maxIterations
     if constraintStyle == CONVENTIONAL_CONSTRAINTS
         if isempty(operatorB)
             blockVectorR(:,activeMask) = blockVectorR(:,activeMask) - ...
-                blockVectorY*(gramY\(blockVectorY'*...
+                blockVectorY*(gramY\mygather(blockVectorY'*...
                 blockVectorR(:,activeMask)));
         else
             blockVectorR(:,activeMask) = blockVectorR(:,activeMask) - ...
-                blockVectorY*(gramY\(blockVectorBY'*...
+                blockVectorY*(gramY\mygather(blockVectorBY'*...
                 blockVectorR(:,activeMask)));
         end
     end
@@ -619,17 +621,17 @@ for iterationNumber=1:maxIterations
     %Making active (preconditioned) residuals orthogonal to blockVectorX
     if isempty(operatorB)
         blockVectorR(:,activeMask) = blockVectorR(:,activeMask) - ...
-            blockVectorX*(blockVectorX'*blockVectorR(:,activeMask));
+            blockVectorX*mygather(blockVectorX'*blockVectorR(:,activeMask));
     else
         blockVectorR(:,activeMask) = blockVectorR(:,activeMask) - ...
-            blockVectorX*(blockVectorBX'*blockVectorR(:,activeMask));
+            blockVectorX*mygather(blockVectorBX'*blockVectorR(:,activeMask));
     end
     
     %Making active residuals orthonormal
     if isempty(operatorB)
         %[blockVectorR(:,activeMask),gramRBR]=...
         %qr(blockVectorR(:,activeMask),0); %to increase stability
-        gramRBR=blockVectorR(:,activeMask)'*blockVectorR(:,activeMask);
+        gramRBR=mygather(blockVectorR(:,activeMask)'*blockVectorR(:,activeMask));
         if ~isreal(gramRBR)
             gramRBR=(gramRBR+gramRBR')*0.5;
         end
@@ -644,12 +646,12 @@ for iterationNumber=1:maxIterations
     else
         if isnumeric(operatorB)
             blockVectorBR(:,activeMask) = ...
-                operatorB*blockVectorR(:,activeMask);
+                mygather(operatorB*blockVectorR(:,activeMask));
         else
             blockVectorBR(:,activeMask) = ...
-                feval(operatorB,blockVectorR(:,activeMask));
+                mygather(feval(operatorB,blockVectorR(:,activeMask)));
         end
-        gramRBR=blockVectorR(:,activeMask)'*blockVectorBR(:,activeMask);
+        gramRBR=mygather(blockVectorR(:,activeMask)'*blockVectorBR(:,activeMask));
         if ~isreal(gramRBR)
             gramRBR=(gramRBR+gramRBR')*0.5;
         end
@@ -704,23 +706,23 @@ for iterationNumber=1:maxIterations
         restart=0;
     end
     
-    gramXAR=full(blockVectorAX'*blockVectorR(:,activeMask));
-    gramRAR=full(blockVectorAR(:,activeMask)'*blockVectorR(:,activeMask));
+    gramXAR=mygather(full(blockVectorAX'*blockVectorR(:,activeMask)));
+    gramRAR=mygather(full(blockVectorAR(:,activeMask)'*blockVectorR(:,activeMask)));
     gramRAR=(gramRAR'+gramRAR)*0.5;
     
     if explicitGramFlag
-        gramXAX=full(blockVectorAX'*blockVectorX);
+        gramXAX=mygather(full(blockVectorAX'*blockVectorX));
         gramXAX=(gramXAX'+gramXAX)*0.5;
         if isempty(operatorB)
-            gramXBX=full(blockVectorX'*blockVectorX);
-            gramRBR=full(blockVectorR(:,activeMask)'*...
-                blockVectorR(:,activeMask));
-            gramXBR=full(blockVectorX'*blockVectorR(:,activeMask));
+            gramXBX=mygather(full(blockVectorX'*blockVectorX));
+            gramRBR=mygather(full(blockVectorR(:,activeMask)'*...
+                blockVectorR(:,activeMask)));
+            gramXBR=mygather(full(blockVectorX'*blockVectorR(:,activeMask)));
         else
-            gramXBX=full(blockVectorBX'*blockVectorX);
-            gramRBR=full(blockVectorBR(:,activeMask)'*...
-                blockVectorR(:,activeMask));
-            gramXBR=full(blockVectorBX'*blockVectorR(:,activeMask));
+            gramXBX=mygather(full(blockVectorBX'*blockVectorX));
+            gramRBR=mygather(full(blockVectorBR(:,activeMask)'*...
+                blockVectorR(:,activeMask)));
+            gramXBR=mygather(full(blockVectorBX'*blockVectorR(:,activeMask)));
         end
         gramXBX=(gramXBX'+gramXBX)*0.5;
         gramRBR=(gramRBR'+gramRBR)*0.5;
@@ -731,7 +733,7 @@ for iterationNumber=1:maxIterations
         %Making active conjugate directions orthonormal
         if isempty(operatorB)
             %[blockVectorP(:,activeMask),gramPBP] = qr(blockVectorP(:,activeMask),0);
-            gramPBP=blockVectorP(:,activeMask)'*blockVectorP(:,activeMask);
+            gramPBP=mygather(blockVectorP(:,activeMask)'*blockVectorP(:,activeMask));
             if ~isreal(gramPBP)
                 gramPBP=(gramPBP+gramPBP')*0.5;
             end
@@ -748,7 +750,7 @@ for iterationNumber=1:maxIterations
                 restart = 1;
             end
         else
-            gramPBP=blockVectorP(:,activeMask)'*blockVectorBP(:,activeMask);
+            gramPBP=mygather(blockVectorP(:,activeMask)'*blockVectorBP(:,activeMask));
             if ~isreal(gramPBP)
                 gramPBP=(gramPBP+gramPBP')*0.5;
             end
@@ -774,11 +776,11 @@ for iterationNumber=1:maxIterations
     for cond_try=1:2           %cond_try == 2 when restart
         
         if ~restart
-            gramXAP=full(blockVectorAX'*blockVectorP(:,activeMask));
-            gramRAP=full(blockVectorAR(:,activeMask)'*...
-                blockVectorP(:,activeMask));
-            gramPAP=full(blockVectorAP(:,activeMask)'*...
-                blockVectorP(:,activeMask));
+            gramXAP=mygather(full(blockVectorAX'*blockVectorP(:,activeMask)));
+            gramRAP=mygather(full(blockVectorAR(:,activeMask)'*...
+                blockVectorP(:,activeMask)));
+            gramPAP=mygather(full(blockVectorAP(:,activeMask)'*...
+                blockVectorP(:,activeMask)));
             gramPAP=(gramPAP'+gramPAP)*0.5;
             
             if explicitGramFlag
@@ -794,23 +796,23 @@ for iterationNumber=1:maxIterations
             clear gramXAP  gramRAP gramPAP
             
             if isempty(operatorB)
-                gramXBP=full(blockVectorX'*blockVectorP(:,activeMask));
-                gramRBP=full(blockVectorR(:,activeMask)'*...
-                    blockVectorP(:,activeMask));
+                gramXBP=mygather(full(blockVectorX'*blockVectorP(:,activeMask)));
+                gramRBP=mygather(full(blockVectorR(:,activeMask)'*...
+                    blockVectorP(:,activeMask)));
             else
-                gramXBP=full(blockVectorBX'*blockVectorP(:,activeMask));
-                gramRBP=full(blockVectorBR(:,activeMask)'*...
-                    blockVectorP(:,activeMask));
+                gramXBP=mygather(full(blockVectorBX'*blockVectorP(:,activeMask)));
+                gramRBP=mygather(full(blockVectorBR(:,activeMask)'*...
+                    blockVectorP(:,activeMask)));
                 %or blockVectorR(:,activeMask)'*blockVectorBP(:,activeMask);
             end
             
             if explicitGramFlag
                 if isempty(operatorB)
-                    gramPBP=full(blockVectorP(:,activeMask)'*...
-                        blockVectorP(:,activeMask));
+                    gramPBP=mygather(full(blockVectorP(:,activeMask)'*...
+                        blockVectorP(:,activeMask)));
                 else
-                    gramPBP=full(blockVectorBP(:,activeMask)'*...
-                        blockVectorP(:,activeMask));
+                    gramPBP=mygather(full(blockVectorBP(:,activeMask)'*...
+                        blockVectorP(:,activeMask)));
                 end
                 gramPBP=(gramPBP'+gramPBP)*0.5;
                 gramB = [ gramXBX  gramXBR  gramXBP
@@ -923,22 +925,22 @@ end
 %Making sure blockVectorX's "exactly" satisfy the blockVectorY constrains??
 %Making sure blockVectorX's are "exactly" othonormalized by final "exact" RR
 if isempty(operatorB)
-    gramXBX=full(blockVectorX'*blockVectorX);
+    gramXBX=mygather(full(blockVectorX'*blockVectorX));
 else
     if isnumeric(operatorB)
-        blockVectorBX = operatorB*blockVectorX;
+        blockVectorBX = mygather(operatorB*blockVectorX);
     else
-        blockVectorBX = feval(operatorB,blockVectorX);
+        blockVectorBX = mygather(feval(operatorB,blockVectorX));
     end
-    gramXBX = full(blockVectorX'*blockVectorBX);
+    gramXBX = mygather(full(blockVectorX'*blockVectorBX));
 end
 gramXBX=(gramXBX'+gramXBX)*0.5;
 if isnumeric(operatorA)
-    blockVectorAX = operatorA*blockVectorX;
+    blockVectorAX = mygather(operatorA*blockVectorX);
 else
-    blockVectorAX = feval(operatorA,blockVectorX);
+    blockVectorAX = mygather(feval(operatorA,blockVectorX));
 end
-gramXAX = full(blockVectorX'*blockVectorAX);
+gramXAX = mygather(full(blockVectorX'*blockVectorAX));
 gramXAX = (gramXAX + gramXAX')*0.5;
 %Raileigh-Ritz for blockVectorX, which is already operatorB-orthonormal
 [coordX,gramXBX] = eig(gramXAX,gramXBX);
@@ -971,7 +973,7 @@ else
     blockVectorR = blockVectorAX - ...
         bsxfun(@times,blockVectorBX,lambda');
 end
-residualNorms=full(sqrt(sum(conj(blockVectorR).*blockVectorR)'));
+residualNorms=mygather(full(sqrt(sum(conj(blockVectorR).*blockVectorR)')));
 residualNormsHistory(1:blockSize,iterationNumber) = ...
     mygather(residualNorms);
 if verbosityLevel
