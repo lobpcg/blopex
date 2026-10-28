@@ -1,0 +1,313 @@
+{
+  "schemaVersion": 1,
+  "benchmarkName": "LOBPCG attainable-accuracy comparison",
+  "generatedAt": "20261004T192640",
+  "matlabVersion": "26.2.0.3386108 (R2026b)",
+  "residualTolerance": 0,
+  "cases": [
+    {
+      "precision": "double",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 4,
+      "preconditioner": "unpreconditioned",
+      "maxIterations": 1000,
+      "iterationCount": 1000,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 2.0816681711721685E-17,
+      "maxRelativeEigenvalueError": 8.9677477546297389E-16,
+      "eigenvectorSubspaceError": 1.7446569952950415E-11,
+      "relativeResidual": 1.2624182854214162E-9,
+      "orthogonalityError": 2.1044078920246957E-15
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 4,
+      "preconditioner": "modified incomplete-Cholesky",
+      "maxIterations": 400,
+      "iterationCount": 400,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 2.7755575615628914E-17,
+      "maxRelativeEigenvalueError": 1.2197885634547859E-15,
+      "eigenvectorSubspaceError": 1.4521344592252583E-14,
+      "relativeResidual": 5.0449622056854109E-13,
+      "orthogonalityError": 1.293193511518514E-15
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 4,
+      "preconditioner": "unpreconditioned",
+      "maxIterations": 1000,
+      "iterationCount": 1000,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 7.4676494189740428E-9,
+      "maxRelativeEigenvalueError": 3.2170351277291937E-7,
+      "eigenvectorSubspaceError": 2.1887533753408728E-6,
+      "relativeResidual": 0.00044281116183962117,
+      "orthogonalityError": 6.3767002846339125E-7
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 4,
+      "preconditioner": "modified incomplete-Cholesky",
+      "maxIterations": 400,
+      "iterationCount": 400,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 4.1241457870294651E-9,
+      "maxRelativeEigenvalueError": 3.6212366844765621E-7,
+      "eigenvectorSubspaceError": 1.2206550247621303E-6,
+      "relativeResidual": 0.00024575854319033955,
+      "orthogonalityError": 3.7171040365501435E-7
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 19,
+      "preconditioner": "unpreconditioned",
+      "maxIterations": 1000,
+      "iterationCount": 1000,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 3.4694469519536142E-17,
+      "maxRelativeEigenvalueError": 8.02683749521721E-16,
+      "eigenvectorSubspaceError": 3.0547273994754144E-12,
+      "relativeResidual": 5.7647058141417464E-11,
+      "orthogonalityError": 5.9181233097933108E-15
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 19,
+      "preconditioner": "modified incomplete-Cholesky",
+      "maxIterations": 400,
+      "iterationCount": 400,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 1.5265566588595902E-16,
+      "maxRelativeEigenvalueError": 2.3968634201164621E-15,
+      "eigenvectorSubspaceError": 7.6230559819924015E-14,
+      "relativeResidual": 4.3985450181187215E-13,
+      "orthogonalityError": 5.4400697038449255E-15
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 19,
+      "preconditioner": "unpreconditioned",
+      "maxIterations": 1000,
+      "iterationCount": 1000,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 1.6430057592220493E-8,
+      "maxRelativeEigenvalueError": 7.009574010312842E-7,
+      "eigenvectorSubspaceError": 0.00021396644358947711,
+      "relativeResidual": 0.0006549499550927816,
+      "orthogonalityError": 2.7081382610681512E-6
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 19,
+      "preconditioner": "modified incomplete-Cholesky",
+      "maxIterations": 400,
+      "iterationCount": 400,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 2.8872363964926873E-8,
+      "maxRelativeEigenvalueError": 8.3498096691871453E-7,
+      "eigenvectorSubspaceError": 1.7166671194099854E-6,
+      "relativeResidual": 0.00020252363764470581,
+      "orthogonalityError": 2.2768064099562128E-6
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 4,
+      "preconditioner": "unpreconditioned",
+      "maxIterations": 1000,
+      "iterationCount": 1000,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 2.0816681711721685E-17,
+      "maxRelativeEigenvalueError": 9.15193337447315E-16,
+      "eigenvectorSubspaceError": 6.4581358967908409E-15,
+      "relativeResidual": 1.0426946159508894E-12,
+      "orthogonalityError": 1.3735642592057957E-15
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 4,
+      "preconditioner": "modified incomplete-Cholesky",
+      "maxIterations": 400,
+      "iterationCount": 400,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 6.9388939039072284E-18,
+      "maxRelativeEigenvalueError": 4.5730736523979322E-16,
+      "eigenvectorSubspaceError": 1.2617139989459141E-14,
+      "relativeResidual": 5.3468659689575017E-13,
+      "orthogonalityError": 9.838941047492185E-16
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 4,
+      "preconditioner": "unpreconditioned",
+      "maxIterations": 1000,
+      "iterationCount": 1000,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 7.9957310217260158E-9,
+      "maxRelativeEigenvalueError": 3.626675849672792E-7,
+      "eigenvectorSubspaceError": 2.3135363186312913E-6,
+      "relativeResidual": 0.00043439898546516673,
+      "orthogonalityError": 7.1218029232290539E-7
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 4,
+      "preconditioner": "modified incomplete-Cholesky",
+      "maxIterations": 400,
+      "iterationCount": 400,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 6.9054301686521935E-9,
+      "maxRelativeEigenvalueError": 3.0359323210478592E-7,
+      "eigenvectorSubspaceError": 1.2769891573384434E-6,
+      "relativeResidual": 0.00025425340825654486,
+      "orthogonalityError": 7.7878392289378692E-7
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 19,
+      "preconditioner": "unpreconditioned",
+      "maxIterations": 1000,
+      "iterationCount": 1000,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 5.5511151231257827E-17,
+      "maxRelativeEigenvalueError": 1.3331052776975818E-15,
+      "eigenvectorSubspaceError": 3.3772143200978046E-13,
+      "relativeResidual": 9.199670896243618E-12,
+      "orthogonalityError": 3.5542871663733951E-15
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 19,
+      "preconditioner": "modified incomplete-Cholesky",
+      "maxIterations": 400,
+      "iterationCount": 400,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 9.0205620750793969E-17,
+      "maxRelativeEigenvalueError": 1.7017962125833827E-15,
+      "eigenvectorSubspaceError": 5.9295106639557753E-14,
+      "relativeResidual": 4.6112016007003432E-13,
+      "orthogonalityError": 4.0290482515874064E-15
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 19,
+      "preconditioner": "unpreconditioned",
+      "maxIterations": 1000,
+      "iterationCount": 1000,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 3.7190068122305853E-8,
+      "maxRelativeEigenvalueError": 9.467458669826135E-7,
+      "eigenvectorSubspaceError": 8.0012190382263454E-6,
+      "relativeResidual": 0.00046115008800845747,
+      "orthogonalityError": 1.7035050141141545E-6
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 19,
+      "preconditioner": "modified incomplete-Cholesky",
+      "maxIterations": 400,
+      "iterationCount": 400,
+      "failureFlag": 1,
+      "residualTolerance": 0,
+      "maxAbsoluteEigenvalueError": 3.7190068122305853E-8,
+      "maxRelativeEigenvalueError": 7.0161833098078907E-7,
+      "eigenvectorSubspaceError": 1.7988681940134751E-6,
+      "relativeResidual": 0.00020925138644166234,
+      "orthogonalityError": 1.4207271950595452E-6
+    }
+  ]
+}

@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "20261005T113301",
+  "matlabVersion": "10.2.0",
+  "comparisons": [
+    {
+      "precision": "double",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 4,
+      "preconditioner": "unpreconditioned",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 0,
+      "maxRelativeEigenvalueErrorDelta": 0,
+      "eigenvectorSubspaceErrorDelta": -1.2245877744348528e-11,
+      "relativeResidualDelta": -1.0710835613795162e-9,
+      "orthogonalityErrorDelta": 1.5803171024502144e-15
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 4,
+      "preconditioner": "modified incomplete-Cholesky",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 0,
+      "maxRelativeEigenvalueErrorDelta": 0,
+      "eigenvectorSubspaceErrorDelta": 3.0122436975573345e-15,
+      "relativeResidualDelta": 2.4414374801302267e-14,
+      "orthogonalityErrorDelta": 0
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 4,
+      "preconditioner": "unpreconditioned",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 1.1675564487445556e-8,
+      "maxRelativeEigenvalueErrorDelta": 5.195931590810303e-7,
+      "eigenvectorSubspaceErrorDelta": 0.000005929697080148275,
+      "relativeResidualDelta": 0.002034142490249966,
+      "orthogonalityErrorDelta": -1.0596531833062608e-7
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 4,
+      "preconditioner": "modified incomplete-Cholesky",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 1.4467208386131922e-9,
+      "maxRelativeEigenvalueErrorDelta": 0,
+      "eigenvectorSubspaceErrorDelta": -3.894053606306207e-8,
+      "relativeResidualDelta": 5.031847714465207e-7,
+      "orthogonalityErrorDelta": 2.0020743415636936e-8
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 19,
+      "preconditioner": "unpreconditioned",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 0,
+      "maxRelativeEigenvalueErrorDelta": 1.2570823762034135e-15,
+      "eigenvectorSubspaceErrorDelta": -2.0093524976790083e-12,
+      "relativeResidualDelta": -5.069545509193113e-11,
+      "orthogonalityErrorDelta": 3.2144572667365886e-16
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 19,
+      "preconditioner": "modified incomplete-Cholesky",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 0,
+      "maxRelativeEigenvalueErrorDelta": -1.2033404717927857e-15,
+      "eigenvectorSubspaceErrorDelta": 8.25572454660959e-14,
+      "relativeResidualDelta": 1.2951927602281355e-13,
+      "orthogonalityErrorDelta": 0
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 19,
+      "preconditioner": "unpreconditioned",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 2.9732766110290855e-8,
+      "maxRelativeEigenvalueErrorDelta": 4.677737700772358e-7,
+      "eigenvectorSubspaceErrorDelta": -0.00020102070227315065,
+      "relativeResidualDelta": -0.0002973210342822015,
+      "orthogonalityErrorDelta": 1.763268645509339e-7
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 19,
+      "preconditioner": "modified incomplete-Cholesky",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": -5.81559946033483e-10,
+      "maxRelativeEigenvalueErrorDelta": 4.813395044831477e-9,
+      "eigenvectorSubspaceErrorDelta": 1.317996608805621e-7,
+      "relativeResidualDelta": 0.00001978629462109799,
+      "orthogonalityErrorDelta": 2.498081586732365e-7
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 4,
+      "preconditioner": "unpreconditioned",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 0,
+      "maxRelativeEigenvalueErrorDelta": 7.616003350985935e-16,
+      "eigenvectorSubspaceErrorDelta": 3.957870645282906e-13,
+      "relativeResidualDelta": 2.9082848026977189e-11,
+      "orthogonalityErrorDelta": -2.9749441289660736e-16
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 4,
+      "preconditioner": "modified incomplete-Cholesky",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 0,
+      "maxRelativeEigenvalueErrorDelta": 1.2205470867469507e-15,
+      "eigenvectorSubspaceErrorDelta": 2.283196873657337e-16,
+      "relativeResidualDelta": -2.0003059557999338e-14,
+      "orthogonalityErrorDelta": 7.899255661428404e-16
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 4,
+      "preconditioner": "unpreconditioned",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 7.450580596923828e-9,
+      "maxRelativeEigenvalueErrorDelta": 7.477549635090708e-7,
+      "eigenvectorSubspaceErrorDelta": -9.950346478474885e-8,
+      "relativeResidualDelta": 0.00007180977685199456,
+      "orthogonalityErrorDelta": -2.6788662046462747e-7
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 4,
+      "preconditioner": "modified incomplete-Cholesky",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 6.678236300766694e-9,
+      "maxRelativeEigenvalueErrorDelta": 2.936047854792793e-7,
+      "eigenvectorSubspaceErrorDelta": -2.4620291072047379e-7,
+      "relativeResidualDelta": -0.000011301219313340674,
+      "orthogonalityErrorDelta": -3.995549280024648e-7
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 19,
+      "preconditioner": "unpreconditioned",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 0,
+      "maxRelativeEigenvalueErrorDelta": 0,
+      "eigenvectorSubspaceErrorDelta": 9.678017649086677e-12,
+      "relativeResidualDelta": 4.302616906792546e-10,
+      "orthogonalityErrorDelta": 9.89988943979757e-16
+    },
+    {
+      "precision": "double",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 19,
+      "preconditioner": "modified incomplete-Cholesky",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 0,
+      "maxRelativeEigenvalueErrorDelta": 7.854444058077149e-16,
+      "eigenvectorSubspaceErrorDelta": 2.258515721053014e-14,
+      "relativeResidualDelta": 2.0292230592139153e-13,
+      "orthogonalityErrorDelta": 1.6719350380346204e-15
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 19,
+      "preconditioner": "unpreconditioned",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 2.9802322387695307e-8,
+      "maxRelativeEigenvalueErrorDelta": 7.253351699345582e-7,
+      "eigenvectorSubspaceErrorDelta": -0.0000022720704928964726,
+      "relativeResidualDelta": 0.00013510309598534155,
+      "orthogonalityErrorDelta": 4.5489070611553768e-7
+    },
+    {
+      "precision": "single",
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 19,
+      "preconditioner": "modified incomplete-Cholesky",
+      "referenceFound": true,
+      "maxAbsoluteEigenvalueErrorDelta": 1.0228843647097634e-8,
+      "maxRelativeEigenvalueErrorDelta": 3.037106170703837e-7,
+      "eigenvectorSubspaceErrorDelta": -1.574856965616133e-7,
+      "relativeResidualDelta": -0.000010277749665292107,
+      "orthogonalityErrorDelta": 7.716268096081784e-7
+    }
+  ],
+  "referenceOnly": []
+}

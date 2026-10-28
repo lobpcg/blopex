@@ -1,0 +1,301 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "20261003T174220",
+  "referenceGeneratedAt": "20261003T144915",
+  "matlabVersion": "26.2.0.3386108 (R2026b)",
+  "comparisons": [
+    {
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 4,
+      "referenceFound": true,
+      "unpreconditioned": {
+        "status": "matched",
+        "current": {
+          "iterationLimit": 2000,
+          "iterations": 367,
+          "failureFlag": 0,
+          "solverSeconds": 18.6920858,
+          "maxEigenvalueError": 2.9143354396410359E-16,
+          "eigenvectorSubspaceError": 6.857866469944678E-8,
+          "relativeResidual": 3.2397695489541783E-7,
+          "orthogonalityError": 1.4702192865383574E-15
+        },
+        "reference": {
+          "iterationLimit": 2000,
+          "iterations": 377,
+          "failureFlag": 0,
+          "solverSeconds": 28.775813102722168,
+          "maxEigenvalueError": 3.9898639947466563E-16,
+          "eigenvectorSubspaceError": 7.7439968692807319E-8,
+          "relativeResidual": 2.8950354262516678E-7,
+          "orthogonalityError": 1.8350836375831495E-15
+        },
+        "delta": {
+          "iterations": -10,
+          "solverSeconds": -10.083727302722167,
+          "maxEigenvalueError": -1.0755285551056204E-16,
+          "eigenvectorSubspaceError": -8.8613039933605389E-9,
+          "relativeResidual": 3.4473412270251056E-8,
+          "orthogonalityError": -3.64864351044792E-16,
+          "failureFlagChanged": false
+        }
+      },
+      "modifiedIncompleteCholesky": {
+        "status": "matched",
+        "current": {
+          "iterationLimit": 400,
+          "iterations": 55,
+          "failureFlag": 0,
+          "solverSeconds": 3.1220557,
+          "maxEigenvalueError": 7.28583859910259E-17,
+          "eigenvectorSubspaceError": 3.3052115829540404E-8,
+          "relativeResidual": 3.6783124513662255E-7,
+          "orthogonalityError": 9.8885169906345346E-16
+        },
+        "reference": {
+          "iterationLimit": 400,
+          "iterations": 60,
+          "failureFlag": 0,
+          "solverSeconds": 5.4678289890289307,
+          "maxEigenvalueError": 0,
+          "eigenvectorSubspaceError": 3.219988404696756E-8,
+          "relativeResidual": 3.4992533208597227E-7,
+          "orthogonalityError": 1.2287150155222739E-15
+        },
+        "delta": {
+          "iterations": -5,
+          "solverSeconds": -2.3457732890289305,
+          "maxEigenvalueError": 7.28583859910259E-17,
+          "eigenvectorSubspaceError": 8.522317825728441E-10,
+          "relativeResidual": 1.7905913050650271E-8,
+          "orthogonalityError": -2.3986331645882047E-16,
+          "failureFlagChanged": false
+        }
+      }
+    },
+    {
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "blockSize": 19,
+      "referenceFound": true,
+      "unpreconditioned": {
+        "status": "matched",
+        "current": {
+          "iterationLimit": 2000,
+          "iterations": 1686,
+          "failureFlag": 0,
+          "solverSeconds": 150.4557291,
+          "maxEigenvalueError": 9.6866958898544908E-15,
+          "eigenvectorSubspaceError": 7.8516756460000477E-7,
+          "relativeResidual": 8.02866561244936E-8,
+          "orthogonalityError": 4.2604701850227164E-15
+        },
+        "reference": {
+          "iterationLimit": 2000,
+          "iterations": 788,
+          "failureFlag": 0,
+          "solverSeconds": 142.88266706466675,
+          "maxEigenvalueError": 8.8817841970012523E-16,
+          "eigenvectorSubspaceError": 1.6446606215129859E-7,
+          "relativeResidual": 1.0978895568116513E-7,
+          "orthogonalityError": 5.9917165532478943E-15
+        },
+        "delta": {
+          "iterations": 898,
+          "solverSeconds": 7.5730620353332654,
+          "maxEigenvalueError": 8.7985174701543656E-15,
+          "eigenvectorSubspaceError": 6.2070150244870616E-7,
+          "relativeResidual": -2.950229955667153E-8,
+          "orthogonalityError": -1.7312463682251779E-15,
+          "failureFlagChanged": false
+        }
+      },
+      "modifiedIncompleteCholesky": {
+        "status": "matched",
+        "current": {
+          "iterationLimit": 400,
+          "iterations": 185,
+          "failureFlag": 0,
+          "solverSeconds": 22.9719845,
+          "maxEigenvalueError": 6.6613381477509392E-16,
+          "eigenvectorSubspaceError": 1.9853374177758383E-7,
+          "relativeResidual": 1.1122206847502911E-7,
+          "orthogonalityError": 4.3388872582168741E-15
+        },
+        "reference": {
+          "iterationLimit": 400,
+          "iterations": 180,
+          "failureFlag": 0,
+          "solverSeconds": 39.050472974777222,
+          "maxEigenvalueError": 4.163336342344337E-16,
+          "eigenvectorSubspaceError": 1.3768253467138018E-7,
+          "relativeResidual": 1.0301813602506627E-7,
+          "orthogonalityError": 6.0710102147870493E-15
+        },
+        "delta": {
+          "iterations": 5,
+          "solverSeconds": -16.07848847477722,
+          "maxEigenvalueError": 2.4980018054066022E-16,
+          "eigenvectorSubspaceError": 6.0851207106203641E-8,
+          "relativeResidual": 8.2039324499628441E-9,
+          "orthogonalityError": -1.7321229565701753E-15,
+          "failureFlagChanged": false
+        }
+      }
+    },
+    {
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 4,
+      "referenceFound": true,
+      "unpreconditioned": {
+        "status": "matched",
+        "current": {
+          "iterationLimit": 2000,
+          "iterations": 487,
+          "failureFlag": 0,
+          "solverSeconds": 20.2705591,
+          "maxEigenvalueError": 1.922767500772693E-14,
+          "eigenvectorSubspaceError": 3.9420061859019296E-7,
+          "relativeResidual": 1.7047205596029946E-6,
+          "orthogonalityError": 1.6375228659153351E-15
+        },
+        "reference": {
+          "iterationLimit": 2000,
+          "iterations": 562,
+          "failureFlag": 0,
+          "solverSeconds": 41.730037927627563,
+          "maxEigenvalueError": 4.5449755070592346E-16,
+          "eigenvectorSubspaceError": 8.91767504670294E-8,
+          "relativeResidual": 2.8542046303574544E-7,
+          "orthogonalityError": 1.6892420850393295E-15
+        },
+        "delta": {
+          "iterations": -75,
+          "solverSeconds": -21.459478827627564,
+          "maxEigenvalueError": 1.8773177457021006E-14,
+          "eigenvectorSubspaceError": 3.0502386812316358E-7,
+          "relativeResidual": 1.4193000965672491E-6,
+          "orthogonalityError": -5.1719219123994343E-17,
+          "failureFlagChanged": false
+        }
+      },
+      "modifiedIncompleteCholesky": {
+        "status": "matched",
+        "current": {
+          "iterationLimit": 400,
+          "iterations": 55,
+          "failureFlag": 0,
+          "solverSeconds": 2.9423722,
+          "maxEigenvalueError": 6.0368376963992887E-16,
+          "eigenvectorSubspaceError": 8.10392847010389E-8,
+          "relativeResidual": 6.6914016948509206E-7,
+          "orthogonalityError": 1.3086538367782502E-15
+        },
+        "reference": {
+          "iterationLimit": 400,
+          "iterations": 67,
+          "failureFlag": 0,
+          "solverSeconds": 5.3128650188446045,
+          "maxEigenvalueError": 0,
+          "eigenvectorSubspaceError": 3.0026663256064634E-8,
+          "relativeResidual": 3.8757160925160948E-7,
+          "orthogonalityError": 1.2692317569790465E-15
+        },
+        "delta": {
+          "iterations": -12,
+          "solverSeconds": -2.3704928188446046,
+          "maxEigenvalueError": 6.0368376963992887E-16,
+          "eigenvectorSubspaceError": 5.101262144497427E-8,
+          "relativeResidual": 2.8156856023348258E-7,
+          "orthogonalityError": 3.9422079799203718E-17,
+          "failureFlagChanged": false
+        }
+      }
+    },
+    {
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "blockSize": 19,
+      "referenceFound": true,
+      "unpreconditioned": {
+        "status": "matched",
+        "current": {
+          "iterationLimit": 2000,
+          "iterations": 562,
+          "failureFlag": 0,
+          "solverSeconds": 79.346722,
+          "maxEigenvalueError": 1.4918621893400541E-15,
+          "eigenvectorSubspaceError": 8.8227306292981574E-8,
+          "relativeResidual": 1.5986262270791367E-7,
+          "orthogonalityError": 3.4912555876887518E-15
+        },
+        "reference": {
+          "iterationLimit": 2000,
+          "iterations": 567,
+          "failureFlag": 0,
+          "solverSeconds": 126.18998003005981,
+          "maxEigenvalueError": 8.3266726846886741E-16,
+          "eigenvectorSubspaceError": 8.69344136560753E-8,
+          "relativeResidual": 1.279250941248052E-7,
+          "orthogonalityError": 4.9063627165230268E-15
+        },
+        "delta": {
+          "iterations": -5,
+          "solverSeconds": -46.843258030059815,
+          "maxEigenvalueError": 6.591949208711867E-16,
+          "eigenvectorSubspaceError": 1.2928926369062703E-9,
+          "relativeResidual": 3.1937528583108479E-8,
+          "orthogonalityError": -1.415107128834275E-15,
+          "failureFlagChanged": false
+        }
+      },
+      "modifiedIncompleteCholesky": {
+        "status": "matched",
+        "current": {
+          "iterationLimit": 400,
+          "iterations": 97,
+          "failureFlag": 0,
+          "solverSeconds": 16.9687886,
+          "maxEigenvalueError": 1.2073675392798577E-15,
+          "eigenvectorSubspaceError": 1.137771534576417E-7,
+          "relativeResidual": 2.09914790780678E-7,
+          "orthogonalityError": 3.4872531043833141E-15
+        },
+        "reference": {
+          "iterationLimit": 400,
+          "iterations": 93,
+          "failureFlag": 0,
+          "solverSeconds": 27.742659091949463,
+          "maxEigenvalueError": 3.3098523921637479E-15,
+          "eigenvectorSubspaceError": 1.13546455616151E-7,
+          "relativeResidual": 3.3399653720880165E-7,
+          "orthogonalityError": 4.6842601348997737E-15
+        },
+        "delta": {
+          "iterations": 4,
+          "solverSeconds": -10.773870491949463,
+          "maxEigenvalueError": -2.1024848528838902E-15,
+          "eigenvectorSubspaceError": 2.306978414907014E-10,
+          "relativeResidual": -1.2408174642812366E-7,
+          "orthogonalityError": -1.1970070305164596E-15,
+          "failureFlagChanged": false
+        }
+      }
+    }
+  ],
+  "referenceOnly": []
+}

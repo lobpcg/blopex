@@ -5,7 +5,7 @@ function [blockVectorX,lambda,varargout] = ...
 % [blockVectorX,lambda]=lobpcg(blockVectorX,operatorA)
 %
 % outputs the array of algebraic smallest eigenvalues lambda and
-% corresponding matrix of orthonormalized eigenvectors blockVectorX of the
+% corresponding matrix of ortho-normalized eigenvectors blockVectorX of the
 % Hermitian (full or sparse) operator operatorA using input matrix
 % blockVectorX as an initial guess, without preconditioning, somewhat
 % similar to
@@ -33,7 +33,7 @@ function [blockVectorX,lambda,varargout] = ...
 % well as a preconditioner, operatorT. The operators operatorB and
 % operatorT must be in addition POSITIVE DEFINITE. To compute the largest
 % eigenpairs of operatorA, simply apply the code to operatorA multiplied by
-% -1. The code does not involve ANY matrix factorizations of operratorA and
+% -1. The code does not involve ANY matrix factorizations of operatorA and
 % operatorB, thus, e.g., it preserves the sparsity and the structure of
 % operatorA and operatorB.
 %
@@ -109,7 +109,7 @@ function [blockVectorX,lambda,varargout] = ...
 %   lambda_all=[lambda_all' lambda']'; pause;
 % end
 %
-% attemps to compute the same 8 eigenpairs by calling the code 4 times
+% attempts to compute the same 8 eigenpairs by calling the code 4 times
 % with blockSize=2 using orthogonalization to the previously founded
 % eigenvectors.
 %
@@ -207,9 +207,9 @@ function [blockVectorX,lambda,varargout] = ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   License:  MIT / Apache-2.0
 %   Copyright (c) 2000-2026 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
-%   $Revision: 4.19 $  $Date: 1-November-2026
+%   $Revision: 4.19 $  $Date: 3-October-2026
 %   This bug-fixing revision is tested in GNU Octave Version: 11.3.0 and
-%   MATLAB with Paralel Computing Toolbx 26.2 (R2026b), but is
+%   MATLAB with Parallel Computing Toolbox 26.2 (R2026b), but is
 %   expected to work on any post 2008 MATLAB and Octave.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Begin
@@ -226,13 +226,13 @@ SYMMETRIC_CONSTRAINTS = 2;
 failureFlag = 1;
 if nargin < 2
     error('BLOPEX:lobpcg:NotEnoughInputs',...
-        strcat('There must be at least 2 input agruments: ',...
+        strcat('There must be at least 2 input arguments: ',...
         'blockVectorX and operatorA'));
 end
 if nargin > 8
     warning('BLOPEX:lobpcg:TooManyInputs',...
-        strcat('There must be at most 8 input agruments ',...
-        'unless arguments are passed to a function'));
+        ['There must be at most 8 input arguments ',...
+        'unless arguments are passed to a function']);
 end
 if ~isnumeric(blockVectorX)
     error('BLOPEX:lobpcg:FirstInputNotNumeric',...
@@ -278,9 +278,11 @@ for j = 1:nargin-2
                 count_string = count_string + 1;
             else
                 operatorT = varargin{j};
+                count_string = count_string + 2;
             end
         elseif count_string == 1
             operatorT = varargin{j};
+            count_string = count_string + 1;
         else
             warning('BLOPEX:lobpcg:TooManyStringFunctionHandleInputs',...
                 'Too many string or FunctionHandle input arguments');
@@ -314,11 +316,11 @@ blockVectorX = mygather(blockVectorX);
 blockVectorY = mygather(blockVectorY);
 if verbosityLevel
     if issparse(blockVectorX)
-        fprintf(['The sparse initial guess with %i colunms '...
-            'and %i raws is detected  \n'],n,blockSize);
+        fprintf(['The sparse initial guess with %i rows '...
+            'and %i columns is detected  \n'],n,blockSize);
     else
-        fprintf(['The full initial guess with %i colunms '...
-            'and %i raws is detected  \n'],n,blockSize);
+        fprintf(['The full initial guess with %i rows '...
+            'and %i columns is detected  \n'],n,blockSize);
     end
     if ischar(operatorA)
         fprintf('The main operator is detected as an M-function %s \n',...
@@ -340,11 +342,11 @@ if verbosityLevel
         fprintf(['The second operator of the generalized eigenproblem \n'...
             'is detected as an M-function %s \n'],func2str(operatorB));
     elseif issparse(operatorB)
-        fprintf(strcat('The second operator of the generalized',...
-            'eigenproblem \n is detected as a sparse matrix \n'));
+        fprintf(['The second operator of the generalized ',...
+            'eigenproblem \n is detected as a sparse matrix \n']);
     else
-        fprintf(strcat('The second operator of the generalized',...
-            'eigenproblem \n is detected as a full matrix \n'));
+        fprintf(['The second operator of the generalized ',...
+            'eigenproblem \n is detected as a full matrix \n']);
     end
     if isempty(operatorT)
         fprintf('No preconditioner is detected \n');
@@ -364,13 +366,13 @@ if verbosityLevel
     end
     if issparse(blockVectorY) ~= issparse(blockVectorX)
         warning('BLOPEX:lobpcg:SparsityInconsistent',...
-            strcat('The sparsity formats of the initial guess and ',...
-            'the constraints are inconsistent'));
+            ['The sparsity formats of the initial guess and ',...
+            'the constraints are inconsistent']);
     end
 end
 % Set defaults
 if isempty(residualTolerance)
-    residualTolerance = sqrt(eps)*n;
+    residualTolerance = sqrt(eps(class(blockVectorX)))*n;
 end
 if isempty(maxIterations)
     maxIterations = min(n,20);
@@ -547,23 +549,35 @@ for iterationNumber=1:maxIterations
     %Computing all residuals
     if isempty(operatorB)
         %         if blockSize > 1
-        %             blockVectorR = blockVectorAX - ...
+        %     
         %                 blockVectorX*spdiags(lambda,0,blockSize,blockSize);
         %         else
         %             blockVectorR = blockVectorAX - blockVectorX*lambda;
         %             %to make blockVectorR full when lambda is just a scalar
         %         end
-        blockVectorR = blockVectorAX - ...
-            bsxfun(@times,blockVectorX,lambda');
+
+        if issparse(blockVectorX) && isa(lambda,'double')
+            blockVectorR = blockVectorAX - ...
+                blockVectorX*spdiags(lambda,0,blockSize,blockSize);
+        else
+            blockVectorR = blockVectorAX - ...
+                bsxfun(@times,blockVectorX,lambda');
+        end
     else
         %        if blockSize > 1
-        %             blockVectorR = blockVectorAX - ...
+        %     
         %                 blockVectorBX*spdiags(lambda,0,blockSize,blockSize);
         %        else
         %             blockVectorR = blockVectorAX - blockVectorBX*lambda;
         %        end
-        blockVectorR = blockVectorAX - ...
-            bsxfun(@times,blockVectorBX,lambda');
+
+        if issparse(blockVectorX) && isa(lambda,'double')
+            blockVectorR = blockVectorAX - ...
+                blockVectorBX*spdiags(lambda,0,blockSize,blockSize);
+        else
+            blockVectorR = blockVectorAX - ...
+                bsxfun(@times,blockVectorBX,lambda');
+        end
     end
     
     %Satisfying the constraints for the active residulas
@@ -598,7 +612,7 @@ for iterationNumber=1:maxIterations
     %Applying the preconditioner operatorT to the active residulas
     if ~isempty(operatorT)
         blockVectorR(:,activeMask) = ...
-            feval(operatorT,blockVectorR(:,activeMask));
+            mygather(feval(operatorT,blockVectorR(:,activeMask)));
     end
     
     if constraintStyle == CONVENTIONAL_CONSTRAINTS
@@ -670,7 +684,7 @@ for iterationNumber=1:maxIterations
             mygather(operatorA*blockVectorR(:,activeMask));
     else
         blockVectorAR(:,activeMask) = ...
-            feval(operatorA,blockVectorR(:,activeMask));
+            mygather(feval(operatorA,blockVectorR(:,activeMask)));
     end
     
     condestGmean = mean(condestGhistory(max(1,iterationNumber-10-...
@@ -686,7 +700,7 @@ for iterationNumber=1:maxIterations
     else                               % double everything
         myeps = eps;
     end
-    if  mygather(residualNorms) > myeps^0.6
+    if  any(mygather(residualNorms) > myeps^0.6)
         explicitGramFlag = 0;
     else
         explicitGramFlag = 1;  %suggested by Garrett Moran, private
@@ -951,7 +965,7 @@ end
 %Computing all residuals
 if isempty(operatorB)
     %     if blockSize > 1
-    %         blockVectorR = blockVectorAX - ...
+    % 
     %             blockVectorX*spdiags(lambda,0,blockSize,blockSize);
     %     else
     %         blockVectorR = blockVectorAX - blockVectorX*lambda;

@@ -44,7 +44,7 @@
 %   License:  MIT / Apache-2.0
 %   Copyright (c) 2026 A.V. Knyazev, Andrew.Knyazev@ucdenver.edu
 %   $Revision: 1.0 $  $Date: 1-November-2026
-%   Tested in MATLAB Paralel Computing Toolbx 26.2 (R2026b)
+%   Tested in MATLAB Parallel Computing Toolbox 26.2 (R2026b) and GNU Octave 10.2.0
 function test_lobpcg_input_formats
 parameters = struct('matrixSize', 30, 'blockSize', 2, ...
     'constraintCount', 1, 'generalizedScale', 2, ...
@@ -96,6 +96,8 @@ for precisionIndex = 1:numel(precisionNames)
     precisionName = precisionNames{precisionIndex};
     inputs = make_inputs(precisionName, initialReal, initialImaginary, parameters);
     comparisonTolerance = tolerance_for(precisionName, parameters);
+    isOctaveSingle = strcmp(precisionName, 'single') && ...
+        exist('OCTAVE_VERSION', 'builtin') ~= 0;
 
     resultIndex = resultIndex + 1;
     results(resultIndex) = run_case([precisionName ' full numeric inputs'], ...
@@ -105,20 +107,31 @@ for precisionIndex = 1:numel(precisionNames)
 
     for fieldIndex = 1:numel(sparseFields)
         fieldName = sparseFields{fieldIndex};
-        candidate = sparse_input(inputs, fieldName);
         resultIndex = resultIndex + 1;
-        results(resultIndex) = run_case(sprintf('%s sparse %s', ...
-            precisionName, fieldName), @() assert_consistent( ...
-            solve_lobpcg(candidate, candidate.operatorA, candidate.operatorB, ...
-            candidate.preconditioner), reference, comparisonTolerance));
+        if isOctaveSingle
+            results(resultIndex) = skip_case(sprintf('%s sparse %s', ...
+                precisionName, fieldName), ...
+                'Octave does not support sparse single matrices');
+        else
+            candidate = sparse_input(inputs, fieldName);
+            results(resultIndex) = run_case(sprintf('%s sparse %s', ...
+                precisionName, fieldName), @() assert_consistent( ...
+                solve_lobpcg(candidate, candidate.operatorA, candidate.operatorB, ...
+                candidate.preconditioner), reference, comparisonTolerance));
+        end
     end
 
-    candidate = sparse_all_numeric_inputs(inputs);
     resultIndex = resultIndex + 1;
-    results(resultIndex) = run_case([precisionName ' all sparse numeric inputs'], ...
-        @() assert_consistent(solve_lobpcg(candidate, candidate.operatorA, ...
-        candidate.operatorB, candidate.preconditioner), ...
-        reference, comparisonTolerance));
+    if isOctaveSingle
+        results(resultIndex) = skip_case([precisionName ' all sparse numeric inputs'], ...
+            'Octave does not support sparse single matrices');
+    else
+        candidate = sparse_all_numeric_inputs(inputs);
+        results(resultIndex) = run_case([precisionName ' all sparse numeric inputs'], ...
+            @() assert_consistent(solve_lobpcg(candidate, candidate.operatorA, ...
+            candidate.operatorB, candidate.preconditioner), ...
+            reference, comparisonTolerance));
+    end
     resultIndex = resultIndex + 1;
     results(resultIndex) = run_case([precisionName ' function-handle operators'], ...
         @() assert_consistent(solve_lobpcg(inputs, ...
@@ -154,9 +167,18 @@ function result = run_case(name, testFunction)
         result.passed = true;
         fprintf('PASS: %s\n', name);
     catch exception
-        result.message = getReport(exception, 'extended', 'hyperlinks', 'off');
+        if isa(exception, 'MException')
+            result.message = getReport(exception, 'extended', 'hyperlinks', 'off');
+        else
+            result.message = exception.message;
+        end
         fprintf('FAIL: %s\n', name);
     end
+end
+
+function result = skip_case(name, reason)
+    result = struct('name', name, 'passed', true, 'message', '');
+    fprintf('SKIP: %s (%s)\n', name, reason);
 end
 
 function inputs = make_inputs(precisionName, initialReal, initialImaginary, parameters)
@@ -227,8 +249,8 @@ function result = solve_lobpcg(inputs, operatorA, operatorB, operatorT)
 end
 
 function result = normalize_result(vectors, values, failureFlag, inputs)
-    values = gather(values);
-    vectors = gather(vectors);
+    values = mygather(values);
+    vectors = mygather(vectors);
     expectedVectorSize = size(inputs.initialVectors);
     assert(isequal(size(vectors), expectedVectorSize), ...
         'Expected eigenvector size %s, got %s.', ...
@@ -259,8 +281,8 @@ function result = normalize_result(vectors, values, failureFlag, inputs)
                 exp(-1i * angle(vectors(pivot, vectorIndex)));
         end
     end
-    operatorA = gather(inputs.operatorA);
-    operatorB = gather(inputs.operatorB);
+    operatorA = mygather(inputs.operatorA);
+    operatorB = mygather(inputs.operatorB);
     operatorAVectors = operatorA * vectors;
     operatorBVectors = operatorB * vectors;
     % bsxfun preserves compatibility with MATLAB releases before implicit expansion.
@@ -274,6 +296,12 @@ function result = normalize_result(vectors, values, failureFlag, inputs)
         'relativeResidualNorm', double(relativeResidualNorm), ...
         'relativeResidualToleranceFactor', ...
         inputs.relativeResidualToleranceFactor);
+end
+
+function value = mygather(value)
+    if exist('gather', 'file') == 2 || exist('gather', 'builtin') == 5
+        value = gather(value);
+    end
 end
 
 function assert_expected_solution(result, parameters)
@@ -359,7 +387,8 @@ function output = format_preconditioner(input)
 end
 
 function available = has_parallel_support
-    available = license('test', 'Distrib_Computing_Toolbox') && ...
+    available = exist('OCTAVE_VERSION', 'builtin') == 0 && ...
+        license('test', 'Distrib_Computing_Toolbox') && ...
         exist('codistributed', 'class') == 8;
 end
 

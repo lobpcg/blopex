@@ -2,7 +2,7 @@
 %
 % Run test_lobpcg() from this folder. It uses core MATLAB functionality and
 % raises an error when any test fails.
-% Tested in MATLAB Version: 26.2.0.3386108 (R2026b)
+% Tested in MATLAB Version: 26.2.0.3386108 (R2026b) and GNU Octave 10.2.0
 function test_lobpcg
     C = struct('matrixSize', 30, 'blockSize', 2, ...
         'standardTolerance', 1e-8, 'standardMaxIterations', 80, ...
@@ -119,7 +119,11 @@ function result = run_case(name, test_function)
         result.passed = true;
         fprintf('PASS: %s\n', name);
     catch exception
-        result.message = getReport(exception, 'extended', 'hyperlinks', 'off');
+        if isa(exception, 'MException')
+            result.message = getReport(exception, 'extended', 'hyperlinks', 'off');
+        else
+            result.message = exception.message;
+        end
         fprintf('FAIL: %s\n', name);
     end
 end
@@ -135,27 +139,31 @@ function test_non_numeric_vectors
 end
 
 function test_fat_vectors
-    expect_error(@() lobpcg(randn(C.fatVectorRows, C.fatVectorColumns), ...
-        eye(C.fatVectorRows)), ...
+    rows = C.fatVectorRows;
+    columns = C.fatVectorColumns;
+    expect_error(@() lobpcg(randn(rows, columns), eye(rows)), ...
         'BLOPEX:lobpcg:FirstInputFat');
 end
 
 function test_small_matrix
-    expect_error(@() lobpcg(randn(C.smallMatrixSize, 1), ...
-        eye(C.smallMatrixSize)), ...
+    matrixSize = C.smallMatrixSize;
+    expect_error(@() lobpcg(randn(matrixSize, 1), eye(matrixSize)), ...
         'BLOPEX:lobpcg:MatrixTooSmall');
 end
 
 function test_small_block_problem
-    expect_error(@() lobpcg(randn(C.smallProblemSize, C.smallProblemBlockSize), ...
-        diag(1:C.smallProblemSize)), ...
+    problemSize = C.smallProblemSize;
+    problemBlockSize = C.smallProblemBlockSize;
+    expect_error(@() lobpcg(randn(problemSize, problemBlockSize), ...
+        diag(1:problemSize)), ...
         'BLOPEX:lobpcg:MatrixTooSmall');
 end
 
 function test_duplicate_matrix_input
     [initialVectors, operatorA] = makeProblemData();
+    identityMatrix = eye(C.matrixSize);
     expect_error(@() lobpcg(initialVectors, operatorA, ...
-        eye(C.matrixSize), eye(C.matrixSize)), ...
+        identityMatrix, identityMatrix), ...
         'BLOPEX:lobpcg:TooManyMatrixInputs');
 end
 
@@ -168,27 +176,31 @@ end
 
 function test_unrecognized_input
     [initialVectors, operatorA] = makeProblemData();
-    expect_error(@() lobpcg(initialVectors, operatorA, ...
-        ones(C.blockSize, C.blockSize + 1)), ...
+    badInput = ones(C.blockSize, C.blockSize + 1);
+    expect_error(@() lobpcg(initialVectors, operatorA, badInput), ...
         'BLOPEX:lobpcg:UnrecognizedInput');
 end
 
 function test_unrecognized_empty_input
     [initialVectors, operatorA] = makeProblemData();
-    expect_error(@() lobpcg(initialVectors, operatorA, eye(C.matrixSize), ...
-        eye(C.matrixSize, 1), []), ...
+    operatorB = eye(C.matrixSize);
+    constraints = eye(C.matrixSize, 1);
+    expect_error(@() lobpcg(initialVectors, operatorA, operatorB, ...
+        constraints, []), ...
         'BLOPEX:lobpcg:UnrecognizedEmptyInput');
 end
 
 function test_constraints_too_tight
     [initialVectors, operatorA] = makeProblemData();
-    expect_error(@() lobpcg(initialVectors(:, 1), operatorA, initialVectors(:, 1)), ...
+    firstVector = initialVectors(:, 1);
+    expect_error(@() lobpcg(firstVector, operatorA, firstVector), ...
         'BLOPEX:lobpcg:ConstraintsTooTight');
 end
 
 function test_non_positive_definite_b
     [initialVectors, operatorA] = makeProblemData();
-    expect_error(@() lobpcg(initialVectors, operatorA, -eye(C.matrixSize)), ...
+    negativeB = -eye(C.matrixSize);
+    expect_error(@() lobpcg(initialVectors, operatorA, negativeB), ...
         'BLOPEX:lobpcg:InitialNotFullRank');
 end
 
@@ -200,15 +212,21 @@ end
 
 function test_too_many_scalars_warning
     [initialVectors, operatorA] = makeProblemData();
-    assertWarningId(@() lobpcg(initialVectors, operatorA, C.warningTolerance, ...
-        C.shortMaxIterations, C.quiet, 42), 'BLOPEX:lobpcg:TooManyScalarInputs');
+    tolerance = C.warningTolerance;
+    maxIterations = C.shortMaxIterations;
+    quiet = C.quiet;
+    assertWarningId(@() lobpcg(initialVectors, operatorA, tolerance, ...
+        maxIterations, quiet, 42), 'BLOPEX:lobpcg:TooManyScalarInputs');
 end
 
 function test_too_many_handles_warning
     [initialVectors, operatorA] = makeProblemData();
-    assertWarningId(@() lobpcg(initialVectors, operatorA, [], ...
-        @diagonal_preconditioner, [], @diagonal_preconditioner, ...
-        C.warningTolerance, C.shortMaxIterations, C.quiet), ...
+    tolerance = C.warningTolerance;
+    maxIterations = C.shortMaxIterations;
+    quiet = C.quiet;
+    assertWarningId(@() lobpcg(initialVectors, operatorA, @test_b_operator, ...
+        @diagonal_preconditioner, @diagonal_preconditioner, ...
+        tolerance, maxIterations, quiet), ...
         'BLOPEX:lobpcg:TooManyStringFunctionHandleInputs');
 end
 
@@ -224,31 +242,35 @@ end
 
 function test_verbosity_reporting
     [initialVectors, operatorA] = makeProblemData();
-    constraints = eye(C.matrixSize, 1);
+    matrixSize = C.matrixSize;
+    tolerance = C.warningTolerance;
+    maxIterations = C.shortMaxIterations;
+    constraints = eye(matrixSize, 1);
     assert(~isempty(initialVectors) && ~isempty(operatorA) && ~isempty(constraints));
 
     handleOutput = captureSolverOutput(@() lobpcg(initialVectors, ...
         @test_operator, @test_b_operator, @diagonal_preconditioner, ...
-        constraints, C.warningTolerance, C.shortMaxIterations, 1));
-    assert(contains(handleOutput, 'main operator is detected as an M-function'));
-    assert(contains(handleOutput, 'second operator of the generalized eigenproblem'));
-    assert(contains(handleOutput, 'preconditioner is detected as an M-function'));
-    assert(contains(handleOutput, 'full matrix of 1 constraints'));
+        constraints, tolerance, maxIterations, 1));
+    assert(has_substring(handleOutput, 'main operator is detected as an M-function'));
+    assert(has_substring(handleOutput, 'second operator of the generalized eigenproblem'));
+    assert(has_substring(handleOutput, 'preconditioner is detected as an M-function'));
+    assert(has_substring(handleOutput, 'full matrix of 1 constraints'));
 
+    sparseB = sparse(2 * eye(matrixSize));
     sparseOutput = captureSolverOutput(@() lobpcg(sparse(initialVectors), ...
-        sparse(operatorA), sparse(2 * eye(C.matrixSize)), ...
-        sparse(constraints), C.warningTolerance, C.shortMaxIterations, 1));
-    assert(contains(sparseOutput, 'sparse initial guess'));
-    assert(contains(sparseOutput, 'main operator is detected as a sparse matrix'));
-    assert(contains(sparseOutput, 'sparse matrix of 1 constraints'));
+        sparse(operatorA), sparseB, ...
+        sparse(constraints), tolerance, maxIterations, 1));
+    assert(has_substring(sparseOutput, 'sparse initial guess'));
+    assert(has_substring(sparseOutput, 'main operator is detected as a sparse matrix'));
+    assert(has_substring(sparseOutput, 'sparse matrix of 1 constraints'));
 
     characterOutput = captureSolverOutput(@() lobpcg(initialVectors, ...
         'lobpcg_test_operator', 'lobpcg_test_b_operator', ...
-        'lobpcg_test_preconditioner', constraints, C.warningTolerance, ...
-        C.shortMaxIterations, 1));
-    assert(contains(characterOutput, 'lobpcg_test_operator'));
-    assert(contains(characterOutput, 'lobpcg_test_b_operator'));
-    assert(contains(characterOutput, 'lobpcg_test_preconditioner'));
+        'lobpcg_test_preconditioner', constraints, tolerance, ...
+        maxIterations, 1));
+    assert(has_substring(characterOutput, 'lobpcg_test_operator'));
+    assert(has_substring(characterOutput, 'lobpcg_test_b_operator'));
+    assert(has_substring(characterOutput, 'lobpcg_test_preconditioner'));
 end
 
 function test_dense_standard_problem
@@ -436,10 +458,13 @@ end
 
 function test_rank_deficient_residual
     [initialVectors, operatorA] = makeProblemData();
+    tolerance = C.standardTolerance;
+    maxIterations = C.residualRankMaxIterations;
+    quiet = C.quiet;
     % The preconditioner deliberately collapses all residual columns to rank one.
     assertWarningId(@() lobpcg(initialVectors, operatorA, [], ...
-        @rank_deficient_preconditioner, C.standardTolerance, ...
-        C.residualRankMaxIterations, C.quiet), ...
+        @rank_deficient_preconditioner, tolerance, ...
+        maxIterations, quiet), ...
         'BLOPEX:lobpcg:ResidualNotFullRank');
 end
 
@@ -476,8 +501,11 @@ end
 
 function test_sparsity_warning
     [initialVectors, operatorA] = makeProblemData();
+    constraints = eye(C.matrixSize, 1);
+    tolerance = C.standardTolerance;
+    maxIterations = C.shortMaxIterations;
     assertWarningId(@() lobpcg(sparse(initialVectors), operatorA, ...
-        eye(C.matrixSize, 1), C.standardTolerance, C.shortMaxIterations, 1), ...
+        constraints, tolerance, maxIterations, 1), ...
         'BLOPEX:lobpcg:SparsityInconsistent');
 end
 
@@ -505,8 +533,11 @@ function assertWarningId(action, expectedWarningId)
     [previousWarningMessage, previousWarningId] = lastwarn;
     cleanup = onCleanup(@() restore_warning_state(warningState, ...
         previousWarningMessage, previousWarningId));
+    if exist('OCTAVE_VERSION', 'builtin') ~= 0
+        mean(1);
+    end
     warning('on', expectedWarningId);
-    lastwarn('');
+    lastwarn('', '');
     action();
     [~, actualWarningId] = lastwarn;
     assert(strcmp(actualWarningId, expectedWarningId), ...
@@ -524,21 +555,18 @@ function output = captureSolverOutput(action)
     output = evalc('action();');
 end
 
+function tf = has_substring(text, pattern)
+    tf = ~isempty(strfind(text, pattern));
+end
+
 function [eigenvectors, eigenvalues, failureFlag, lambdaHistory, residualHistory] = ...
         solveWithDiagnostics(initialVectors, operatorA)
-    eigenvectors = [];
-    eigenvalues = [];
-    failureFlag = [];
-    lambdaHistory = [];
-    residualHistory = [];
-    capturedOutput = captureSolverOutput(@run_solver);
+    tolerance = C.standardTolerance;
+    maxIterations = C.standardMaxIterations;
+    capturedOutput = evalc(['[eigenvectors, eigenvalues, failureFlag, ', ...
+        'lambdaHistory, residualHistory] = lobpcg(initialVectors, ', ...
+        'operatorA, tolerance, maxIterations, 2);']);
     assert(ischar(capturedOutput));
-
-    function run_solver
-        [eigenvectors, eigenvalues, failureFlag, lambdaHistory, residualHistory] = ...
-            lobpcg(initialVectors, operatorA, C.standardTolerance, ...
-            C.standardMaxIterations, 2);
-    end
 end
 
 function close_new_figures(existingFigures)

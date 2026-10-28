@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 1,
+  "benchmarkName": "3-D Dirichlet Laplacian LOBPCG comparison",
+  "generatedAt": "20261003T144915",
+  "matlabVersion": "10.2.0",
+  "runs": [
+    {
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "boundaryConditions": [
+        "DD",
+        "DD",
+        "DD"
+      ],
+      "matrixOrder": 124950,
+      "nonzeroCount": 859652,
+      "referenceSubspaceCount": 4,
+      "blockSize": 4,
+      "tolerance": 1e-8,
+      "exactEigenvalues": [
+        0.011388777222733777,
+        0.02232213747326073,
+        0.022754415352950417,
+        0.02321283145032124
+      ],
+      "matrixBuildSeconds": 0.05026102066040039,
+      "referenceEigenvectorSeconds": 0.0548551082611084,
+      "preconditionerSetupSeconds": 0.025151968002319337,
+      "unpreconditioned": {
+        "iterationLimit": 2000,
+        "iterations": 377,
+        "failureFlag": 0,
+        "solverSeconds": 28.775813102722169,
+        "maxEigenvalueError": 3.9898639947466565e-16,
+        "eigenvectorSubspaceError": 7.743996869280732e-8,
+        "relativeResidual": 2.895035426251668e-7,
+        "orthogonalityError": 1.8350836375831496e-15
+      },
+      "modifiedIncompleteCholesky": {
+        "iterationLimit": 400,
+        "iterations": 60,
+        "failureFlag": 0,
+        "solverSeconds": 5.467828989028931,
+        "maxEigenvalueError": 0,
+        "eigenvectorSubspaceError": 3.219988404696756e-8,
+        "relativeResidual": 3.499253320859723e-7,
+        "orthogonalityError": 1.228715015522274e-15
+      }
+    },
+    {
+      "gridShape": [
+        49,
+        50,
+        51
+      ],
+      "boundaryConditions": [
+        "DD",
+        "DD",
+        "DD"
+      ],
+      "matrixOrder": 124950,
+      "nonzeroCount": 859652,
+      "referenceSubspaceCount": 19,
+      "blockSize": 19,
+      "tolerance": 1e-8,
+      "exactEigenvalues": [
+        0.011388777222733777,
+        0.02232213747326073,
+        0.022754415352950417,
+        0.02321283145032124,
+        0.03368777560347737,
+        0.03414619170084819,
+        0.034578469580537878,
+        0.04050007177508154,
+        0.04164923532901837,
+        0.042867732621899547,
+        0.04551182983106483,
+        0.05186570990529818,
+        0.052324126002669,
+        0.052582595579545327,
+        0.05347328955660583,
+        0.0538010928724265,
+        0.05423337075211618,
+        0.06368976413288563,
+        0.06440664980713279
+      ],
+      "matrixBuildSeconds": 0.04559493064880371,
+      "referenceEigenvectorSeconds": 0.06973814964294434,
+      "preconditionerSetupSeconds": 0.022515058517456056,
+      "unpreconditioned": {
+        "iterationLimit": 2000,
+        "iterations": 788,
+        "failureFlag": 0,
+        "solverSeconds": 142.88266706466676,
+        "maxEigenvalueError": 8.881784197001253e-16,
+        "eigenvectorSubspaceError": 1.6446606215129859e-7,
+        "relativeResidual": 1.0978895568116513e-7,
+        "orthogonalityError": 5.991716553247894e-15
+      },
+      "modifiedIncompleteCholesky": {
+        "iterationLimit": 400,
+        "iterations": 180,
+        "failureFlag": 0,
+        "solverSeconds": 39.05047297477722,
+        "maxEigenvalueError": 4.163336342344337e-16,
+        "eigenvectorSubspaceError": 1.3768253467138019e-7,
+        "relativeResidual": 1.0301813602506627e-7,
+        "orthogonalityError": 6.071010214787049e-15
+      }
+    },
+    {
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "boundaryConditions": [
+        "DD",
+        "DD",
+        "DD"
+      ],
+      "matrixOrder": 125000,
+      "nonzeroCount": 860000,
+      "referenceSubspaceCount": 4,
+      "blockSize": 4,
+      "tolerance": 1e-8,
+      "exactEigenvalues": [
+        0.01138002757773553,
+        0.022745665707952169,
+        0.02274566570795217,
+        0.02274566570795217
+      ],
+      "matrixBuildSeconds": 0.03948783874511719,
+      "referenceEigenvectorSeconds": 0.052037954330444339,
+      "preconditionerSetupSeconds": 0.041435956954956058,
+      "unpreconditioned": {
+        "iterationLimit": 2000,
+        "iterations": 562,
+        "failureFlag": 0,
+        "solverSeconds": 41.73003792762756,
+        "maxEigenvalueError": 4.544975507059235e-16,
+        "eigenvectorSubspaceError": 8.91767504670294e-8,
+        "relativeResidual": 2.8542046303574546e-7,
+        "orthogonalityError": 1.6892420850393295e-15
+      },
+      "modifiedIncompleteCholesky": {
+        "iterationLimit": 400,
+        "iterations": 67,
+        "failureFlag": 0,
+        "solverSeconds": 5.3128650188446049,
+        "maxEigenvalueError": 0,
+        "eigenvectorSubspaceError": 3.0026663256064637e-8,
+        "relativeResidual": 3.875716092516095e-7,
+        "orthogonalityError": 1.2692317569790466e-15
+      }
+    },
+    {
+      "gridShape": [
+        50,
+        50,
+        50
+      ],
+      "boundaryConditions": [
+        "DD",
+        "DD",
+        "DD"
+      ],
+      "matrixOrder": 125000,
+      "nonzeroCount": 860000,
+      "referenceSubspaceCount": 20,
+      "blockSize": 19,
+      "tolerance": 1e-8,
+      "exactEigenvalues": [
+        0.01138002757773553,
+        0.022745665707952169,
+        0.02274566570795217,
+        0.02274566570795217,
+        0.03411130383816881,
+        0.03411130383816881,
+        0.03411130383816881,
+        0.04164048568402012,
+        0.04164048568402012,
+        0.04164048568402012,
+        0.04547694196838545,
+        0.05300612381423676,
+        0.05300612381423676,
+        0.053006123814236767,
+        0.053006123814236767,
+        0.053006123814236767,
+        0.053006123814236767,
+        0.0643717619444534,
+        0.0643717619444534
+      ],
+      "matrixBuildSeconds": 0.03835916519165039,
+      "referenceEigenvectorSeconds": 0.06779193878173828,
+      "preconditionerSetupSeconds": 0.02259993553161621,
+      "unpreconditioned": {
+        "iterationLimit": 2000,
+        "iterations": 567,
+        "failureFlag": 0,
+        "solverSeconds": 126.18998003005982,
+        "maxEigenvalueError": 8.326672684688674e-16,
+        "eigenvectorSubspaceError": 8.69344136560753e-8,
+        "relativeResidual": 1.279250941248052e-7,
+        "orthogonalityError": 4.906362716523027e-15
+      },
+      "modifiedIncompleteCholesky": {
+        "iterationLimit": 400,
+        "iterations": 93,
+        "failureFlag": 0,
+        "solverSeconds": 27.742659091949464,
+        "maxEigenvalueError": 3.309852392163748e-15,
+        "eigenvectorSubspaceError": 1.13546455616151e-7,
+        "relativeResidual": 3.3399653720880167e-7,
+        "orthogonalityError": 4.684260134899774e-15
+      }
+    }
+  ]
+}
